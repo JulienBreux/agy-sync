@@ -1,0 +1,3 @@
+Task: Full Round-Trip E2E Test
+Summary: Implemented comprehensive multi-machine end-to-end sync test verifying 100% line-by-line transcript fidelity, artifact SHA256 byte parity, metadata synchronization, and loop prevention across multiple participating machines.
+Files: test/e2e_test.go, pkg/syncer/push.go, pkg/syncer/pull.go
