@@ -1,0 +1,3 @@
+Task: Go Module Setup & Project Structure
+Summary: Initialized Go module github.com/julienbreux/ayg-conv-to-fs, created core package directory layout, configured golangci-lint, and added .gitignore.
+Files: go.mod, go.sum, .golangci.yml, .gitignore
