@@ -33,10 +33,10 @@
   - [x] Write tests for incremental push logic (local -> Firestore) (`pkg/syncer/push_test.go`)
   - [x] Implement sync engine push mechanism with state tracking (`pkg/syncer/push.go`)
   - [x] Implement Cobra `push` command (`cmd/push.go`)
-- [ ] Task: Pull Command Implementation (TDD)
-  - [ ] Write tests for reconstructing local `transcript.jsonl` and directory tree from Firestore (`pkg/syncer/pull_test.go`)
-  - [ ] Implement pull engine and local filesystem writer (`pkg/syncer/pull.go`)
-  - [ ] Implement Cobra `pull` command (`cmd/pull.go`)
+- [x] Task: Pull Command Implementation (TDD) [fb82a3f]
+  - [x] Write tests for reconstructing local `transcript.jsonl` and directory tree from Firestore (`pkg/syncer/pull_test.go`)
+  - [x] Implement pull engine and local filesystem writer (`pkg/syncer/pull.go`)
+  - [x] Implement Cobra `pull` command (`cmd/pull.go`)
 - [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
 
 ## Phase 5: Real-time Filesystem Watcher & Remote Listener (`watch`)
