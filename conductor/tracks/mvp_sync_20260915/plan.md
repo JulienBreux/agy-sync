@@ -51,11 +51,11 @@
   - [x] Write tests for watch command daemon lifecycle and signal handling (`cmd/watch_test.go`)
 - [x] Task: Phase Verification & Checkpoint (Refer to workflow.md) [356c93b]
 
-## Phase 6: End-to-End Integration & Hardening
+## Phase 6: End-to-End Integration & Hardening [checkpoint: e1d7f42]
 - [x] Task: Full Round-Trip E2E Test [0ae9f8a]
   - [x] Execute multi-machine simulated sync test using Firestore emulator
   - [x] Verify exact line-by-line fidelity of reconstructed `transcript.jsonl`
 - [x] Task: Observability, Error Handling & CLI Polishing [e1d7f42]
   - [x] Verify `--json` output flag on status and inspect commands
   - [x] Verify standard POSIX exit codes and user remediation hints
-- [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
+- [x] Task: Phase Verification & Checkpoint (Refer to workflow.md) [e1d7f42]
