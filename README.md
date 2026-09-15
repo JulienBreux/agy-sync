@@ -157,25 +157,52 @@ agy-sync pull -c 624296c6-d623-4c39-92d4-3906f8c07140
 
 ---
 
-### `agy-sync watch`
-Runs a persistent daemon monitoring local conversation modifications and remote Firestore changes, synchronizing updates continuously with loop prevention.
+### `agy-sync start`
+Launches the background synchronization daemon. By default, it spawns a detached daemon process monitoring the brain directory and synchronizing with Cloud Firestore.
 
 ```bash
-# Start watch daemon with default intervals
-agy-sync watch
+# Start background daemon detached
+agy-sync start
+
+# Run directly in the foreground
+agy-sync start --foreground
 
 # Custom polling interval and debounce
-agy-sync watch --interval 5s --debounce 500ms
+agy-sync start --interval 5s --debounce 500ms
+
+# Specify custom PID and log paths
+agy-sync start --pid-file ~/.config/agy-sync/agy-sync.pid --log-file ~/.config/agy-sync/daemon.log
 ```
 
 **Flags:**
+- `-f, --foreground`: Run daemon in the foreground of the current terminal session.
 - `--interval <duration>`: Remote Firestore check interval (default: `3s`).
 - `--debounce <duration>`: Filesystem event debounce interval (default: `200ms`).
+- `--pid-file <path>`: Path to PID file (default: `~/.config/agy-sync/agy-sync.pid`).
+- `--log-file <path>`: Path to daemon log file (default: `~/.config/agy-sync/daemon.log`).
+
+---
+
+### `agy-sync stop`
+Gracefully stops the running background daemon using its PID file and POSIX signals.
+
+```bash
+# Stop running daemon
+agy-sync stop
+
+# Custom timeout for graceful shutdown
+agy-sync stop --timeout 10s
+```
+
+**Flags:**
+- `--pid-file <path>`: Path to PID file (default: `~/.config/agy-sync/agy-sync.pid`).
+- `--log-file <path>`: Path to daemon log file (default: `~/.config/agy-sync/daemon.log`).
+- `--timeout <duration>`: Timeout waiting for graceful shutdown before SIGKILL (default: `5s`).
 
 ---
 
 ### `agy-sync status`
-Displays side-by-side synchronization status between your local brain directory and remote Firestore collections.
+Displays side-by-side synchronization status between your local brain directory and remote Firestore collections, along with daemon process health.
 
 ```bash
 # Terminal formatted table
@@ -187,8 +214,19 @@ agy-sync status --json
 
 **Sample Terminal Output:**
 ```
-CONVERSATION ID                          LOCAL STEPS  REMOTE STEPS  LOCAL ARTIFACTS  REMOTE ARTIFACTS  SYNCED
-624296c6-d623-4c39-92d4-3906f8c07140     42           42            5                5                 YES
+==================================================
+          Antigravity Sync Status                
+==================================================
+Daemon Status:   RUNNING (PID: 12345)
+Daemon Log:      /Users/username/.config/agy-sync/daemon.log
+GCP Project ID:  my-gcp-project
+Machine ID:      macbook-pro
+Brain Directory: /Users/username/.gemini/antigravity-cli/brain
+Sessions Found:  1
+
+CONVERSATION ID                        LOCAL STEPS  REMOTE STEPS ARTIFACTS  SYNCED  
+------------------------------------------------------------------------------------
+624296c6-d623-4c39-92d4-3906f8c07140   42           42           5          Yes     
 ```
 
 ---
