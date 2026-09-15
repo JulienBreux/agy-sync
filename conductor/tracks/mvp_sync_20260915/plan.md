@@ -55,7 +55,7 @@
 - [x] Task: Full Round-Trip E2E Test [0ae9f8a]
   - [x] Execute multi-machine simulated sync test using Firestore emulator
   - [x] Verify exact line-by-line fidelity of reconstructed `transcript.jsonl`
-- [ ] Task: Observability, Error Handling & CLI Polishing
-  - [ ] Verify `--json` output flag on status and inspect commands
-  - [ ] Verify standard POSIX exit codes and user remediation hints
+- [x] Task: Observability, Error Handling & CLI Polishing [e1d7f42]
+  - [x] Verify `--json` output flag on status and inspect commands
+  - [x] Verify standard POSIX exit codes and user remediation hints
 - [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
