@@ -28,7 +28,7 @@
   - [x] Implement remote step retrieval and query methods (`pkg/firestore/fetch.go`)
 - [x] Task: Phase Verification & Checkpoint (Refer to workflow.md) [2330823]
 
-## Phase 4: Synchronization Commands (`push` & `pull`)
+## Phase 4: Synchronization Commands (`push` & `pull`) [checkpoint: fb82a3f]
 - [x] Task: Push Command Implementation (TDD) [99c9a17]
   - [x] Write tests for incremental push logic (local -> Firestore) (`pkg/syncer/push_test.go`)
   - [x] Implement sync engine push mechanism with state tracking (`pkg/syncer/push.go`)
@@ -37,7 +37,7 @@
   - [x] Write tests for reconstructing local `transcript.jsonl` and directory tree from Firestore (`pkg/syncer/pull_test.go`)
   - [x] Implement pull engine and local filesystem writer (`pkg/syncer/pull.go`)
   - [x] Implement Cobra `pull` command (`cmd/pull.go`)
-- [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
+- [x] Task: Phase Verification & Checkpoint (Refer to workflow.md) [fb82a3f]
 
 ## Phase 5: Real-time Filesystem Watcher & Remote Listener (`watch`)
 - [ ] Task: Local Filesystem Event Watcher (TDD)
