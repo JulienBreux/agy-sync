@@ -13,3 +13,8 @@
 
 - [ ] **Track: Split watch command to start, stop and status commands to manage the agy-sync daemon properly**
   *Link: [./tracks/daemon_commands_20260915/index.md](./tracks/daemon_commands_20260915/index.md)*
+
+---
+
+- [ ] **Track: Import & adapt repository automation, CI/CD, and community assets from run-cli**
+  *Link: [./tracks/repo_infrastructure_20260915/index.md](./tracks/repo_infrastructure_20260915/index.md)*

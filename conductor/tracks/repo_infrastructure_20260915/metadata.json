@@ -1,0 +1,8 @@
+{
+  "track_id": "repo_infrastructure_20260915",
+  "type": "chore",
+  "status": "new",
+  "created_at": "2026-09-15T15:47:10Z",
+  "updated_at": "2026-09-15T15:47:10Z",
+  "description": "Import & adapt repository automation, CI/CD, and community assets from run-cli"
+}
