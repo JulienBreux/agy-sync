@@ -16,10 +16,11 @@
   - [x] Remove `cmd/watch.go` and `cmd/watch_test.go`, unbinding from `cmd/root.go`
 - [x] Task: Conductor - User Manual Verification 'Phase 2: CLI Commands and Watch Removal' (Protocol in workflow.md) [87a352f]
 
-## Phase 3: End-to-End Integration, Documentation & Verification
+## Phase 3: End-to-End Integration, Documentation & Verification [checkpoint: efa5453]
 - [x] Task: E2E Integration Test for Daemon Lifecycle [efa5453]
   - [x] Implement lifecycle integration test in `cmd/lifecycle_test.go` (`start` -> check running -> `status` -> `stop` -> check dead)
 - [x] Task: Update Project Documentation [efa5453]
   - [x] Update `README.md` to document `start`, `stop`, enhanced `status`, and remove references to `watch`
   - [x] Verify `golangci-lint run ./...` and `CI=true go test -v -cover ./...`
-- [ ] Task: Conductor - User Manual Verification 'Phase 3: End-to-End Integration, Documentation & Verification' (Protocol in workflow.md)
+- [x] Task: Conductor - User Manual Verification 'Phase 3: End-to-End Integration, Documentation & Verification' (Protocol in workflow.md) [efa5453]
+
