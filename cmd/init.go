@@ -1,0 +1,72 @@
+package cmd
+
+import (
+	"fmt"
+	"strings"
+
+	"github.com/spf13/cobra"
+
+	"github.com/julienbreux/ayg-conv-to-fs/pkg/config"
+)
+
+func newInitCommand() *cobra.Command {
+	var (
+		projectID  string
+		databaseID string
+		machineID  string
+		brainDir   string
+	)
+
+	cmd := &cobra.Command{
+		Use:   "init",
+		Short: "Initialize configuration for ayg-sync",
+		Long:  "Creates or updates the local configuration file with Google Cloud Project and Antigravity directories.",
+		RunE: func(cmd *cobra.Command, args []string) error {
+			if strings.TrimSpace(projectID) == "" {
+				return fmt.Errorf("project-id is required: specify with --project-id")
+			}
+
+			cfg := config.DefaultConfig()
+			cfg.ProjectID = projectID
+
+			if strings.TrimSpace(databaseID) != "" {
+				cfg.DatabaseID = databaseID
+			}
+			if strings.TrimSpace(machineID) != "" {
+				cfg.MachineID = machineID
+			}
+			if strings.TrimSpace(brainDir) != "" {
+				cfg.BrainDir = brainDir
+			}
+
+			if err := cfg.Validate(); err != nil {
+				return fmt.Errorf("configuration validation failed: %w", err)
+			}
+
+			configTarget := globalOpts.ConfigFile
+			if err := config.SaveConfig(configTarget, cfg); err != nil {
+				return fmt.Errorf("failed to save configuration: %w", err)
+			}
+
+			if globalOpts.JSON {
+				fmt.Printf(`{"status":"success","config_file":"%s","project_id":"%s","machine_id":"%s"}`+"\n",
+					configTarget, cfg.ProjectID, cfg.MachineID)
+			} else {
+				cmd.Printf("Configuration successfully written to %s\n", configTarget)
+				cmd.Printf("  Project ID: %s\n", cfg.ProjectID)
+				cmd.Printf("  Database ID: %s\n", cfg.DatabaseID)
+				cmd.Printf("  Machine ID: %s\n", cfg.MachineID)
+				cmd.Printf("  Brain Dir: %s\n", cfg.BrainDir)
+			}
+
+			return nil
+		},
+	}
+
+	cmd.Flags().StringVar(&projectID, "project-id", "", "Google Cloud Project ID (required)")
+	cmd.Flags().StringVar(&databaseID, "database-id", "(default)", "Firestore Database ID")
+	cmd.Flags().StringVar(&machineID, "machine-id", config.DefaultMachineID(), "Unique Machine Identifier")
+	cmd.Flags().StringVar(&brainDir, "brain-dir", config.DefaultBrainDir(), "Path to Antigravity brain directory")
+
+	return cmd
+}
