@@ -1,0 +1,3 @@
+Task: Transcript Parsing & Step Extraction (TDD)
+Summary: Implemented Antigravity JSONL transcript scanner with offset tracking, error resilience, JSONL serialization, and core domain models (Step, ToolCall, Conversation, Artifact). Added comprehensive tests with 88% coverage.
+Files: pkg/models/models.go, pkg/models/models_test.go, pkg/parser/parser.go, pkg/parser/parser_test.go
