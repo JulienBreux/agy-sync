@@ -1,0 +1,3 @@
+Task: Document Vision, Badges, and High-Level Architecture
+Summary: Authored README.md header with status badges, high-level value proposition, Mermaid sequence diagram for multi-machine synchronization, Mermaid flowchart for local watcher ingestion, and Firestore subcollection schema specification.
+Files: README.md
