@@ -1,10 +1,10 @@
 # Implementation Plan - Split watch command into start, stop, and enhanced status daemon commands
 
-## Phase 1: Daemon Controller Package (`pkg/daemon`)
+## Phase 1: Daemon Controller Package (`pkg/daemon`) [checkpoint: bea18e2]
 - [x] Task: TDD - Daemon Controller Logic [bea18e2]
   - [x] Write unit tests for PID file read/write, stale PID detection, and process liveness checking in `pkg/daemon/daemon_test.go`
   - [x] Implement `Daemon` manager in `pkg/daemon/daemon.go` with PID file tracking, log redirection, and SIGTERM process termination
-- [ ] Task: Conductor - User Manual Verification 'Phase 1: Daemon Controller Package' (Protocol in workflow.md)
+- [x] Task: Conductor - User Manual Verification 'Phase 1: Daemon Controller Package' (Protocol in workflow.md) [bea18e2]
 
 ## Phase 2: CLI Commands (`start`, `stop`, enhanced `status`) and Removal of `watch`
 - [ ] Task: TDD - `start` and `stop` CLI Commands
