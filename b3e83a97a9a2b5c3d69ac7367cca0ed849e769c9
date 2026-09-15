@@ -1,0 +1,3 @@
+Task: Firestore Snapshot Listener (TDD)
+Summary: Implemented remote conversation change polling and loop prevention mechanism ensuring changes made by the local machine are never echoed back, plus repository ListConversations methods, with 80.7% statement coverage.
+Files: pkg/syncer/listener.go, pkg/syncer/listener_test.go, pkg/firestore/repository.go, pkg/firestore/memory.go, pkg/firestore/client.go, pkg/firestore/client_test.go
