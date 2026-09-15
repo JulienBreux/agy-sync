@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"os"
 	"os/signal"
+	"syscall"
 
-	"golang.org/x/sys/unix"
 	"github.com/spf13/cobra"
 
 	"github.com/julienbreux/agy-sync/internal/logger"
@@ -88,7 +88,7 @@ func Execute() {
 }
 
 func run() error {
-	ctx, cancel := signal.NotifyContext(context.Background(), os.Interrupt, unix.SIGTERM)
+	ctx, cancel := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer cancel()
 
 	rootCmd := NewRootCommand()

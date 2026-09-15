@@ -10,10 +10,7 @@ import (
 	"path/filepath"
 	"strconv"
 	"strings"
-	"syscall"
 	"time"
-
-	"golang.org/x/sys/unix"
 )
 
 var (
@@ -193,9 +190,7 @@ func (m *Manager) StartBackground(binPath string, args []string) (int, error) {
 	cmd.Stdin = nil
 
 	// Set process group / detachment where possible
-	cmd.SysProcAttr = &syscall.SysProcAttr{
-		Setpgid: true,
-	}
+	setSysProcAttr(cmd)
 
 	if err := cmd.Start(); err != nil {
 		_ = logF.Close()
@@ -213,8 +208,8 @@ func (m *Manager) StartBackground(binPath string, args []string) (int, error) {
 	return childPID, nil
 }
 
-// Stop sends SIGTERM to the running daemon and waits up to timeout for it to exit gracefully.
-// If the process remains running after timeout, SIGKILL is issued.
+// Stop sends termination signal to the running daemon and waits up to timeout for it to exit gracefully.
+// If the process remains running after timeout, killProcess is issued.
 func (m *Manager) Stop(timeout time.Duration) error {
 	running, pid, err := m.IsRunning()
 	if err != nil {
@@ -230,13 +225,13 @@ func (m *Manager) Stop(timeout time.Duration) error {
 		return nil //nolint:nilerr // Process not found means already stopped
 	}
 
-	// Send SIGTERM
-	if err := proc.Signal(unix.SIGTERM); err != nil {
-		if errors.Is(err, os.ErrProcessDone) || errors.Is(err, unix.ESRCH) {
+	// Send termination signal
+	if err := terminateProcess(proc); err != nil {
+		if errors.Is(err, os.ErrProcessDone) || isProcessNotExist(err) {
 			_ = m.RemovePID()
 			return nil
 		}
-		return fmt.Errorf("failed to send SIGTERM to PID %d: %w", pid, err)
+		return fmt.Errorf("failed to terminate PID %d: %w", pid, err)
 	}
 
 	// Wait up to timeout for process to terminate
@@ -249,9 +244,9 @@ func (m *Manager) Stop(timeout time.Duration) error {
 		time.Sleep(100 * time.Millisecond)
 	}
 
-	// If still alive after timeout, send SIGKILL
+	// If still alive after timeout, forcefully kill process
 	if isProcessAlive(pid) {
-		_ = proc.Signal(unix.SIGKILL)
+		_ = killProcess(proc)
 		time.Sleep(100 * time.Millisecond)
 	}
 
@@ -269,23 +264,4 @@ func (m *Manager) Status() (State, int, string, error) {
 		return StateRunning, pid, m.LogFile, nil
 	}
 	return StateStopped, 0, m.LogFile, nil
-}
-
-// isProcessAlive returns true if a process with the given PID is running.
-func isProcessAlive(pid int) bool {
-	if pid <= 0 {
-		return false
-	}
-	proc, err := os.FindProcess(pid)
-	if err != nil {
-		return false
-	}
-	err = proc.Signal(unix.Signal(0))
-	if err == nil {
-		return true
-	}
-	if errors.Is(err, unix.EPERM) {
-		return true
-	}
-	return false
 }
