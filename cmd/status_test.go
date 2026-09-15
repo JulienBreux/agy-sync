@@ -73,6 +73,18 @@ machine_id: "status-machine-1"
 	assert.Contains(t, bufJSON.String(), `"conversations_count": 1`)
 	assert.Contains(t, bufJSON.String(), `"daemon": {`)
 	assert.Contains(t, bufJSON.String(), `"state": "STOPPED"`)
+
+	// Single conversation filter
+	rootFilter := cmd.NewRootCommand()
+	bufFilter := new(bytes.Buffer)
+	rootFilter.SetOut(bufFilter)
+	rootFilter.SetErr(bufFilter)
+
+	rootFilter.SetArgs([]string{"status", convID, "--config", configPath})
+	err = rootFilter.Execute()
+	require.NoError(t, err)
+	assert.Contains(t, bufFilter.String(), convID)
+	assert.Contains(t, bufFilter.String(), "Sessions Found:  1")
 }
 
 func TestStatusCommand_MissingConfig(t *testing.T) {

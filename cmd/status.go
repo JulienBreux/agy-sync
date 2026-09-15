@@ -1,15 +1,18 @@
 package cmd
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"strings"
+	"time"
 
 	"github.com/spf13/cobra"
 
 	"github.com/julienbreux/agy-sync/pkg/config"
 	"github.com/julienbreux/agy-sync/pkg/daemon"
 	"github.com/julienbreux/agy-sync/pkg/discovery"
+	"github.com/julienbreux/agy-sync/pkg/models"
 	"github.com/julienbreux/agy-sync/pkg/parser"
 )
 
@@ -41,19 +44,25 @@ type StatusReport struct {
 }
 
 type statusOptions struct {
-	pidFile string
-	logFile string
+	conversationID string
+	pidFile        string
+	logFile        string
 }
 
 func newStatusCommand() *cobra.Command {
 	opts := statusOptions{}
 
 	statusCmd := &cobra.Command{
-		Use:   "status",
+		Use:   "status [conversation-id]",
 		Short: "Display sync status between local brain and remote Firestore",
 		Long: `Inspects local Antigravity conversation sessions, compares their step and
 artifact counts against remote Firestore metadata, and reports daemon process health.`,
+		Args: cobra.MaximumNArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
+			if len(args) > 0 {
+				opts.conversationID = args[0]
+			}
+
 			cfg, err := config.LoadConfig(globalOpts.ConfigFile)
 			if err != nil {
 				return fmt.Errorf("failed to load configuration: %w (remediation: run 'agy-sync init' or specify --config)", err)
@@ -77,9 +86,37 @@ artifact counts against remote Firestore metadata, and reports daemon process he
 				_ = client.Close()
 			}()
 
-			discovered, err := discovery.DiscoverConversations(cfg.BrainDir)
-			if err != nil {
-				return fmt.Errorf("failed scanning brain directory: %w", err)
+			var discovered []discovery.DiscoveredConversation
+			if opts.conversationID != "" {
+				single, err := discovery.DiscoverConversation(cfg.BrainDir, opts.conversationID)
+				if err != nil {
+					return fmt.Errorf("failed locating conversation %s: %w", opts.conversationID, err)
+				}
+				discovered = []discovery.DiscoveredConversation{*single}
+			} else {
+				discovered, err = discovery.DiscoverConversations(cfg.BrainDir)
+				if err != nil {
+					return fmt.Errorf("failed scanning brain directory: %w", err)
+				}
+			}
+
+			// Batch fetch remote conversations to avoid N sequential round-trips
+			remoteMap := make(map[string]*models.Conversation)
+			queryCtx, queryCancel := context.WithTimeout(cmd.Context(), 15*time.Second)
+			defer queryCancel()
+
+			if opts.conversationID != "" {
+				rc, errGet := client.GetConversation(queryCtx, opts.conversationID)
+				if errGet == nil && rc != nil {
+					remoteMap[rc.ID] = rc
+				}
+			} else {
+				remoteConvs, errList := client.ListConversations(queryCtx)
+				if errList == nil {
+					for _, rc := range remoteConvs {
+						remoteMap[rc.ID] = rc
+					}
+				}
 			}
 
 			p := parser.NewTranscriptParser()
@@ -109,8 +146,7 @@ artifact counts against remote Firestore metadata, and reports daemon process he
 				remoteSteps := 0
 				synced := false
 
-				remoteConv, err := client.GetConversation(cmd.Context(), d.ID)
-				if err == nil && remoteConv != nil {
+				if remoteConv, found := remoteMap[d.ID]; found && remoteConv != nil {
 					remoteSteps = remoteConv.LastSyncedStep + 1
 					if remoteSteps >= localSteps && localSteps > 0 {
 						synced = true
@@ -167,6 +203,7 @@ artifact counts against remote Firestore metadata, and reports daemon process he
 		},
 	}
 
+	statusCmd.Flags().StringVarP(&opts.conversationID, "conversation", "c", "", "Optional conversation ID to filter status")
 	statusCmd.Flags().StringVar(&opts.pidFile, "pid-file", daemon.DefaultPIDPath(), "Path to PID file")
 	statusCmd.Flags().StringVar(&opts.logFile, "log-file", daemon.DefaultLogPath(), "Path to daemon log file")
 
