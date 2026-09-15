@@ -4,10 +4,10 @@
 - [x] Task: Go Module Setup & Project Structure [c64d4b7]
   - [x] Initialize `go.mod` (Go 1.23+) and establish package structure (`cmd/`, `pkg/config/`, `pkg/parser/`, `pkg/firestore/`, `pkg/syncer/`)
   - [x] Configure `golangci-lint` and test harnesses
-- [ ] Task: Configuration & `init` Command (TDD)
-  - [ ] Write unit tests for config load, validation, and defaults (`pkg/config/config_test.go`)
-  - [ ] Implement Viper-based config manager (`pkg/config/config.go`)
-  - [ ] Implement Cobra root and `init` command (`cmd/init.go`)
+- [x] Task: Configuration & `init` Command (TDD) [fe6122c]
+  - [x] Write unit tests for config load, validation, and defaults (`pkg/config/config_test.go`)
+  - [x] Implement Viper-based config manager (`pkg/config/config.go`)
+  - [x] Implement Cobra root and `init` command (`cmd/init.go`)
 - [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
 
 ## Phase 2: Ingestion & JSONL Transcript Parser
