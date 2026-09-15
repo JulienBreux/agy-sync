@@ -8,10 +8,10 @@
 - [x] Task: Conductor - User Manual Verification 'Phase 1: Project Overview, Architecture & Core Features Documentation' (Protocol in workflow.md) [0f20762]
 
 ## Phase 2: CLI Command Reference & Configuration Guide
-- [ ] Task: Document CLI Commands and Formatted Usage Examples
-  - [ ] Document `agy-sync init`, `push`, `pull`, `watch`, and `status` with flags and terminal examples
-  - [ ] Document YAML configuration schema (`~/.config/agy-sync/config.yaml`) and `AGY_SYNC_*` env vars
-  - [ ] Document Google Cloud Application Default Credentials (ADC) setup
+- [x] Task: Document CLI Commands and Formatted Usage Examples [896ec77]
+  - [x] Document `agy-sync init`, `push`, `pull`, `watch`, and `status` with flags and terminal examples
+  - [x] Document YAML configuration schema (`~/.config/agy-sync/config.yaml`) and `AGY_SYNC_*` env vars
+  - [x] Document Google Cloud Application Default Credentials (ADC) setup
 - [ ] Task: Conductor - User Manual Verification 'Phase 2: CLI Command Reference & Configuration Guide' (Protocol in workflow.md)
 
 ## Phase 3: Developer Guide, Verification & Final Polishing
