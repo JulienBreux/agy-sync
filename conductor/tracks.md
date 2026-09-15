@@ -6,5 +6,5 @@
 
 ---
 
-- [ ] **Track: Create a clean README for this project**
+- [x] **Track: Create a clean README for this project**
   *Link: [./tracks/readme_20260915/index.md](./tracks/readme_20260915/index.md)*
