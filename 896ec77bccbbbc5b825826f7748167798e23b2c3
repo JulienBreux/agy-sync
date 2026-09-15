@@ -1,3 +1,4 @@
-Task: Document CLI Commands and Formatted Usage Examples
-Summary: Added comprehensive CLI command documentation for init, push, pull, watch, and status with persistent flags and sample terminal outputs. Added YAML config schema, AGY_SYNC environment variables table with AYG_SYNC fallback notice, and Google Cloud ADC authentication instructions.
-Files: README.md
+Phase Verification Report: Phase 2: CLI Command Reference & Configuration Guide
+Automated Tests: Passed (CI=true go test ./...)
+Documentation: Added detailed CLI reference for all 5 subcommands, persistent flags, configuration precedence, YAML config schema, environment variables table with fallback support, and ADC authentication instructions.
+User Confirmation: Explicitly approved by user.
