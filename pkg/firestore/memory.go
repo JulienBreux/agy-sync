@@ -62,8 +62,16 @@ func (m *MemoryRepository) AppendSteps(_ context.Context, convID string, steps [
 		m.steps[convID] = make(map[int]models.Step)
 	}
 
+	lastIndex := -1
 	for _, s := range steps {
 		m.steps[convID][s.StepIndex] = s
+		if s.StepIndex > lastIndex {
+			lastIndex = s.StepIndex
+		}
+	}
+
+	if conv, ok := m.conversations[convID]; ok && lastIndex > conv.LastSyncedStep {
+		conv.LastSyncedStep = lastIndex
 	}
 
 	return nil

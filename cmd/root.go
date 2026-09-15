@@ -35,6 +35,7 @@ and allows multi-machine conversation history synchronization.`,
 	rootCmd.PersistentFlags().BoolVar(&globalOpts.JSON, "json", false, "output results in JSON format")
 
 	rootCmd.AddCommand(newInitCommand())
+	rootCmd.AddCommand(newPushCommand())
 
 	return rootCmd
 }
