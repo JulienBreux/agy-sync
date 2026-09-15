@@ -1,0 +1,5 @@
+Task: Document Developer Workflow, Emulator Setup & Testing
+Summary: Documented local Go build commands, unit test execution with coverage, local Firestore emulator setup and test commands, and golangci-lint guidelines. Created root Apache 2.0 LICENSE file and added Contributing guide.
+Task: Verify Markdown Rendering and Technical Accuracy
+Summary: Audited all CLI command usages, options, and flags against cobra commands in ./bin/agy-sync --help to guarantee 100% technical fidelity.
+Files: README.md, LICENSE
