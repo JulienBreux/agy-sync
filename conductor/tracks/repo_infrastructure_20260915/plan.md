@@ -15,11 +15,11 @@
 - [x] Task: Conductor - User Manual Verification 'Phase 2: Build & Packaging Tooling' (Protocol in workflow.md) [1e263e3]
 
 ## Phase 3: GitHub Workflows, Templates & Verification
-- [ ] Task: Import and Adapt GitHub Workflows & Templates
-  - [ ] Create `.github/ISSUE_TEMPLATE/bug_report.md` and `feature_request.md`
-  - [ ] Create `.github/pull_request_template.md`
-  - [ ] Adapt `.github/workflows/test.yml` (Go 1.27, linting, tests, Codecov)
-  - [ ] Adapt `.github/workflows/release.yml` (GoReleaser tag release)
-- [ ] Task: Validate Local Tooling Execution
-  - [ ] Verify `make build`, `make test`, and `make lint` execute successfully
+- [x] Task: Import and Adapt GitHub Workflows & Templates [cc911ba]
+  - [x] Create `.github/ISSUE_TEMPLATE/bug_report.md` and `feature_request.md`
+  - [x] Create `.github/pull_request_template.md`
+  - [x] Adapt `.github/workflows/test.yml` (Go 1.27, linting, tests, Codecov)
+  - [x] Adapt `.github/workflows/release.yml` (GoReleaser tag release)
+- [x] Task: Validate Local Tooling Execution [cc911ba]
+  - [x] Verify `make build`, `make test`, and `make lint` execute successfully
 - [ ] Task: Conductor - User Manual Verification 'Phase 3: GitHub Workflows, Templates & Verification' (Protocol in workflow.md)
