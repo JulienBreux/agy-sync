@@ -39,6 +39,11 @@ func TestMemoryRepository_ConversationOperations(t *testing.T) {
 	assert.Equal(t, conv.Title, fetched.Title)
 	assert.Equal(t, conv.SourceMachine, fetched.SourceMachine)
 
+	list, err := repo.ListConversations(ctx)
+	require.NoError(t, err)
+	assert.Len(t, list, 1)
+	assert.Equal(t, conv.ID, list[0].ID)
+
 	// Non-existent
 	notFound, err := repo.GetConversation(ctx, "unknown-id")
 	assert.NoError(t, err)

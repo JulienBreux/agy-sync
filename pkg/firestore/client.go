@@ -91,3 +91,27 @@ func (c *Client) GetConversation(ctx context.Context, id string) (*models.Conver
 	}
 	return &conv, nil
 }
+
+// ListConversations retrieves all stored conversations from Firestore.
+func (c *Client) ListConversations(ctx context.Context) ([]*models.Conversation, error) {
+	iter := c.client.Collection("conversations").Documents(ctx)
+	defer iter.Stop()
+
+	var conversations []*models.Conversation
+	for {
+		doc, err := iter.Next()
+		if errors.Is(err, iterator.Done) {
+			break
+		}
+		if err != nil {
+			return nil, fmt.Errorf("failed iterating conversations: %w", err)
+		}
+		var conv models.Conversation
+		if err := doc.DataTo(&conv); err != nil {
+			continue
+		}
+		conversations = append(conversations, &conv)
+	}
+	return conversations, nil
+}
+

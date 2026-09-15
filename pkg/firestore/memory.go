@@ -53,6 +53,19 @@ func (m *MemoryRepository) GetConversation(_ context.Context, id string) (*model
 	return &cCopy, nil
 }
 
+// ListConversations returns all stored conversations.
+func (m *MemoryRepository) ListConversations(_ context.Context) ([]*models.Conversation, error) {
+	m.mu.RLock()
+	defer m.mu.RUnlock()
+
+	res := make([]*models.Conversation, 0, len(m.conversations))
+	for _, conv := range m.conversations {
+		copyConv := *conv
+		res = append(res, &copyConv)
+	}
+	return res, nil
+}
+
 // AppendSteps adds steps to the specified conversation monotonically.
 func (m *MemoryRepository) AppendSteps(_ context.Context, convID string, steps []models.Step) error {
 	m.mu.Lock()
