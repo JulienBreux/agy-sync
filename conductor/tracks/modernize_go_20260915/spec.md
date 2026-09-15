@@ -39,6 +39,8 @@ Modernize `agy-sync` to adhere to modern Go (1.27+) idiomatic patterns, standard
     - *Daemon Management:* `start`, `stop`, `status`
     - *Data Synchronization:* `push`, `pull`
     - *Configuration & Setup:* `init`
+- **Status Reporting Enhancements:**
+  - Record and display the last polling / sync timestamp (`LastPolledAt` / `LastSyncedAt`) in `agy-sync status` (human-readable table and `--json` format).
 - **Standardized Exit Codes (`internal/exitcode`):**
   - Define semantic exit constants: `Success (0)`, `GeneralError (1)`, `UsageError (2)`, `ConfigError (3)`, `DaemonError (4)`.
 

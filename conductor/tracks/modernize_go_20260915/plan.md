@@ -21,8 +21,9 @@
 - [ ] Task: TDD - Standardized Exit Codes & `version` Command
   - [ ] Define semantic exit codes in `internal/exitcode/exitcode.go` and tests
   - [ ] Implement `cmd/version.go` with build metadata (`debug.ReadBuildInfo()` & ldflags) and tests in `cmd/version_test.go`
-- [ ] Task: TDD - Cobra Command Grouping & Help UX
+- [ ] Task: TDD - Cobra Command Grouping, Help UX & Status Last Polling Date
   - [ ] Add Cobra command groups: Daemon Management, Data Synchronization, Configuration & Setup
+  - [ ] Record last polling date in daemon/sync state and display it in `agy-sync status` output (text and JSON)
   - [ ] Verify help text grouping and autocompletion output
 - [ ] Task: Conductor - User Manual Verification 'Phase 3: CLI Ergonomics, Version Command, Grouping & Exit Codes' (Protocol in workflow.md)
 

@@ -21,5 +21,5 @@
 
 ---
 
-- [ ] **Track: Modernize this Go application using the best CLI and language practices**
+- [~] **Track: Modernize this Go application using the best CLI and language practices**
   *Link: [./tracks/modernize_go_20260915/index.md](./tracks/modernize_go_20260915/index.md)*
