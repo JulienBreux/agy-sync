@@ -11,6 +11,8 @@ import (
 	"time"
 
 	"github.com/fsnotify/fsnotify"
+
+	"github.com/julienbreux/agy-sync/internal/logger"
 )
 
 // WatchEvent represents a detected change in an Antigravity conversation directory.
@@ -116,6 +118,7 @@ func (w *Watcher) registerExistingDirs() error {
 }
 
 func (w *Watcher) eventLoop(ctx context.Context, outEvents chan<- WatchEvent, outErrors chan<- error) {
+	log := logger.FromContext(ctx)
 	defer close(outEvents)
 	defer close(outErrors)
 
@@ -125,12 +128,14 @@ func (w *Watcher) eventLoop(ctx context.Context, outEvents chan<- WatchEvent, ou
 	for {
 		select {
 		case <-ctx.Done():
+			log.DebugContext(ctx, "Filesystem watcher stopped via context cancellation")
 			return
 
 		case err, ok := <-w.fsw.Errors:
 			if !ok {
 				return
 			}
+			log.ErrorContext(ctx, "Filesystem watcher error received", "error", err)
 			outErrors <- err
 
 		case event, ok := <-w.fsw.Events:
@@ -142,6 +147,7 @@ func (w *Watcher) eventLoop(ctx context.Context, outEvents chan<- WatchEvent, ou
 			if event.Has(fsnotify.Create) {
 				fi, err := os.Stat(event.Name)
 				if err == nil && fi.IsDir() {
+					log.DebugContext(ctx, "Registering newly created directory to watcher", "dir", event.Name)
 					_ = w.WatchDirectory(event.Name)
 					continue
 				}

@@ -1,11 +1,15 @@
 package cmd
 
 import (
+	"context"
 	"fmt"
 	"os"
+	"os/signal"
+	"syscall"
 
 	"github.com/spf13/cobra"
 
+	"github.com/julienbreux/agy-sync/internal/logger"
 	"github.com/julienbreux/agy-sync/pkg/config"
 )
 
@@ -14,6 +18,7 @@ type GlobalOptions struct {
 	ConfigFile string
 	Verbose    bool
 	JSON       bool
+	LogLevel   string
 }
 
 var globalOpts GlobalOptions
@@ -28,11 +33,25 @@ It asynchronously monitors local AGY transcripts and artifacts, syncs them to Go
 and allows multi-machine conversation history synchronization.`,
 		SilenceUsage:  true,
 		SilenceErrors: true,
+		PersistentPreRunE: func(cmd *cobra.Command, args []string) error {
+			lvl := globalOpts.LogLevel
+			if globalOpts.Verbose {
+				lvl = "debug"
+			}
+			l := logger.InitDefault(logger.Options{
+				Level:  logger.ParseLevel(lvl),
+				JSON:   globalOpts.JSON,
+				Output: cmd.ErrOrStderr(),
+			})
+			cmd.SetContext(logger.WithLogger(cmd.Context(), l))
+			return nil
+		},
 	}
 
 	rootCmd.PersistentFlags().StringVar(&globalOpts.ConfigFile, "config", config.DefaultConfigPath(), "path to config file")
 	rootCmd.PersistentFlags().BoolVarP(&globalOpts.Verbose, "verbose", "v", false, "enable verbose / debug logging")
 	rootCmd.PersistentFlags().BoolVar(&globalOpts.JSON, "json", false, "output results in JSON format")
+	rootCmd.PersistentFlags().StringVar(&globalOpts.LogLevel, "log-level", "info", "log level (debug, info, warn, error)")
 
 	rootCmd.AddCommand(newInitCommand())
 	rootCmd.AddCommand(newPushCommand())
@@ -46,8 +65,11 @@ and allows multi-machine conversation history synchronization.`,
 
 // Execute runs the root command.
 func Execute() {
+	ctx, cancel := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
+	defer cancel()
+
 	rootCmd := NewRootCommand()
-	if err := rootCmd.Execute(); err != nil {
+	if err := rootCmd.ExecuteContext(ctx); err != nil {
 		fmt.Fprintf(os.Stderr, "Error: %v\n", err)
 		os.Exit(1)
 	}
