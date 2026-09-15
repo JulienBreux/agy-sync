@@ -1,6 +1,6 @@
 # Binaries
 bin/
-ayg-sync
+agy-sync
 
 # Go test / coverage
 *.out

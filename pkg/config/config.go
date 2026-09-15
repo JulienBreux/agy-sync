@@ -88,15 +88,6 @@ func LoadConfig(path string) (*Config, error) {
 	v.SetEnvKeyReplacer(strings.NewReplacer(".", "_"))
 	v.AutomaticEnv()
 
-	// Backwards-compatibility fallback for legacy AYG_SYNC_* variables
-	for _, key := range []string{"project_id", "database_id", "machine_id", "brain_dir", "sync_interval_seconds", "log_level"} {
-		if os.Getenv("AGY_SYNC_"+strings.ToUpper(key)) == "" {
-			if legacy := os.Getenv("AYG_SYNC_" + strings.ToUpper(key)); legacy != "" {
-				v.Set(key, legacy)
-			}
-		}
-	}
-
 	if path != "" {
 		v.SetConfigFile(path)
 		if err := v.ReadInConfig(); err != nil {

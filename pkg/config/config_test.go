@@ -116,11 +116,4 @@ func TestEnvironmentOverride(t *testing.T) {
 	loaded, err := config.LoadConfig(configPath)
 	require.NoError(t, err)
 	assert.Equal(t, "agy-env-override-proj", loaded.ProjectID)
-
-	// Test legacy AYG_SYNC fallback when AGY_SYNC is not set
-	t.Setenv("AGY_SYNC_PROJECT_ID", "")
-	t.Setenv("AYG_SYNC_PROJECT_ID", "legacy-env-override-proj")
-	loadedLegacy, err := config.LoadConfig(configPath)
-	require.NoError(t, err)
-	assert.Equal(t, "legacy-env-override-proj", loadedLegacy.ProjectID)
 }

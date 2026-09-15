@@ -36,7 +36,7 @@ func TestE2E_MultiMachineRoundTripSync(t *testing.T) {
 	// 2. Setup Machine Alpha (Machine A)
 	machineAlphaBrain := t.TempDir()
 	cfgAlpha := &config.Config{
-		ProjectID: "ayg-e2e-project",
+		ProjectID: "e2e-project",
 		BrainDir:  machineAlphaBrain,
 		MachineID: "machine-alpha",
 	}
@@ -86,7 +86,7 @@ func TestE2E_MultiMachineRoundTripSync(t *testing.T) {
 	// 3. Setup Machine Beta (Machine B) - initially empty brain dir
 	machineBetaBrain := t.TempDir()
 	cfgBeta := &config.Config{
-		ProjectID: "ayg-e2e-project",
+		ProjectID: "e2e-project",
 		BrainDir:  machineBetaBrain,
 		MachineID: "machine-beta",
 	}
@@ -236,4 +236,3 @@ func TestE2E_MultiMachineRoundTripSync_Emulator(t *testing.T) {
 	betaTranscript := filepath.Join(machineBetaBrain, convID, ".system_generated", "logs", "transcript.jsonl")
 	assert.FileExists(t, betaTranscript)
 }
-
