@@ -1,0 +1,17 @@
+# Binaries
+bin/
+ayg-sync
+
+# Go test / coverage
+*.out
+*.test
+coverage/
+
+# OS / IDE
+.DS_Store
+.idea/
+.vscode/
+
+# Local configuration overrides
+.env
+local_config.yaml
