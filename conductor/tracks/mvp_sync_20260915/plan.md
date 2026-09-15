@@ -39,7 +39,7 @@
   - [x] Implement Cobra `pull` command (`cmd/pull.go`)
 - [x] Task: Phase Verification & Checkpoint (Refer to workflow.md) [fb82a3f]
 
-## Phase 5: Real-time Filesystem Watcher & Remote Listener (`watch`)
+## Phase 5: Real-time Filesystem Watcher & Remote Listener (`watch`) [checkpoint: 356c93b]
 - [x] Task: Local Filesystem Event Watcher (TDD) [1207c2f]
   - [x] Write tests for `fsnotify` event debouncing and filtering (`pkg/watcher/watcher_test.go`)
   - [x] Implement debounced watcher monitoring `transcript.jsonl` modifications (`pkg/watcher/watcher.go`)
@@ -49,7 +49,7 @@
 - [x] Task: Cobra `watch` Command [356c93b]
   - [x] Integrate watcher + listener into unified daemon command (`cmd/watch.go`)
   - [x] Write tests for watch command daemon lifecycle and signal handling (`cmd/watch_test.go`)
-- [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
+- [x] Task: Phase Verification & Checkpoint (Refer to workflow.md) [356c93b]
 
 ## Phase 6: End-to-End Integration & Hardening
 - [ ] Task: Full Round-Trip E2E Test
