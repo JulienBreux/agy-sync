@@ -105,6 +105,7 @@ All commands accept the following persistent flags:
 | :--- | :--- | :--- |
 | `--config <path>` | Path to YAML configuration file | `~/.config/agy-sync/config.yaml` |
 | `--json` | Output results formatted as JSON (scripting/CI) | `false` |
+| `--log-level <level>` | Minimum log level (`debug`, `info`, `warn`, `error`) | `info` |
 | `-v, --verbose` | Enable debug / verbose log streaming | `false` |
 
 ---
@@ -202,15 +203,24 @@ agy-sync stop --timeout 10s
 ---
 
 ### `agy-sync status`
-Displays side-by-side synchronization status between your local brain directory and remote Firestore collections, along with daemon process health.
+Displays side-by-side synchronization status between your local brain directory and remote Firestore collections, along with daemon process health and the timestamp of the last remote poll.
 
 ```bash
 # Terminal formatted table
 agy-sync status
 
+# Filter for a single conversation session
+agy-sync status 624296c6-d623-4c39-92d4-3906f8c07140
+
 # Machine-readable JSON
 agy-sync status --json
 ```
+
+**Flags:**
+- `-c, --conversation <string>`: Filter status display to a specific conversation ID.
+- `--pid-file <path>`: Path to PID file (default: `~/.config/agy-sync/agy-sync.pid`).
+- `--log-file <path>`: Path to daemon log file (default: `~/.config/agy-sync/daemon.log`).
+- `--state-file <path>`: Path to daemon runtime state file (default: `~/.config/agy-sync/daemon.state.json`).
 
 **Sample Terminal Output:**
 ```
@@ -218,6 +228,7 @@ agy-sync status --json
           Antigravity Sync Status                
 ==================================================
 Daemon Status:   RUNNING (PID: 12345)
+Last Polling:    2026-09-15 14:49:34 UTC (15s ago)
 Daemon Log:      /Users/username/.config/agy-sync/daemon.log
 GCP Project ID:  my-gcp-project
 Machine ID:      macbook-pro
@@ -227,6 +238,19 @@ Sessions Found:  1
 CONVERSATION ID                        LOCAL STEPS  REMOTE STEPS ARTIFACTS  SYNCED  
 ------------------------------------------------------------------------------------
 624296c6-d623-4c39-92d4-3906f8c07140   42           42           5          Yes     
+```
+
+---
+
+### `agy-sync version`
+Displays binary version, git commit hash, build date, Go runtime environment, and target architecture.
+
+```bash
+# Text format
+agy-sync version
+
+# Machine-readable JSON
+agy-sync version --json
 ```
 
 ---
