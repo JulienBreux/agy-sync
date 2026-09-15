@@ -1,6 +1,7 @@
 # agy-sync
 
 [![Go Version](https://img.shields.io/badge/Go-1.27%2B-blue.svg)](https://golang.org)
+[![codecov](https://codecov.io/gh/JulienBreux/agy-sync/branch/main/graph/badge.svg?token=O5HKxze43v)](https://codecov.io/gh/JulienBreux/agy-sync)
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](LICENSE)
 [![Status](https://img.shields.io/badge/Status-Production%20Ready-green.svg)](#)
 
