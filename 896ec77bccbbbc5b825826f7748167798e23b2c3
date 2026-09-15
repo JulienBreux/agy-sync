@@ -1,0 +1,3 @@
+Task: Document CLI Commands and Formatted Usage Examples
+Summary: Added comprehensive CLI command documentation for init, push, pull, watch, and status with persistent flags and sample terminal outputs. Added YAML config schema, AGY_SYNC environment variables table with AYG_SYNC fallback notice, and Google Cloud ADC authentication instructions.
+Files: README.md
