@@ -30,7 +30,7 @@ func TestStopCommand_NotRunning(t *testing.T) {
 	})
 
 	err := root.Execute()
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	assert.Contains(t, buf.String(), "not running")
 }
 
@@ -58,10 +58,10 @@ func TestStopCommand_Success(t *testing.T) {
 	})
 
 	err := root.Execute()
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	assert.Contains(t, buf.String(), "stopped successfully")
 
 	running, _, err := mgr.IsRunning()
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	assert.False(t, running)
 }

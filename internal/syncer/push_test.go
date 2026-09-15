@@ -1,7 +1,6 @@
 package syncer_test
 
 import (
-	"context"
 	"os"
 	"path/filepath"
 	"testing"
@@ -42,13 +41,13 @@ func TestPush_InitialSync(t *testing.T) {
 	}
 
 	repo := firestore.NewMemoryRepository()
-	defer func() {
+	t.Cleanup(func() {
 		_ = repo.Close()
-	}()
+	})
 
 	engine := syncer.NewEngine(cfg, repo)
 
-	ctx := context.Background()
+	ctx := t.Context()
 	result, err := engine.Push(ctx, syncer.PushOptions{})
 	require.NoError(t, err)
 
@@ -84,12 +83,12 @@ func TestPush_IncrementalAppend(t *testing.T) {
 	}
 
 	repo := firestore.NewMemoryRepository()
-	defer func() {
+	t.Cleanup(func() {
 		_ = repo.Close()
-	}()
+	})
 
 	engine := syncer.NewEngine(cfg, repo)
-	ctx := context.Background()
+	ctx := t.Context()
 
 	// Initial push
 	_, err := engine.Push(ctx, syncer.PushOptions{})
@@ -132,12 +131,12 @@ func TestPush_FilterSpecificConversation(t *testing.T) {
 	}
 
 	repo := firestore.NewMemoryRepository()
-	defer func() {
+	t.Cleanup(func() {
 		_ = repo.Close()
-	}()
+	})
 
 	engine := syncer.NewEngine(cfg, repo)
-	ctx := context.Background()
+	ctx := t.Context()
 
 	// Push only convID
 	res, err := engine.Push(ctx, syncer.PushOptions{ConversationID: convID})

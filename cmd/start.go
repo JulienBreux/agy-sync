@@ -138,11 +138,12 @@ Use -f / --foreground to run directly in the current terminal session.`,
 			ticker := time.NewTicker(opts.pollInterval)
 			defer ticker.Stop()
 
+			defer cmd.Println("Shutting down synchronization daemon...")
+
 			ctx := cmd.Context()
 			for {
 				select {
 				case <-ctx.Done():
-					cmd.Println("Shutting down synchronization daemon...")
 					return nil
 
 				case watchErr, ok := <-errs:

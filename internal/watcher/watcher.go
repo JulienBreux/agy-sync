@@ -74,12 +74,11 @@ func InspectPath(brainDir, path string) (conversationID string, isTranscript boo
 		return "", false
 	}
 
-	parts := strings.Split(rel, string(filepath.Separator))
-	if len(parts) == 0 || parts[0] == "" {
+	convID, _, _ := strings.Cut(rel, string(filepath.Separator))
+	if convID == "" {
 		return "", false
 	}
 
-	convID := parts[0]
 	isTr := filepath.Base(path) == "transcript.jsonl"
 	return convID, isTr
 }
@@ -106,9 +105,9 @@ func (w *Watcher) registerExistingDirs() error {
 		}
 	}
 
-	return filepath.WalkDir(w.brainDir, func(path string, d fs.DirEntry, err error) error {
-		if err != nil {
-			return nil
+	return filepath.WalkDir(w.brainDir, func(path string, d fs.DirEntry, walkErr error) error {
+		if walkErr != nil {
+			return nil //nolint:nilerr // Skip inaccessible paths during directory registration
 		}
 		if d.IsDir() {
 			_ = w.WatchDirectory(path)

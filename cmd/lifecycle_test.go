@@ -58,7 +58,7 @@ machine_id: "test-lifecycle-machine"
 	assert.Equal(t, 0, statusReportInit.Daemon.PID)
 
 	// Step 2: Start foreground daemon with context timeout
-	ctx, cancel := context.WithTimeout(context.Background(), 300*time.Millisecond)
+	ctx, cancel := context.WithTimeout(t.Context(), 300*time.Millisecond)
 	defer cancel()
 
 	rootStart := cmd.NewRootCommand()

@@ -1,6 +1,7 @@
 package firestore
 
 import (
+	"cmp"
 	"context"
 	"errors"
 	"fmt"
@@ -28,10 +29,7 @@ func NewClient(ctx context.Context, cfg *config.Config) (*Client, error) {
 		return nil, errors.New("project_id is required to initialize firestore client")
 	}
 
-	databaseID := cfg.DatabaseID
-	if strings.TrimSpace(databaseID) == "" {
-		databaseID = "(default)"
-	}
+	databaseID := cmp.Or(strings.TrimSpace(cfg.DatabaseID), "(default)")
 
 	c, err := cloudfs.NewClientWithDatabase(ctx, cfg.ProjectID, databaseID)
 	if err != nil {

@@ -148,16 +148,15 @@ func (e *Engine) pushConversation(ctx context.Context, dConv *discovery.Discover
 		g.SetLimit(5)
 
 		for _, art := range dConv.Artifacts {
-			art := art
 			g.Go(func() error {
 				existingArt, err := e.repo.GetArtifact(gCtx, dConv.ID, art.RelativePath)
 				if err == nil && existingArt != nil && existingArt.SHA256 == art.SHA256 {
 					return nil
 				}
 
-				content, err := os.ReadFile(art.AbsolutePath)
-				if err != nil {
-					return nil
+				content, readErr := os.ReadFile(art.AbsolutePath)
+				if readErr != nil {
+					return nil //nolint:nilerr // Best-effort push skips unreadable artifacts
 				}
 
 				artifactModel := &models.Artifact{

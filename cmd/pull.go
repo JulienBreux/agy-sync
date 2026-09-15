@@ -1,14 +1,16 @@
 package cmd
 
 import (
+	"cmp"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"strings"
 
 	"github.com/spf13/cobra"
 
-	"github.com/julienbreux/agy-sync/pkg/config"
 	"github.com/julienbreux/agy-sync/internal/syncer"
+	"github.com/julienbreux/agy-sync/pkg/config"
 )
 
 func newPullCommand() *cobra.Command {
@@ -22,13 +24,14 @@ func newPullCommand() *cobra.Command {
 the local Antigravity brain directory and JSONL log structure.`,
 		Args: cobra.MaximumNArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			targetConvID := conversationID
-			if len(args) > 0 && strings.TrimSpace(args[0]) != "" {
-				targetConvID = strings.TrimSpace(args[0])
+			var argID string
+			if len(args) > 0 {
+				argID = strings.TrimSpace(args[0])
 			}
+			targetConvID := cmp.Or(argID, conversationID)
 
 			if targetConvID == "" {
-				return fmt.Errorf("conversation ID is required: specify as argument or with --conversation")
+				return errors.New("conversation ID is required: specify as argument or with --conversation")
 			}
 
 			cfg, err := config.LoadConfig(globalOpts.ConfigFile)

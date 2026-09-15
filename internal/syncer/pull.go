@@ -53,9 +53,8 @@ func (e *Engine) Pull(ctx context.Context, opts PullOptions) (*PullResult, error
 	localLastStep := -1
 
 	if _, err := os.Stat(transcriptPath); err == nil {
-		parseRes, err := e.parser.ParseFile(transcriptPath)
-		if err == nil && parseRes.LastStepIndex > localLastStep {
-			localLastStep = parseRes.LastStepIndex
+		if parseRes, err := e.parser.ParseFile(transcriptPath); err == nil {
+			localLastStep = max(localLastStep, parseRes.LastStepIndex)
 		}
 	}
 
@@ -94,20 +93,30 @@ func (e *Engine) Pull(ctx context.Context, opts PullOptions) (*PullResult, error
 
 	artifactsPulled := 0
 	if len(artifacts) > 0 {
+		root, err := os.OpenRoot(convDir)
+		if err != nil {
+			return nil, fmt.Errorf("failed opening conversation root dir %s: %w", convDir, err)
+		}
+		defer func() {
+			_ = root.Close()
+		}()
+
 		var mu sync.Mutex
 		g, _ := errgroup.WithContext(ctx)
 		g.SetLimit(5)
 
 		for _, art := range artifacts {
-			art := art
 			g.Go(func() error {
-				artPath := filepath.Join(convDir, filepath.FromSlash(art.RelativePath))
-				if err := os.MkdirAll(filepath.Dir(artPath), 0o755); err != nil {
-					return fmt.Errorf("failed creating artifact dir: %w", err)
+				relPath := filepath.FromSlash(art.RelativePath)
+				dir := filepath.Dir(relPath)
+				if dir != "." && dir != "" {
+					if err := root.MkdirAll(dir, 0o755); err != nil {
+						return fmt.Errorf("failed creating artifact dir %s: %w", dir, err)
+					}
 				}
 
-				if err := os.WriteFile(artPath, art.Content, 0o644); err != nil {
-					return fmt.Errorf("failed writing artifact file %s: %w", artPath, err)
+				if err := root.WriteFile(relPath, art.Content, 0o644); err != nil {
+					return fmt.Errorf("failed writing artifact file %s: %w", relPath, err)
 				}
 				mu.Lock()
 				artifactsPulled++

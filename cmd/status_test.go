@@ -35,7 +35,10 @@ machine_id: "status-machine-1"
 	require.NoError(t, os.WriteFile(transcriptPath, []byte(`{"step_index":0,"content":"hello"}`+"\n"), 0o644))
 
 	memRepo := firestore.NewMemoryRepository()
-	ctx := context.Background()
+	t.Cleanup(func() {
+		_ = memRepo.Close()
+	})
+	ctx := t.Context()
 	require.NoError(t, memRepo.UpsertConversation(ctx, &models.Conversation{
 		ID:             convID,
 		LastSyncedStep: 0,
@@ -45,7 +48,7 @@ machine_id: "status-machine-1"
 	cmd.SetFirestoreClientFactory(func(_ context.Context, _ *config.Config) (firestore.Repository, error) {
 		return memRepo, nil
 	})
-	defer cmd.ResetFirestoreClientFactory()
+	t.Cleanup(cmd.ResetFirestoreClientFactory)
 
 	stateFile := filepath.Join(tempBrain, "test-none.state.json")
 
@@ -99,7 +102,7 @@ func TestStatusCommand_MissingConfig(t *testing.T) {
 
 	root.SetArgs([]string{"status", "--config", "/nonexistent/path/config.yaml"})
 	err := root.Execute()
-	assert.Error(t, err)
+	require.Error(t, err)
 	assert.Contains(t, err.Error(), "remediation:")
 }
 

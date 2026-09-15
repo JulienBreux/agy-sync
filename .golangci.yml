@@ -11,3 +11,14 @@ linters:
     - ineffassign
     - staticcheck
     - unused
+    - modernize
+    - gocritic
+    - perfsprint
+    - errorlint
+    - nilerr
+    - unconvert
+    - sloglint
+    - testifylint
+    - usestdlibvars
+    - intrange
+    - exptostd

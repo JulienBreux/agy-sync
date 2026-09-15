@@ -1,7 +1,6 @@
 package syncer_test
 
 import (
-	"context"
 	"os"
 	"path/filepath"
 	"testing"
@@ -27,11 +26,11 @@ func TestPull_ReconstructNewConversation(t *testing.T) {
 	}
 
 	repo := firestore.NewMemoryRepository()
-	defer func() {
+	t.Cleanup(func() {
 		_ = repo.Close()
-	}()
+	})
 
-	ctx := context.Background()
+	ctx := t.Context()
 
 	// Seed remote repository with conversation, steps, and artifacts
 	require.NoError(t, repo.UpsertConversation(ctx, &models.Conversation{
@@ -117,11 +116,11 @@ func TestPull_IncrementalUpdate(t *testing.T) {
 	}
 
 	repo := firestore.NewMemoryRepository()
-	defer func() {
+	t.Cleanup(func() {
 		_ = repo.Close()
-	}()
+	})
 
-	ctx := context.Background()
+	ctx := t.Context()
 
 	// Remote has step 0 and step 1
 	require.NoError(t, repo.UpsertConversation(ctx, &models.Conversation{
@@ -148,7 +147,7 @@ func TestPull_IncrementalUpdate(t *testing.T) {
 
 func TestPull_MissingConversationID(t *testing.T) {
 	engine := syncer.NewEngine(&config.Config{}, nil)
-	_, err := engine.Pull(context.Background(), syncer.PullOptions{})
-	assert.Error(t, err)
+	_, err := engine.Pull(t.Context(), syncer.PullOptions{})
+	require.Error(t, err)
 	assert.Contains(t, err.Error(), "conversation_id is required")
 }

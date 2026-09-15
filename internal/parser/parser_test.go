@@ -36,7 +36,7 @@ func TestParseTranscriptFile(t *testing.T) {
 	assert.Equal(t, 2, result.Steps[2].StepIndex)
 	assert.Equal(t, "Operation succeeded", result.Steps[2].Content)
 	assert.Equal(t, 2, result.LastStepIndex)
-	assert.Greater(t, result.BytesRead, int64(0))
+	assert.Positive(t, result.BytesRead)
 }
 
 func TestIncrementalParseFromOffset(t *testing.T) {
@@ -103,5 +103,5 @@ func TestSerializeStep(t *testing.T) {
 	require.NoError(t, err)
 	assert.Contains(t, string(line), `"step_index":0`)
 	assert.Contains(t, string(line), `"Testing serialization"`)
-	assert.True(t, line[len(line)-1] == '\n')
+	assert.Equal(t, byte('\n'), line[len(line)-1])
 }

@@ -27,15 +27,13 @@ func (c *Client) AppendSteps(ctx context.Context, convID string, steps []models.
 		if _, err := bw.Set(stepDoc, step); err != nil {
 			return fmt.Errorf("failed queuing step write to firestore: %w", err)
 		}
-		if step.StepIndex > lastIndex {
-			lastIndex = step.StepIndex
-		}
+		lastIndex = max(lastIndex, step.StepIndex)
 	}
 
 	bw.Flush()
 
 	if lastIndex >= 0 {
-		_, _ = convRef.Set(ctx, map[string]interface{}{
+		_, _ = convRef.Set(ctx, map[string]any{
 			"last_synced_step": lastIndex,
 			"updated_at":       time.Now().UTC(),
 		}, cloudfs.MergeAll)

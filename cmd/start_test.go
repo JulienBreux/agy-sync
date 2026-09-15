@@ -45,12 +45,15 @@ machine_id: "test-start-box"
 	require.NoError(t, os.WriteFile(configPath, []byte(cfgContent), 0o644))
 
 	memRepo := firestore.NewMemoryRepository()
+	t.Cleanup(func() {
+		_ = memRepo.Close()
+	})
 	cmd.SetFirestoreClientFactory(func(_ context.Context, _ *config.Config) (firestore.Repository, error) {
 		return memRepo, nil
 	})
-	defer cmd.ResetFirestoreClientFactory()
+	t.Cleanup(cmd.ResetFirestoreClientFactory)
 
-	ctx, cancel := context.WithTimeout(context.Background(), 250*time.Millisecond)
+	ctx, cancel := context.WithTimeout(t.Context(), 250*time.Millisecond)
 	defer cancel()
 
 	root := cmd.NewRootCommand()
@@ -69,13 +72,13 @@ machine_id: "test-start-box"
 	})
 
 	err := root.ExecuteContext(ctx)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	assert.Contains(t, buf.String(), "Starting real-time synchronization daemon")
 
 	// PID file should be cleaned up after foreground shutdown
 	mgr := daemon.NewManager(pidFile, logFile)
 	running, _, err := mgr.IsRunning()
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	assert.False(t, running)
 }
 
@@ -107,6 +110,6 @@ machine_id: "test-start-box"
 	})
 
 	err := root.Execute()
-	assert.Error(t, err)
+	require.Error(t, err)
 	assert.Contains(t, err.Error(), "already running")
 }

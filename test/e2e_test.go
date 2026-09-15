@@ -1,22 +1,23 @@
 package test_test
 
 import (
-	"context"
 	"crypto/sha256"
 	"encoding/hex"
 	"fmt"
 	"os"
 	"path/filepath"
+	"slices"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/julienbreux/agy-sync/pkg/config"
 	"github.com/julienbreux/agy-sync/internal/discovery"
 	"github.com/julienbreux/agy-sync/internal/firestore"
 	"github.com/julienbreux/agy-sync/internal/parser"
 	"github.com/julienbreux/agy-sync/internal/syncer"
+	"github.com/julienbreux/agy-sync/pkg/config"
+	"github.com/julienbreux/agy-sync/pkg/models"
 )
 
 func sha256Bytes(data []byte) string {
@@ -25,13 +26,13 @@ func sha256Bytes(data []byte) string {
 }
 
 func TestE2E_MultiMachineRoundTripSync(t *testing.T) {
-	ctx := context.Background()
+	ctx := t.Context()
 
 	// 1. Shared Firestore Repository (simulates cloud firestore instance)
 	sharedRepo := firestore.NewMemoryRepository()
-	defer func() {
+	t.Cleanup(func() {
 		_ = sharedRepo.Close()
-	}()
+	})
 
 	// 2. Setup Machine Alpha (Machine A)
 	machineAlphaBrain := t.TempDir()
@@ -111,13 +112,13 @@ func TestE2E_MultiMachineRoundTripSync(t *testing.T) {
 	require.NoError(t, err)
 
 	assert.Equal(t, alphaParse.LastStepIndex, betaParse.LastStepIndex)
-	assert.Equal(t, len(alphaParse.Steps), len(betaParse.Steps))
-	for i := range alphaParse.Steps {
-		assert.Equal(t, alphaParse.Steps[i].StepIndex, betaParse.Steps[i].StepIndex)
-		assert.Equal(t, alphaParse.Steps[i].Source, betaParse.Steps[i].Source)
-		assert.Equal(t, alphaParse.Steps[i].Type, betaParse.Steps[i].Type)
-		assert.Equal(t, alphaParse.Steps[i].Content, betaParse.Steps[i].Content)
-	}
+	require.Len(t, betaParse.Steps, len(alphaParse.Steps))
+	assert.True(t, slices.EqualFunc(alphaParse.Steps, betaParse.Steps, func(a, b models.Step) bool {
+		return a.StepIndex == b.StepIndex &&
+			a.Source == b.Source &&
+			a.Type == b.Type &&
+			a.Content == b.Content
+	}))
 
 	// Verify exact byte fidelity and SHA256 checksums of artifacts on Machine Beta
 	betaDesignPath := filepath.Join(machineBetaBrain, convID, "design.md")
@@ -189,16 +190,16 @@ func TestE2E_MultiMachineRoundTripSync_Emulator(t *testing.T) {
 		t.Skip("Skipping live emulator test: FIRESTORE_EMULATOR_HOST not set")
 	}
 
-	ctx := context.Background()
+	ctx := t.Context()
 	projectID := "e2e-emulator-test"
 
 	clientRepo, err := firestore.NewClient(ctx, &config.Config{
 		ProjectID: projectID,
 	})
 	require.NoError(t, err)
-	defer func() {
+	t.Cleanup(func() {
 		_ = clientRepo.Close()
-	}()
+	})
 
 	machineAlphaBrain := t.TempDir()
 	cfgAlpha := &config.Config{

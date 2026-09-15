@@ -2,7 +2,9 @@ package parser
 
 import (
 	"bufio"
+	"bytes"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"os"
@@ -62,24 +64,14 @@ func (p *TranscriptParser) ParseFileFromOffset(path string, startOffset int64) (
 		result.BytesRead += lineLen
 
 		if len(line) > 0 {
-			// Trim possible carriage returns
-			trimmed := line
-			if len(trimmed) > 0 && trimmed[len(trimmed)-1] == '\n' {
-				trimmed = trimmed[:len(trimmed)-1]
-			}
-			if len(trimmed) > 0 && trimmed[len(trimmed)-1] == '\r' {
-				trimmed = trimmed[:len(trimmed)-1]
-			}
-
+			trimmed := bytes.TrimRight(line, "\r\n")
 			if len(trimmed) > 0 {
 				var step models.Step
 				if errUnmarshal := json.Unmarshal(trimmed, &step); errUnmarshal != nil {
 					result.Errors = append(result.Errors, fmt.Errorf("invalid json on line: %w", errUnmarshal))
 				} else {
 					result.Steps = append(result.Steps, step)
-					if step.StepIndex > result.LastStepIndex {
-						result.LastStepIndex = step.StepIndex
-					}
+					result.LastStepIndex = max(result.LastStepIndex, step.StepIndex)
 				}
 			}
 		}
@@ -98,7 +90,7 @@ func (p *TranscriptParser) ParseFileFromOffset(path string, startOffset int64) (
 // SerializeStepToJSONL formats a Step object into a single-line JSON with trailing newline.
 func SerializeStepToJSONL(step *models.Step) ([]byte, error) {
 	if step == nil {
-		return nil, fmt.Errorf("cannot serialize nil step")
+		return nil, errors.New("cannot serialize nil step")
 	}
 	data, err := json.Marshal(step)
 	if err != nil {

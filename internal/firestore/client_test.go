@@ -1,7 +1,6 @@
 package firestore_test
 
 import (
-	"context"
 	"os"
 	"testing"
 	"time"
@@ -15,11 +14,11 @@ import (
 )
 
 func TestMemoryRepository_ConversationOperations(t *testing.T) {
-	ctx := context.Background()
+	ctx := t.Context()
 	repo := firestore.NewMemoryRepository()
-	defer func() {
+	t.Cleanup(func() {
 		_ = repo.Close()
-	}()
+	})
 
 	conv := &models.Conversation{
 		ID:             "conv-test-1",
@@ -46,16 +45,16 @@ func TestMemoryRepository_ConversationOperations(t *testing.T) {
 
 	// Non-existent
 	notFound, err := repo.GetConversation(ctx, "unknown-id")
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	assert.Nil(t, notFound)
 }
 
 func TestMemoryRepository_StepOperations(t *testing.T) {
-	ctx := context.Background()
+	ctx := t.Context()
 	repo := firestore.NewMemoryRepository()
-	defer func() {
+	t.Cleanup(func() {
 		_ = repo.Close()
-	}()
+	})
 
 	convID := "conv-test-steps"
 
@@ -106,11 +105,11 @@ func TestMemoryRepository_StepOperations(t *testing.T) {
 }
 
 func TestMemoryRepository_ArtifactOperations(t *testing.T) {
-	ctx := context.Background()
+	ctx := t.Context()
 	repo := firestore.NewMemoryRepository()
-	defer func() {
+	t.Cleanup(func() {
 		_ = repo.Close()
-	}()
+	})
 
 	artifact := &models.Artifact{
 		ID:             "spec.md",
@@ -137,11 +136,11 @@ func TestMemoryRepository_ArtifactOperations(t *testing.T) {
 }
 
 func TestClient_Validation(t *testing.T) {
-	ctx := context.Background()
+	ctx := t.Context()
 
 	t.Run("nil config", func(t *testing.T) {
 		_, err := firestore.NewClient(ctx, nil)
-		assert.Error(t, err)
+		require.Error(t, err)
 	})
 
 	t.Run("missing project id", func(t *testing.T) {
@@ -149,7 +148,7 @@ func TestClient_Validation(t *testing.T) {
 			ProjectID: "",
 		}
 		_, err := firestore.NewClient(ctx, cfg)
-		assert.Error(t, err)
+		require.Error(t, err)
 		assert.Contains(t, err.Error(), "project_id is required")
 	})
 }
@@ -160,7 +159,7 @@ func TestClient_EmulatorIntegration(t *testing.T) {
 		t.Skip("Skipping live emulator test: FIRESTORE_EMULATOR_HOST not set")
 	}
 
-	ctx := context.Background()
+	ctx := t.Context()
 	cfg := &config.Config{
 		ProjectID:  "emulator-test-project",
 		DatabaseID: "(default)",
@@ -169,9 +168,9 @@ func TestClient_EmulatorIntegration(t *testing.T) {
 
 	client, err := firestore.NewClient(ctx, cfg)
 	require.NoError(t, err)
-	defer func() {
+	t.Cleanup(func() {
 		_ = client.Close()
-	}()
+	})
 
 	convID := "emulator-conv-1"
 

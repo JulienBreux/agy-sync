@@ -115,7 +115,7 @@ func ScanArtifacts(convDir string) ([]DiscoveredArtifact, error) {
 		}
 
 		// Ignore .system_generated directory and its children
-		if rel == ".system_generated" || strings.HasPrefix(rel, ".system_generated"+string(filepath.Separator)) {
+		if top, _, _ := strings.Cut(rel, string(filepath.Separator)); top == ".system_generated" {
 			if d.IsDir() {
 				return filepath.SkipDir
 			}

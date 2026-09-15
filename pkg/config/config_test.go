@@ -41,7 +41,7 @@ func TestConfigValidation(t *testing.T) {
 			BrainDir:   "/tmp/brain",
 		}
 		err := cfg.Validate()
-		assert.Error(t, err)
+		require.Error(t, err)
 		assert.Contains(t, err.Error(), "project_id is required")
 	})
 
@@ -53,7 +53,7 @@ func TestConfigValidation(t *testing.T) {
 			BrainDir:   "/tmp/brain",
 		}
 		err := cfg.Validate()
-		assert.Error(t, err)
+		require.Error(t, err)
 		assert.Contains(t, err.Error(), "machine_id is required")
 	})
 
@@ -65,7 +65,7 @@ func TestConfigValidation(t *testing.T) {
 			BrainDir:   "",
 		}
 		err := cfg.Validate()
-		assert.Error(t, err)
+		require.Error(t, err)
 		assert.Contains(t, err.Error(), "brain_dir is required")
 	})
 }

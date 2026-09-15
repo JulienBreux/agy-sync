@@ -6,9 +6,9 @@ import (
 
 // ToolCall represents an individual tool invocation recorded in a transcript step.
 type ToolCall struct {
-	Name string                 `json:"name" firestore:"name"`
-	ID   string                 `json:"id,omitempty" firestore:"id,omitempty"`
-	Args map[string]interface{} `json:"args,omitempty" firestore:"args,omitempty"`
+	Name string         `json:"name" firestore:"name"`
+	ID   string         `json:"id,omitempty" firestore:"id,omitempty"`
+	Args map[string]any `json:"args,omitempty" firestore:"args,omitempty"`
 }
 
 // Step represents a single event/turn in an Antigravity conversation transcript.

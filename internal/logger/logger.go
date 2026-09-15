@@ -1,6 +1,7 @@
 package logger
 
 import (
+	"cmp"
 	"context"
 	"io"
 	"log/slog"
@@ -36,10 +37,7 @@ func ParseLevel(lvl string) slog.Level {
 
 // New creates a configured *slog.Logger.
 func New(opts Options) *slog.Logger {
-	out := opts.Output
-	if out == nil {
-		out = os.Stdout
-	}
+	out := cmp.Or[io.Writer](opts.Output, os.Stdout)
 
 	handlerOpts := &slog.HandlerOptions{
 		Level:     opts.Level,
@@ -58,10 +56,7 @@ func New(opts Options) *slog.Logger {
 
 // WithLogger returns a new context containing the provided logger.
 func WithLogger(ctx context.Context, l *slog.Logger) context.Context {
-	if ctx == nil {
-		ctx = context.Background()
-	}
-	return context.WithValue(ctx, contextKey{}, l)
+	return context.WithValue(cmp.Or(ctx, context.Background()), contextKey{}, l)
 }
 
 // FromContext extracts the *slog.Logger from the context or returns the default logger.

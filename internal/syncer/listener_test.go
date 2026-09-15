@@ -79,11 +79,11 @@ func TestListener_PollAndSyncRemoteChanges(t *testing.T) {
 	}
 
 	repo := firestore.NewMemoryRepository()
-	defer func() {
+	t.Cleanup(func() {
 		_ = repo.Close()
-	}()
+	})
 
-	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
+	ctx, cancel := context.WithTimeout(t.Context(), 2*time.Second)
 	defer cancel()
 
 	// Seed remote conversation

@@ -37,7 +37,7 @@ func TestVersionCommand_JSON(t *testing.T) {
 	err := rootCmd.Execute()
 	require.NoError(t, err)
 
-	var payload map[string]interface{}
+	var payload map[string]any
 	err = json.Unmarshal(buf.Bytes(), &payload)
 	require.NoError(t, err)
 

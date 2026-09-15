@@ -46,7 +46,7 @@ project_id: ""
 	root.SetArgs([]string{"push", "--config", configPath})
 	err := root.Execute()
 
-	assert.Error(t, err)
+	require.Error(t, err)
 	assert.Contains(t, err.Error(), "project_id is required")
 }
 

@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"runtime"
 	"runtime/debug"
+	"slices"
+	"sync"
 
 	"github.com/spf13/cobra"
 )
@@ -31,8 +33,7 @@ type BuildInfo struct {
 	Arch      string `json:"arch"`
 }
 
-// GetBuildInfo resolves the build details combining ldflags and debug.ReadBuildInfo.
-func GetBuildInfo() BuildInfo {
+var getBuildInfoCached = sync.OnceValue(func() BuildInfo {
 	info := BuildInfo{
 		Version:   Version,
 		Commit:    Commit,
@@ -47,21 +48,24 @@ func GetBuildInfo() BuildInfo {
 		if info.Version == "dev" && bi.Main.Version != "" && bi.Main.Version != "(devel)" {
 			info.Version = bi.Main.Version
 		}
-		for _, s := range bi.Settings {
-			switch s.Key {
-			case "vcs.revision":
-				if info.Commit == "none" {
-					info.Commit = s.Value
-				}
-			case "vcs.time":
-				if info.Date == "unknown" {
-					info.Date = s.Value
-				}
+		if info.Commit == "none" {
+			if idx := slices.IndexFunc(bi.Settings, func(s debug.BuildSetting) bool { return s.Key == "vcs.revision" }); idx != -1 {
+				info.Commit = bi.Settings[idx].Value
+			}
+		}
+		if info.Date == "unknown" {
+			if idx := slices.IndexFunc(bi.Settings, func(s debug.BuildSetting) bool { return s.Key == "vcs.time" }); idx != -1 {
+				info.Date = bi.Settings[idx].Value
 			}
 		}
 	}
 
 	return info
+})
+
+// GetBuildInfo resolves the build details combining ldflags and debug.ReadBuildInfo.
+func GetBuildInfo() BuildInfo {
+	return getBuildInfoCached()
 }
 
 func newVersionCommand() *cobra.Command {

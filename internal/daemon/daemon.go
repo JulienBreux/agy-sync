@@ -1,6 +1,7 @@
 package daemon
 
 import (
+	"cmp"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -11,6 +12,8 @@ import (
 	"strings"
 	"syscall"
 	"time"
+
+	"golang.org/x/sys/unix"
 )
 
 var (
@@ -79,19 +82,10 @@ func NewManager(pidFile, logFile string) *Manager {
 
 // NewManagerWithState creates a new daemon Manager with an explicit state file path.
 func NewManagerWithState(pidFile, logFile, stateFile string) *Manager {
-	if pidFile == "" {
-		pidFile = DefaultPIDPath()
-	}
-	if logFile == "" {
-		logFile = DefaultLogPath()
-	}
-	if stateFile == "" {
-		stateFile = DefaultStatePath()
-	}
 	return &Manager{
-		PIDFile:   pidFile,
-		LogFile:   logFile,
-		StateFile: stateFile,
+		PIDFile:   cmp.Or(pidFile, DefaultPIDPath()),
+		LogFile:   cmp.Or(logFile, DefaultLogPath()),
+		StateFile: cmp.Or(stateFile, DefaultStatePath()),
 	}
 }
 
@@ -138,10 +132,10 @@ func (m *Manager) IsRunning() (bool, int, error) {
 	}
 
 	pidStr := strings.TrimSpace(string(data))
-	pid, err := strconv.Atoi(pidStr)
-	if err != nil {
+	pid, parseErr := strconv.Atoi(pidStr)
+	if parseErr != nil {
 		_ = os.Remove(m.PIDFile)
-		return false, 0, nil
+		return false, 0, nil //nolint:nilerr // Corrupted PID file is treated as stopped daemon
 	}
 
 	alive := isProcessAlive(pid)
@@ -230,15 +224,15 @@ func (m *Manager) Stop(timeout time.Duration) error {
 		return ErrNotRunning
 	}
 
-	proc, err := os.FindProcess(pid)
-	if err != nil {
+	proc, findErr := os.FindProcess(pid)
+	if findErr != nil {
 		_ = m.RemovePID()
-		return nil
+		return nil //nolint:nilerr // Process not found means already stopped
 	}
 
 	// Send SIGTERM
-	if err := proc.Signal(syscall.SIGTERM); err != nil {
-		if errors.Is(err, os.ErrProcessDone) || errors.Is(err, syscall.ESRCH) {
+	if err := proc.Signal(unix.SIGTERM); err != nil {
+		if errors.Is(err, os.ErrProcessDone) || errors.Is(err, unix.ESRCH) {
 			_ = m.RemovePID()
 			return nil
 		}
@@ -257,7 +251,7 @@ func (m *Manager) Stop(timeout time.Duration) error {
 
 	// If still alive after timeout, send SIGKILL
 	if isProcessAlive(pid) {
-		_ = proc.Signal(syscall.SIGKILL)
+		_ = proc.Signal(unix.SIGKILL)
 		time.Sleep(100 * time.Millisecond)
 	}
 
@@ -286,11 +280,11 @@ func isProcessAlive(pid int) bool {
 	if err != nil {
 		return false
 	}
-	err = proc.Signal(syscall.Signal(0))
+	err = proc.Signal(unix.Signal(0))
 	if err == nil {
 		return true
 	}
-	if errors.Is(err, syscall.EPERM) {
+	if errors.Is(err, unix.EPERM) {
 		return true
 	}
 	return false

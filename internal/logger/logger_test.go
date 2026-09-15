@@ -2,7 +2,6 @@ package logger_test
 
 import (
 	"bytes"
-	"context"
 	"log/slog"
 	"testing"
 
@@ -77,11 +76,11 @@ func TestContextLogger(t *testing.T) {
 		Output: buf,
 	})
 
-	ctx := logger.WithLogger(context.Background(), l)
+	ctx := logger.WithLogger(t.Context(), l)
 	extracted := logger.FromContext(ctx)
 	assert.Equal(t, l, extracted)
 
 	// Fallback to default when not set in context
-	defaultLogger := logger.FromContext(context.Background())
+	defaultLogger := logger.FromContext(t.Context())
 	assert.NotNil(t, defaultLogger)
 }

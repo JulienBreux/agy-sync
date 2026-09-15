@@ -1,6 +1,7 @@
 package config
 
 import (
+	"cmp"
 	"errors"
 	"fmt"
 	"os"
@@ -41,11 +42,8 @@ func DefaultConfigPath() string {
 
 // DefaultMachineID returns the hostname or a fallback identifier.
 func DefaultMachineID() string {
-	hostname, err := os.Hostname()
-	if err != nil || hostname == "" {
-		return "unknown-machine"
-	}
-	return hostname
+	hostname, _ := os.Hostname()
+	return cmp.Or(hostname, "unknown-machine")
 }
 
 // DefaultConfig returns a Config populated with standard defaults.

@@ -25,11 +25,11 @@ func TestWatcher_DetectTranscriptChange(t *testing.T) {
 
 	w, err := watcher.NewWatcher(tempBrain, 50*time.Millisecond)
 	require.NoError(t, err)
-	defer func() {
+	t.Cleanup(func() {
 		_ = w.Close()
-	}()
+	})
 
-	ctx, cancel := context.WithCancel(context.Background())
+	ctx, cancel := context.WithCancel(t.Context())
 	defer cancel()
 
 	events, errs, err := w.Start(ctx)
@@ -59,11 +59,11 @@ func TestWatcher_DetectNewConversation(t *testing.T) {
 
 	w, err := watcher.NewWatcher(tempBrain, 50*time.Millisecond)
 	require.NoError(t, err)
-	defer func() {
+	t.Cleanup(func() {
 		_ = w.Close()
-	}()
+	})
 
-	ctx, cancel := context.WithCancel(context.Background())
+	ctx, cancel := context.WithCancel(t.Context())
 	defer cancel()
 
 	events, errs, err := w.Start(ctx)

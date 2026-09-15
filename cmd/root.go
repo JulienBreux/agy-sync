@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"os"
 	"os/signal"
-	"syscall"
 
+	"golang.org/x/sys/unix"
 	"github.com/spf13/cobra"
 
 	"github.com/julienbreux/agy-sync/internal/logger"
@@ -81,12 +81,16 @@ and allows multi-machine conversation history synchronization.`,
 
 // Execute runs the root command.
 func Execute() {
-	ctx, cancel := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
-	defer cancel()
-
-	rootCmd := NewRootCommand()
-	if err := rootCmd.ExecuteContext(ctx); err != nil {
+	if err := run(); err != nil {
 		fmt.Fprintf(os.Stderr, "Error: %v\n", err)
 		os.Exit(1)
 	}
+}
+
+func run() error {
+	ctx, cancel := signal.NotifyContext(context.Background(), os.Interrupt, unix.SIGTERM)
+	defer cancel()
+
+	rootCmd := NewRootCommand()
+	return rootCmd.ExecuteContext(ctx)
 }

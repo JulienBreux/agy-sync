@@ -33,7 +33,7 @@ project_id: "test-proj"
 	root.SetArgs([]string{"pull", "--config", configPath})
 	err := root.Execute()
 
-	assert.Error(t, err)
+	require.Error(t, err)
 	assert.Contains(t, err.Error(), "conversation ID is required")
 }
 
@@ -47,7 +47,10 @@ project_id: "test-proj"
 
 	convID := "conv-pull-cli"
 	memRepo := firestore.NewMemoryRepository()
-	ctx := context.Background()
+	t.Cleanup(func() {
+		_ = memRepo.Close()
+	})
+	ctx := t.Context()
 	require.NoError(t, memRepo.UpsertConversation(ctx, &models.Conversation{
 		ID:             convID,
 		Title:          "Pull CLI Test",
@@ -62,7 +65,7 @@ project_id: "test-proj"
 	cmd.SetFirestoreClientFactory(func(_ context.Context, _ *config.Config) (firestore.Repository, error) {
 		return memRepo, nil
 	})
-	defer cmd.ResetFirestoreClientFactory()
+	t.Cleanup(cmd.ResetFirestoreClientFactory)
 
 	// 1. Text output
 	root := cmd.NewRootCommand()

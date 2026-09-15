@@ -1,8 +1,10 @@
 package firestore
 
 import (
+	"cmp"
 	"context"
-	"sort"
+	"maps"
+	"slices"
 	"sync"
 
 	"github.com/julienbreux/agy-sync/pkg/models"
@@ -78,13 +80,11 @@ func (m *MemoryRepository) AppendSteps(_ context.Context, convID string, steps [
 	lastIndex := -1
 	for _, s := range steps {
 		m.steps[convID][s.StepIndex] = s
-		if s.StepIndex > lastIndex {
-			lastIndex = s.StepIndex
-		}
+		lastIndex = max(lastIndex, s.StepIndex)
 	}
 
-	if conv, ok := m.conversations[convID]; ok && lastIndex > conv.LastSyncedStep {
-		conv.LastSyncedStep = lastIndex
+	if conv, ok := m.conversations[convID]; ok {
+		conv.LastSyncedStep = max(conv.LastSyncedStep, lastIndex)
 	}
 
 	return nil
@@ -107,8 +107,8 @@ func (m *MemoryRepository) GetStepsSince(_ context.Context, convID string, after
 		}
 	}
 
-	sort.Slice(results, func(i, j int) bool {
-		return results[i].StepIndex < results[j].StepIndex
+	slices.SortFunc(results, func(a, b models.Step) int {
+		return cmp.Compare(a.StepIndex, b.StepIndex)
 	})
 
 	return results, nil
@@ -158,7 +158,7 @@ func (m *MemoryRepository) ListArtifacts(_ context.Context, convID string) ([]mo
 	}
 
 	results := make([]models.Artifact, 0, len(convArtifacts))
-	for _, art := range convArtifacts {
+	for art := range maps.Values(convArtifacts) {
 		results = append(results, *art)
 	}
 

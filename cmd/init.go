@@ -1,6 +1,8 @@
 package cmd
 
 import (
+	"cmp"
+	"errors"
 	"fmt"
 	"strings"
 
@@ -24,21 +26,15 @@ func newInitCommand() *cobra.Command {
 		Long:    "Creates or updates the local configuration file with Google Cloud Project and Antigravity directories.",
 		RunE: func(cmd *cobra.Command, args []string) error {
 			if strings.TrimSpace(projectID) == "" {
-				return fmt.Errorf("project-id is required: specify with --project-id")
+				return errors.New("project-id is required: specify with --project-id")
 			}
 
 			cfg := config.DefaultConfig()
 			cfg.ProjectID = projectID
 
-			if strings.TrimSpace(databaseID) != "" {
-				cfg.DatabaseID = databaseID
-			}
-			if strings.TrimSpace(machineID) != "" {
-				cfg.MachineID = machineID
-			}
-			if strings.TrimSpace(brainDir) != "" {
-				cfg.BrainDir = brainDir
-			}
+			cfg.DatabaseID = cmp.Or(strings.TrimSpace(databaseID), cfg.DatabaseID)
+			cfg.MachineID = cmp.Or(strings.TrimSpace(machineID), cfg.MachineID)
+			cfg.BrainDir = cmp.Or(strings.TrimSpace(brainDir), cfg.BrainDir)
 
 			if err := cfg.Validate(); err != nil {
 				return fmt.Errorf("configuration validation failed: %w", err)

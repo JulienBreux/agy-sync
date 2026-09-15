@@ -20,7 +20,7 @@ func TestRootCommand(t *testing.T) {
 	root.SetArgs([]string{"--help"})
 
 	err := root.Execute()
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	out := buf.String()
 	assert.Contains(t, out, "agy-sync")
 	assert.Contains(t, out, "Daemon Management Commands:")
@@ -73,6 +73,6 @@ func TestInitCommand_MissingProject(t *testing.T) {
 	})
 
 	err := root.Execute()
-	assert.Error(t, err)
+	require.Error(t, err)
 	assert.Contains(t, err.Error(), "project-id is required")
 }
