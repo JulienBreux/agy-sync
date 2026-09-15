@@ -114,11 +114,23 @@ func (e *Engine) pushConversation(ctx context.Context, dConv *discovery.Discover
 				return fmt.Errorf("failed appending steps: %w", err)
 			}
 			res.StepsSynced += len(newSteps)
+
+			remoteConv.LastSyncedStep = newSteps[len(newSteps)-1].StepIndex
+			remoteConv.SourceMachine = e.cfg.MachineID
+			remoteConv.UpdatedAt = time.Now().UTC()
+			if err := e.repo.UpsertConversation(ctx, remoteConv); err != nil {
+				return fmt.Errorf("failed updating conversation metadata: %w", err)
+			}
 		}
 	}
 
 	// 2. Push artifacts
 	for _, art := range dConv.Artifacts {
+		existingArt, err := e.repo.GetArtifact(ctx, dConv.ID, art.RelativePath)
+		if err == nil && existingArt != nil && existingArt.SHA256 == art.SHA256 {
+			continue
+		}
+
 		content, err := os.ReadFile(art.AbsolutePath)
 		if err != nil {
 			continue

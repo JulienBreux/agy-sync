@@ -64,19 +64,19 @@ func (e *Engine) Pull(ctx context.Context, opts PullOptions) (*PullResult, error
 		if err != nil {
 			return nil, fmt.Errorf("failed opening transcript %s: %w", transcriptPath, err)
 		}
-		defer func() {
-			_ = f.Close()
-		}()
 
 		for _, step := range newSteps {
 			line, err := parser.SerializeStepToJSONL(&step)
 			if err != nil {
+				_ = f.Close()
 				return nil, fmt.Errorf("failed serializing step %d: %w", step.StepIndex, err)
 			}
 			if _, err := f.Write(line); err != nil {
+				_ = f.Close()
 				return nil, fmt.Errorf("failed writing step to transcript: %w", err)
 			}
 		}
+		_ = f.Close()
 	}
 
 	// 2. Fetch and restore remote artifacts
