@@ -1,11 +1,11 @@
 # Implementation Plan - Modernize Go Application Architecture, CLI Ergonomics & Best Practices
 
 ## Phase 1: Codebase Package Restructuring & Encapsulation
-- [ ] Task: TDD - Reorganize domain packages into `internal/`
-  - [ ] Relocate `pkg/daemon`, `pkg/syncer`, `pkg/watcher`, `pkg/parser`, `pkg/discovery`, and `pkg/firestore` into `internal/`
-  - [ ] Update all import paths across `cmd/`, `internal/`, and `test/`
-  - [ ] Validate full test suite passes with reorganized package structure
-- [ ] Task: Conductor - User Manual Verification 'Phase 1: Codebase Package Restructuring & Encapsulation' (Protocol in workflow.md)
+- [x] Task: TDD - Reorganize domain packages into `internal/`
+  - [x] Relocate `pkg/daemon`, `pkg/syncer`, `pkg/watcher`, `pkg/parser`, `pkg/discovery`, and `pkg/firestore` into `internal/`
+  - [x] Update all import paths across `cmd/`, `internal/`, and `test/`
+  - [x] Validate full test suite passes with reorganized package structure
+- [~] Task: Conductor - User Manual Verification 'Phase 1: Codebase Package Restructuring & Encapsulation' (Protocol in workflow.md)
 
 ## Phase 2: Structured Logging (`log/slog`) & Concurrency Modernization
 - [ ] Task: TDD - Implement Structured Logging (`internal/logger`)
