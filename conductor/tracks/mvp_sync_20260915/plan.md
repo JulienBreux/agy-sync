@@ -46,8 +46,9 @@
 - [x] Task: Firestore Snapshot Listener (TDD) [b3e83a9]
   - [x] Write tests for handling remote Firestore snapshot change streams (`pkg/syncer/listener_test.go`)
   - [x] Implement remote listener with machine ID loop prevention (`pkg/syncer/listener.go`)
-- [ ] Task: Cobra `watch` Command
-  - [ ] Integrate watcher + listener into unified daemon command (`cmd/watch.go`)
+- [x] Task: Cobra `watch` Command [356c93b]
+  - [x] Integrate watcher + listener into unified daemon command (`cmd/watch.go`)
+  - [x] Write tests for watch command daemon lifecycle and signal handling (`cmd/watch_test.go`)
 - [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
 
 ## Phase 6: End-to-End Integration & Hardening
