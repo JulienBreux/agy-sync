@@ -1,0 +1,3 @@
+Task: Configuration & init Command (TDD)
+Summary: Implemented YAML/environment configuration loader with Viper and Cobra root/init subcommands with full flag support. Added comprehensive unit tests achieving >80% coverage.
+Files: pkg/config/config.go, pkg/config/config_test.go, cmd/root.go, cmd/init.go, cmd/init_test.go, main.go
