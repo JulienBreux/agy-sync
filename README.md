@@ -132,48 +132,45 @@ Scans local conversations, parses new lines from `transcript.jsonl`, and uploads
 agy-sync push
 
 # Push a specific conversation
-agy-sync push --conversation-id 624296c6-d623-4c39-92d4-3906f8c07140
-
-# Custom brain directory
-agy-sync push --dir /path/to/custom/brain
+agy-sync push -c 624296c6-d623-4c39-92d4-3906f8c07140
 ```
 
 **Flags:**
-- `--conversation-id <string>`: Filter push to a single conversation ID.
-- `--dir <string>`: Override the brain root directory.
+- `-c, --conversation <string>`: Filter push to a specific conversation ID.
 
 ---
 
 ### `agy-sync pull`
-Reconstructs an Antigravity conversation locally from Firestore, re-creating directory trees, streaming steps into `transcript.jsonl`, and saving artifacts with exact byte parity.
+Downloads conversation transcripts and artifacts from Firestore and reconstructs the local Antigravity brain directory and JSONL log structure with exact byte parity.
 
 ```bash
-# Pull conversation by ID
+# Pull conversation by argument
 agy-sync pull 624296c6-d623-4c39-92d4-3906f8c07140
 
-# Pull to custom directory
-agy-sync pull 624296c6-d623-4c39-92d4-3906f8c07140 --dir /path/to/custom/brain
+# Or via flag
+agy-sync pull -c 624296c6-d623-4c39-92d4-3906f8c07140
 ```
 
-**Arguments:**
-- `<conversation-id>`: Unique ID of the conversation in Firestore (*required*).
+**Arguments / Flags:**
+- `<conversation-id>`: Unique ID of the conversation in Firestore.
+- `-c, --conversation <string>`: Optional flag alternative to specify the conversation ID.
 
 ---
 
 ### `agy-sync watch`
-Runs a persistent background daemon that watches local Antigravity directories with `fsnotify` and polls Firestore for remote changes made by other workstations.
+Runs a persistent daemon monitoring local conversation modifications and remote Firestore changes, synchronizing updates continuously with loop prevention.
 
 ```bash
-# Start watch daemon
+# Start watch daemon with default intervals
 agy-sync watch
 
-# Custom polling interval (seconds)
-agy-sync watch --poll-interval 5
+# Custom polling interval and debounce
+agy-sync watch --interval 5s --debounce 500ms
 ```
 
 **Flags:**
-- `--poll-interval <int>`: Remote Firestore polling interval in seconds (default: `2`).
-- `--dir <string>`: Override the brain root directory.
+- `--interval <duration>`: Remote Firestore check interval (default: `3s`).
+- `--debounce <duration>`: Filesystem event debounce interval (default: `200ms`).
 
 ---
 
@@ -183,9 +180,6 @@ Displays side-by-side synchronization status between your local brain directory 
 ```bash
 # Terminal formatted table
 agy-sync status
-
-# Filter specific conversation
-agy-sync status --conversation-id 624296c6-d623-4c39-92d4-3906f8c07140
 
 # Machine-readable JSON
 agy-sync status --json
@@ -255,3 +249,88 @@ export GOOGLE_APPLICATION_CREDENTIALS="/path/to/service-account-key.json"
 
 **Required IAM Roles:**
 - `roles/datastore.user` (Cloud Datastore User / Firestore User) or `roles/datastore.owner`
+
+---
+
+## Developer Guide & Testing
+
+### Building from Source
+
+Ensure you have **Go 1.27+** installed:
+
+```bash
+# Clone the repository
+git clone https://github.com/julienbreux/agy-sync.git
+cd agy-sync
+
+# Build the static executable into bin/
+go build -v -o bin/agy-sync .
+
+# Verify binary
+./bin/agy-sync --help
+```
+
+### Running Automated Unit Tests
+
+Run the full automated test suite with coverage report:
+
+```bash
+CI=true go test -v -cover ./...
+```
+
+### Running with the Local Firestore Emulator
+
+Hermetic tests for real Firestore client operations and round-trip E2E sync can be executed against a local Firestore emulator:
+
+```bash
+# 1. Start the Google Cloud Firestore Emulator in a background terminal:
+gcloud emulators firestore start --host-port=127.0.0.1:8080
+
+# 2. In your working shell, export the emulator host:
+export FIRESTORE_EMULATOR_HOST="127.0.0.1:8080"
+
+# 3. Run all tests including live emulator suites:
+CI=true go test -v ./pkg/firestore/... ./test/...
+```
+
+### Code Quality & Static Analysis
+
+We enforce strict linting and idiomatic Go practices:
+
+```bash
+golangci-lint run ./...
+```
+
+---
+
+## Contributing
+
+Contributions, feedback, and pull requests are welcome!
+
+1. Fork the repository and create your feature branch: `git checkout -b feat/my-new-feature`
+2. Follow Test-Driven Development (TDD): write unit tests ensuring coverage stays above 80%
+3. Verify your changes: `CI=true go test ./... && golangci-lint run ./...`
+4. Commit your changes with conventional commit messages: `git commit -m "feat(syncer): add compression support"`
+5. Push to the branch and open a Pull Request
+
+---
+
+## License
+
+This project is licensed under the **Apache License, Version 2.0**. See the [LICENSE](LICENSE) file for details.
+
+```
+Copyright 2026 Julien Breux
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+```
