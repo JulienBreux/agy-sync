@@ -8,9 +8,18 @@ import (
 	"github.com/spf13/cobra"
 
 	"github.com/julienbreux/agy-sync/pkg/config"
+	"github.com/julienbreux/agy-sync/pkg/daemon"
 	"github.com/julienbreux/agy-sync/pkg/discovery"
 	"github.com/julienbreux/agy-sync/pkg/parser"
 )
+
+// DaemonStatus represents the runtime status of the background synchronization daemon.
+type DaemonStatus struct {
+	State   string `json:"state"`
+	PID     int    `json:"pid,omitempty"`
+	LogFile string `json:"log_file"`
+	PIDFile string `json:"pid_file"`
+}
 
 // ConversationStatus summarizes sync state for a single conversation.
 type ConversationStatus struct {
@@ -23,6 +32,7 @@ type ConversationStatus struct {
 
 // StatusReport represents the overall system synchronization status.
 type StatusReport struct {
+	Daemon             DaemonStatus         `json:"daemon"`
 	ProjectID          string               `json:"project_id"`
 	MachineID          string               `json:"machine_id"`
 	BrainDir           string               `json:"brain_dir"`
@@ -30,12 +40,19 @@ type StatusReport struct {
 	Conversations      []ConversationStatus `json:"conversations"`
 }
 
+type statusOptions struct {
+	pidFile string
+	logFile string
+}
+
 func newStatusCommand() *cobra.Command {
+	opts := statusOptions{}
+
 	statusCmd := &cobra.Command{
 		Use:   "status",
 		Short: "Display sync status between local brain and remote Firestore",
-		Long: `Inspects local Antigravity conversation sessions and compares their step and
-artifact counts against remote Firestore metadata.`,
+		Long: `Inspects local Antigravity conversation sessions, compares their step and
+artifact counts against remote Firestore metadata, and reports daemon process health.`,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			cfg, err := config.LoadConfig(globalOpts.ConfigFile)
 			if err != nil {
@@ -44,6 +61,12 @@ artifact counts against remote Firestore metadata.`,
 
 			if err := cfg.Validate(); err != nil {
 				return fmt.Errorf("invalid configuration: %w (remediation: check ~/.config/agy-sync/config.yaml)", err)
+			}
+
+			mgr := daemon.NewManager(opts.pidFile, opts.logFile)
+			daemonState, daemonPID, logFile, err := mgr.Status()
+			if err != nil {
+				daemonState = daemon.StateStopped
 			}
 
 			client, err := newFirestoreClient(cmd.Context(), cfg)
@@ -61,6 +84,12 @@ artifact counts against remote Firestore metadata.`,
 
 			p := parser.NewTranscriptParser()
 			report := &StatusReport{
+				Daemon: DaemonStatus{
+					State:   string(daemonState),
+					PID:     daemonPID,
+					LogFile: logFile,
+					PIDFile: mgr.PIDFile,
+				},
 				ProjectID:          cfg.ProjectID,
 				MachineID:          cfg.MachineID,
 				BrainDir:           cfg.BrainDir,
@@ -106,6 +135,12 @@ artifact counts against remote Firestore metadata.`,
 			cmd.Println("==================================================")
 			cmd.Println("          Antigravity Sync Status                ")
 			cmd.Println("==================================================")
+			if report.Daemon.State == string(daemon.StateRunning) {
+				cmd.Printf("Daemon Status:   RUNNING (PID: %d)\n", report.Daemon.PID)
+			} else {
+				cmd.Println("Daemon Status:   STOPPED")
+			}
+			cmd.Printf("Daemon Log:      %s\n", report.Daemon.LogFile)
 			cmd.Printf("GCP Project ID:  %s\n", report.ProjectID)
 			cmd.Printf("Machine ID:      %s\n", report.MachineID)
 			cmd.Printf("Brain Directory: %s\n", report.BrainDir)
@@ -131,6 +166,9 @@ artifact counts against remote Firestore metadata.`,
 			return nil
 		},
 	}
+
+	statusCmd.Flags().StringVar(&opts.pidFile, "pid-file", daemon.DefaultPIDPath(), "Path to PID file")
+	statusCmd.Flags().StringVar(&opts.logFile, "log-file", daemon.DefaultLogPath(), "Path to daemon log file")
 
 	return statusCmd
 }

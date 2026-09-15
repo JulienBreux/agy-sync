@@ -56,6 +56,7 @@ machine_id: "status-machine-1"
 	err := root.Execute()
 	require.NoError(t, err)
 	assert.Contains(t, buf.String(), "Antigravity Sync Status")
+	assert.Contains(t, buf.String(), "Daemon Status:   STOPPED")
 	assert.Contains(t, buf.String(), "test-status-proj")
 	assert.Contains(t, buf.String(), convID)
 
@@ -70,6 +71,8 @@ machine_id: "status-machine-1"
 	require.NoError(t, err)
 	assert.Contains(t, bufJSON.String(), `"project_id": "test-status-proj"`)
 	assert.Contains(t, bufJSON.String(), `"conversations_count": 1`)
+	assert.Contains(t, bufJSON.String(), `"daemon": {`)
+	assert.Contains(t, bufJSON.String(), `"state": "STOPPED"`)
 }
 
 func TestStatusCommand_MissingConfig(t *testing.T) {
