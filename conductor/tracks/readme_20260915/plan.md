@@ -1,11 +1,11 @@
 # Implementation Plan - Clean Project Documentation (`README.md`)
 
-## Phase 1: Project Overview, Architecture & Core Features Documentation
+## Phase 1: Project Overview, Architecture & Core Features Documentation [checkpoint: 0f20762]
 - [x] Task: Document Vision, Badges, and High-Level Architecture [762215a]
   - [x] Write project header, badges, and overview in `README.md`
   - [x] Create Mermaid sequence and flow diagrams for bidirectional sync and loop prevention
   - [x] Document Firestore document schema (`/conversations`, `/steps`, `/artifacts`) and append-only model
-- [ ] Task: Conductor - User Manual Verification 'Phase 1: Project Overview, Architecture & Core Features Documentation' (Protocol in workflow.md)
+- [x] Task: Conductor - User Manual Verification 'Phase 1: Project Overview, Architecture & Core Features Documentation' (Protocol in workflow.md) [0f20762]
 
 ## Phase 2: CLI Command Reference & Configuration Guide
 - [ ] Task: Document CLI Commands and Formatted Usage Examples
