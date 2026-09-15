@@ -29,10 +29,10 @@
 - [x] Task: Phase Verification & Checkpoint (Refer to workflow.md) [2330823]
 
 ## Phase 4: Synchronization Commands (`push` & `pull`)
-- [ ] Task: Push Command Implementation (TDD)
-  - [ ] Write tests for incremental push logic (local -> Firestore) (`pkg/syncer/push_test.go`)
-  - [ ] Implement sync engine push mechanism with state tracking (`pkg/syncer/push.go`)
-  - [ ] Implement Cobra `push` command (`cmd/push.go`)
+- [x] Task: Push Command Implementation (TDD) [99c9a17]
+  - [x] Write tests for incremental push logic (local -> Firestore) (`pkg/syncer/push_test.go`)
+  - [x] Implement sync engine push mechanism with state tracking (`pkg/syncer/push.go`)
+  - [x] Implement Cobra `push` command (`cmd/push.go`)
 - [ ] Task: Pull Command Implementation (TDD)
   - [ ] Write tests for reconstructing local `transcript.jsonl` and directory tree from Firestore (`pkg/syncer/pull_test.go`)
   - [ ] Implement pull engine and local filesystem writer (`pkg/syncer/pull.go`)
