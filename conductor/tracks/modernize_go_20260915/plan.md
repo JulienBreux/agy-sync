@@ -5,17 +5,17 @@
   - [x] Relocate `pkg/daemon`, `pkg/syncer`, `pkg/watcher`, `pkg/parser`, `pkg/discovery`, and `pkg/firestore` into `internal/`
   - [x] Update all import paths across `cmd/`, `internal/`, and `test/`
   - [x] Validate full test suite passes with reorganized package structure
-- [~] Task: Conductor - User Manual Verification 'Phase 1: Codebase Package Restructuring & Encapsulation' (Protocol in workflow.md)
+- [x] Task: Conductor - User Manual Verification 'Phase 1: Codebase Package Restructuring & Encapsulation' (Protocol in workflow.md)
 
 ## Phase 2: Structured Logging (`log/slog`) & Concurrency Modernization
-- [ ] Task: TDD - Implement Structured Logging (`internal/logger`)
-  - [ ] Write unit tests for logger configuration, log level parsing, and text/JSON handler selection in `internal/logger/logger_test.go`
-  - [ ] Implement `internal/logger/logger.go` wrapping `log/slog`
-  - [ ] Inject structured logging into `syncer`, `watcher`, `daemon`, and `cmd/`
-- [ ] Task: TDD - Context & Concurrency Modernization
-  - [ ] Refactor artifact syncing in `internal/syncer` to use `golang.org/x/sync/errgroup` with bounded parallelism
-  - [ ] Adopt `signal.NotifyContext` in CLI execution for graceful interruption
-- [ ] Task: Conductor - User Manual Verification 'Phase 2: Structured Logging & Concurrency Modernization' (Protocol in workflow.md)
+- [x] Task: TDD - Implement Structured Logging (`internal/logger`)
+  - [x] Write unit tests for logger configuration, log level parsing, and text/JSON handler selection in `internal/logger/logger_test.go`
+  - [x] Implement `internal/logger/logger.go` wrapping `log/slog`
+  - [x] Inject structured logging into `syncer`, `watcher`, `daemon`, and `cmd/`
+- [x] Task: TDD - Context & Concurrency Modernization
+  - [x] Refactor artifact syncing in `internal/syncer` to use `golang.org/x/sync/errgroup` with bounded parallelism
+  - [x] Adopt `signal.NotifyContext` in CLI execution for graceful interruption
+- [~] Task: Conductor - User Manual Verification 'Phase 2: Structured Logging & Concurrency Modernization' (Protocol in workflow.md)
 
 ## Phase 3: CLI Ergonomics, Version Command, Grouping & Exit Codes
 - [ ] Task: TDD - Standardized Exit Codes & `version` Command
