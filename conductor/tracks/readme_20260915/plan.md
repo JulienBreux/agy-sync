@@ -14,11 +14,11 @@
   - [x] Document Google Cloud Application Default Credentials (ADC) setup
 - [x] Task: Conductor - User Manual Verification 'Phase 2: CLI Command Reference & Configuration Guide' (Protocol in workflow.md) [896ec77]
 
-## Phase 3: Developer Guide, Verification & Final Polishing
+## Phase 3: Developer Guide, Verification & Final Polishing [checkpoint: 6ed4dc5]
 - [x] Task: Document Developer Workflow, Emulator Setup & Testing [6ed4dc5]
   - [x] Document build steps (`go build`), unit testing (`go test`), and Firestore emulator execution
   - [x] Add Apache 2.0 license notice and contributing notes
 - [x] Task: Verify Markdown Rendering and Technical Accuracy [6ed4dc5]
   - [x] Verify that all commands, flags, and options match `./bin/agy-sync --help`
   - [x] Validate Markdown formatting and Mermaid diagram syntax
-- [ ] Task: Conductor - User Manual Verification 'Phase 3: Developer Guide, Verification & Final Polishing' (Protocol in workflow.md)
+- [x] Task: Conductor - User Manual Verification 'Phase 3: Developer Guide, Verification & Final Polishing' (Protocol in workflow.md) [6ed4dc5]
