@@ -12,8 +12,9 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/julienbreux/agy-sync/cmd"
-	"github.com/julienbreux/agy-sync/pkg/config"
+	"github.com/julienbreux/agy-sync/internal/daemon"
 	"github.com/julienbreux/agy-sync/internal/firestore"
+	"github.com/julienbreux/agy-sync/pkg/config"
 	"github.com/julienbreux/agy-sync/pkg/models"
 )
 
@@ -46,17 +47,20 @@ machine_id: "status-machine-1"
 	})
 	defer cmd.ResetFirestoreClientFactory()
 
+	stateFile := filepath.Join(tempBrain, "test-none.state.json")
+
 	// Text mode
 	root := cmd.NewRootCommand()
 	buf := new(bytes.Buffer)
 	root.SetOut(buf)
 	root.SetErr(buf)
 
-	root.SetArgs([]string{"status", "--config", configPath})
+	root.SetArgs([]string{"status", "--config", configPath, "--state-file", stateFile})
 	err := root.Execute()
 	require.NoError(t, err)
 	assert.Contains(t, buf.String(), "Antigravity Sync Status")
 	assert.Contains(t, buf.String(), "Daemon Status:   STOPPED")
+	assert.Contains(t, buf.String(), "Last Polling:    Never / Inactive")
 	assert.Contains(t, buf.String(), "test-status-proj")
 	assert.Contains(t, buf.String(), convID)
 
@@ -66,7 +70,7 @@ machine_id: "status-machine-1"
 	rootJSON.SetOut(bufJSON)
 	rootJSON.SetErr(bufJSON)
 
-	rootJSON.SetArgs([]string{"status", "--config", configPath, "--json"})
+	rootJSON.SetArgs([]string{"status", "--config", configPath, "--state-file", stateFile, "--json"})
 	err = rootJSON.Execute()
 	require.NoError(t, err)
 	assert.Contains(t, bufJSON.String(), `"project_id": "test-status-proj"`)
@@ -80,7 +84,7 @@ machine_id: "status-machine-1"
 	rootFilter.SetOut(bufFilter)
 	rootFilter.SetErr(bufFilter)
 
-	rootFilter.SetArgs([]string{"status", convID, "--config", configPath})
+	rootFilter.SetArgs([]string{"status", convID, "--config", configPath, "--state-file", stateFile})
 	err = rootFilter.Execute()
 	require.NoError(t, err)
 	assert.Contains(t, bufFilter.String(), convID)
@@ -98,3 +102,46 @@ func TestStatusCommand_MissingConfig(t *testing.T) {
 	assert.Error(t, err)
 	assert.Contains(t, err.Error(), "remediation:")
 }
+
+func TestStatusCommand_WithLastPollingDate(t *testing.T) {
+	tempBrain := t.TempDir()
+	configPath := filepath.Join(tempBrain, "config.yaml")
+	cfgContent := `brain_dir: ` + tempBrain + `
+project_id: "test-status-proj"
+machine_id: "status-machine-1"
+`
+	require.NoError(t, os.WriteFile(configPath, []byte(cfgContent), 0o644))
+
+	statePath := filepath.Join(tempBrain, "daemon.state.json")
+	mgr := daemon.NewManagerWithState("", "", statePath)
+	fixedTime := time.Date(2026, 9, 15, 16, 40, 0, 0, time.UTC)
+	require.NoError(t, mgr.RecordPoll(fixedTime))
+
+	memRepo := firestore.NewMemoryRepository()
+	cmd.SetFirestoreClientFactory(func(_ context.Context, _ *config.Config) (firestore.Repository, error) {
+		return memRepo, nil
+	})
+	defer cmd.ResetFirestoreClientFactory()
+
+	root := cmd.NewRootCommand()
+	buf := new(bytes.Buffer)
+	root.SetOut(buf)
+	root.SetErr(buf)
+	root.SetArgs([]string{"status", "--config", configPath, "--state-file", statePath})
+
+	err := root.Execute()
+	require.NoError(t, err)
+	assert.Contains(t, buf.String(), "Last Polling:    2026-09-15 16:40:00 UTC")
+
+	// JSON mode with last polled at
+	rootJSON := cmd.NewRootCommand()
+	bufJSON := new(bytes.Buffer)
+	rootJSON.SetOut(bufJSON)
+	rootJSON.SetErr(bufJSON)
+	rootJSON.SetArgs([]string{"status", "--config", configPath, "--state-file", statePath, "--json"})
+
+	err = rootJSON.Execute()
+	require.NoError(t, err)
+	assert.Contains(t, bufJSON.String(), `"last_polled_at": "2026-09-15T16:40:00Z"`)
+}
+

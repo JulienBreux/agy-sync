@@ -53,12 +53,28 @@ and allows multi-machine conversation history synchronization.`,
 	rootCmd.PersistentFlags().BoolVar(&globalOpts.JSON, "json", false, "output results in JSON format")
 	rootCmd.PersistentFlags().StringVar(&globalOpts.LogLevel, "log-level", "info", "log level (debug, info, warn, error)")
 
+	rootCmd.AddGroup(
+		&cobra.Group{
+			ID:    "daemon",
+			Title: "Daemon Management Commands:",
+		},
+		&cobra.Group{
+			ID:    "sync",
+			Title: "Data Synchronization Commands:",
+		},
+		&cobra.Group{
+			ID:    "setup",
+			Title: "Configuration & Setup Commands:",
+		},
+	)
+
 	rootCmd.AddCommand(newInitCommand())
 	rootCmd.AddCommand(newPushCommand())
 	rootCmd.AddCommand(newPullCommand())
 	rootCmd.AddCommand(newStartCommand())
 	rootCmd.AddCommand(newStopCommand())
 	rootCmd.AddCommand(newStatusCommand())
+	rootCmd.AddCommand(newVersionCommand())
 
 	return rootCmd
 }

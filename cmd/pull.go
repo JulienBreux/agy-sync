@@ -15,8 +15,9 @@ func newPullCommand() *cobra.Command {
 	var conversationID string
 
 	pullCmd := &cobra.Command{
-		Use:   "pull [conversation-id]",
-		Short: "Pull Antigravity conversation and artifacts from Firestore",
+		Use:     "pull [conversation-id]",
+		GroupID: "sync",
+		Short:   "Pull Antigravity conversation and artifacts from Firestore",
 		Long: `Downloads conversation transcripts and artifacts from Firestore and reconstructs
 the local Antigravity brain directory and JSONL log structure.`,
 		Args: cobra.MaximumNArgs(1),

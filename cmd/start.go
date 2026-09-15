@@ -20,19 +20,21 @@ type startOptions struct {
 	debounceDuration time.Duration
 	pidFile          string
 	logFile          string
+	stateFile        string
 }
 
 func newStartCommand() *cobra.Command {
 	opts := startOptions{}
 
 	startCmd := &cobra.Command{
-		Use:   "start",
-		Short: "Start the background synchronization daemon",
+		Use:     "start",
+		GroupID: "daemon",
+		Short:   "Start the background synchronization daemon",
 		Long: `Launches the Antigravity background synchronization engine. By default, it spawns
 a detached daemon process monitoring the brain directory and synchronizing with Cloud Firestore.
 Use -f / --foreground to run directly in the current terminal session.`,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			mgr := daemon.NewManager(opts.pidFile, opts.logFile)
+			mgr := daemon.NewManagerWithState(opts.pidFile, opts.logFile, opts.stateFile)
 
 			if !opts.foreground {
 				// Background daemon mode
@@ -130,6 +132,7 @@ Use -f / --foreground to run directly in the current terminal session.`,
 			cmd.Printf("  Polling interval:    %s\n", opts.pollInterval)
 
 			// Initial push of any pending local turns
+			_ = mgr.RecordPoll(time.Now().UTC())
 			_, _ = engine.Push(cmd.Context(), syncer.PushOptions{})
 
 			ticker := time.NewTicker(opts.pollInterval)
@@ -160,6 +163,7 @@ Use -f / --foreground to run directly in the current terminal session.`,
 					})
 
 				case <-ticker.C:
+					_ = mgr.RecordPoll(time.Now().UTC())
 					_, _ = engine.SyncRemoteChanges(ctx)
 				}
 			}
@@ -171,6 +175,7 @@ Use -f / --foreground to run directly in the current terminal session.`,
 	startCmd.Flags().DurationVar(&opts.debounceDuration, "debounce", 200*time.Millisecond, "Filesystem event debounce interval")
 	startCmd.Flags().StringVar(&opts.pidFile, "pid-file", daemon.DefaultPIDPath(), "Path to PID file")
 	startCmd.Flags().StringVar(&opts.logFile, "log-file", daemon.DefaultLogPath(), "Path to daemon log file")
+	startCmd.Flags().StringVar(&opts.stateFile, "state-file", daemon.DefaultStatePath(), "Path to daemon runtime state file")
 
 	return startCmd
 }

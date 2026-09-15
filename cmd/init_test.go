@@ -21,7 +21,12 @@ func TestRootCommand(t *testing.T) {
 
 	err := root.Execute()
 	assert.NoError(t, err)
-	assert.Contains(t, buf.String(), "agy-sync")
+	out := buf.String()
+	assert.Contains(t, out, "agy-sync")
+	assert.Contains(t, out, "Daemon Management Commands:")
+	assert.Contains(t, out, "Data Synchronization Commands:")
+	assert.Contains(t, out, "Configuration & Setup Commands:")
+	assert.Contains(t, out, "version")
 }
 
 func TestInitCommand(t *testing.T) {

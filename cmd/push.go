@@ -20,8 +20,9 @@ func newPushCommand() *cobra.Command {
 	var conversationID string
 
 	pushCmd := &cobra.Command{
-		Use:   "push",
-		Short: "Push local Antigravity conversations and artifacts to Firestore",
+		Use:     "push",
+		GroupID: "sync",
+		Short:   "Push local Antigravity conversations and artifacts to Firestore",
 		Long: `Scans the configured brain directory for conversation transcripts and artifacts,
 and pushes them to Firestore incrementally.`,
 		RunE: func(cmd *cobra.Command, args []string) error {

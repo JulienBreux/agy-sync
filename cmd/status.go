@@ -18,10 +18,11 @@ import (
 
 // DaemonStatus represents the runtime status of the background synchronization daemon.
 type DaemonStatus struct {
-	State   string `json:"state"`
-	PID     int    `json:"pid,omitempty"`
-	LogFile string `json:"log_file"`
-	PIDFile string `json:"pid_file"`
+	State        string     `json:"state"`
+	PID          int        `json:"pid,omitempty"`
+	LogFile      string     `json:"log_file"`
+	PIDFile      string     `json:"pid_file"`
+	LastPolledAt *time.Time `json:"last_polled_at,omitempty"`
 }
 
 // ConversationStatus summarizes sync state for a single conversation.
@@ -47,14 +48,16 @@ type statusOptions struct {
 	conversationID string
 	pidFile        string
 	logFile        string
+	stateFile      string
 }
 
 func newStatusCommand() *cobra.Command {
 	opts := statusOptions{}
 
 	statusCmd := &cobra.Command{
-		Use:   "status [conversation-id]",
-		Short: "Display sync status between local brain and remote Firestore",
+		Use:     "status [conversation-id]",
+		GroupID: "daemon",
+		Short:   "Display sync status between local brain and remote Firestore",
 		Long: `Inspects local Antigravity conversation sessions, compares their step and
 artifact counts against remote Firestore metadata, and reports daemon process health.`,
 		Args: cobra.MaximumNArgs(1),
@@ -72,11 +75,12 @@ artifact counts against remote Firestore metadata, and reports daemon process he
 				return fmt.Errorf("invalid configuration: %w (remediation: check ~/.config/agy-sync/config.yaml)", err)
 			}
 
-			mgr := daemon.NewManager(opts.pidFile, opts.logFile)
+			mgr := daemon.NewManagerWithState(opts.pidFile, opts.logFile, opts.stateFile)
 			daemonState, daemonPID, logFile, err := mgr.Status()
 			if err != nil {
 				daemonState = daemon.StateStopped
 			}
+			rtState, _ := mgr.GetRuntimeState()
 
 			client, err := newFirestoreClient(cmd.Context(), cfg)
 			if err != nil {
@@ -122,10 +126,11 @@ artifact counts against remote Firestore metadata, and reports daemon process he
 			p := parser.NewTranscriptParser()
 			report := &StatusReport{
 				Daemon: DaemonStatus{
-					State:   string(daemonState),
-					PID:     daemonPID,
-					LogFile: logFile,
-					PIDFile: mgr.PIDFile,
+					State:        string(daemonState),
+					PID:          daemonPID,
+					LogFile:      logFile,
+					PIDFile:      mgr.PIDFile,
+					LastPolledAt: rtState.LastPolledAt,
 				},
 				ProjectID:          cfg.ProjectID,
 				MachineID:          cfg.MachineID,
@@ -176,6 +181,14 @@ artifact counts against remote Firestore metadata, and reports daemon process he
 			} else {
 				cmd.Println("Daemon Status:   STOPPED")
 			}
+			if report.Daemon.LastPolledAt != nil {
+				cmd.Printf("Last Polling:    %s (%s ago)\n",
+					report.Daemon.LastPolledAt.Format("2006-01-02 15:04:05 UTC"),
+					time.Since(*report.Daemon.LastPolledAt).Truncate(time.Second),
+				)
+			} else {
+				cmd.Println("Last Polling:    Never / Inactive")
+			}
 			cmd.Printf("Daemon Log:      %s\n", report.Daemon.LogFile)
 			cmd.Printf("GCP Project ID:  %s\n", report.ProjectID)
 			cmd.Printf("Machine ID:      %s\n", report.MachineID)
@@ -206,6 +219,7 @@ artifact counts against remote Firestore metadata, and reports daemon process he
 	statusCmd.Flags().StringVarP(&opts.conversationID, "conversation", "c", "", "Optional conversation ID to filter status")
 	statusCmd.Flags().StringVar(&opts.pidFile, "pid-file", daemon.DefaultPIDPath(), "Path to PID file")
 	statusCmd.Flags().StringVar(&opts.logFile, "log-file", daemon.DefaultLogPath(), "Path to daemon log file")
+	statusCmd.Flags().StringVar(&opts.stateFile, "state-file", daemon.DefaultStatePath(), "Path to daemon runtime state file")
 
 	return statusCmd
 }

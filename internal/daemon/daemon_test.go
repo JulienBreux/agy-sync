@@ -245,4 +245,36 @@ func TestPIDFile_CorruptedPID(t *testing.T) {
 	}
 }
 
+func TestRuntimeState_RecordAndGetPoll(t *testing.T) {
+	tempDir := t.TempDir()
+	pidFile := filepath.Join(tempDir, "test.pid")
+	logFile := filepath.Join(tempDir, "test.log")
+	stateFile := filepath.Join(tempDir, "test.state.json")
+
+	mgr := daemon.NewManagerWithState(pidFile, logFile, stateFile)
+
+	// Initially empty state
+	state, err := mgr.GetRuntimeState()
+	if err != nil {
+		t.Fatalf("unexpected error getting initial state: %v", err)
+	}
+	if state.LastPolledAt != nil {
+		t.Errorf("expected nil LastPolledAt, got %v", state.LastPolledAt)
+	}
+
+	pollTime := time.Date(2026, 9, 15, 16, 40, 0, 0, time.UTC)
+	if err := mgr.RecordPoll(pollTime); err != nil {
+		t.Fatalf("failed recording poll: %v", err)
+	}
+
+	state, err = mgr.GetRuntimeState()
+	if err != nil {
+		t.Fatalf("failed getting state: %v", err)
+	}
+	if state.LastPolledAt == nil || !state.LastPolledAt.Equal(pollTime) {
+		t.Errorf("expected LastPolledAt %v, got %v", pollTime, state.LastPolledAt)
+	}
+}
+
+
 

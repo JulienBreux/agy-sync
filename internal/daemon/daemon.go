@@ -1,6 +1,7 @@
 package daemon
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 	"os"
@@ -31,10 +32,17 @@ const (
 	StateStopped State = "STOPPED"
 )
 
+// RuntimeState contains metadata about the daemon's activity.
+type RuntimeState struct {
+	PID          int        `json:"pid"`
+	LastPolledAt *time.Time `json:"last_polled_at,omitempty"`
+}
+
 // Manager handles the lifecycle, PID tracking, and log redirection of the agy-sync daemon.
 type Manager struct {
-	PIDFile string
-	LogFile string
+	PIDFile   string
+	LogFile   string
+	StateFile string
 }
 
 // DefaultPIDPath returns the standard location for the agy-sync daemon PID file.
@@ -55,18 +63,67 @@ func DefaultLogPath() string {
 	return filepath.Join(home, ".config", "agy-sync", "daemon.log")
 }
 
+// DefaultStatePath returns the standard location for the daemon runtime state file.
+func DefaultStatePath() string {
+	home, err := os.UserHomeDir()
+	if err != nil {
+		return "daemon.state.json"
+	}
+	return filepath.Join(home, ".config", "agy-sync", "daemon.state.json")
+}
+
 // NewManager creates a new daemon Manager. If empty paths are provided, standard defaults are used.
 func NewManager(pidFile, logFile string) *Manager {
+	return NewManagerWithState(pidFile, logFile, "")
+}
+
+// NewManagerWithState creates a new daemon Manager with an explicit state file path.
+func NewManagerWithState(pidFile, logFile, stateFile string) *Manager {
 	if pidFile == "" {
 		pidFile = DefaultPIDPath()
 	}
 	if logFile == "" {
 		logFile = DefaultLogPath()
 	}
-	return &Manager{
-		PIDFile: pidFile,
-		LogFile: logFile,
+	if stateFile == "" {
+		stateFile = DefaultStatePath()
 	}
+	return &Manager{
+		PIDFile:   pidFile,
+		LogFile:   logFile,
+		StateFile: stateFile,
+	}
+}
+
+// RecordPoll records the last poll timestamp into the daemon state file.
+func (m *Manager) RecordPoll(t time.Time) error {
+	state, _ := m.GetRuntimeState()
+	utc := t.UTC()
+	state.LastPolledAt = &utc
+	if err := os.MkdirAll(filepath.Dir(m.StateFile), 0o755); err != nil {
+		return err
+	}
+	data, err := json.MarshalIndent(state, "", "  ")
+	if err != nil {
+		return err
+	}
+	return os.WriteFile(m.StateFile, data, 0o644)
+}
+
+// GetRuntimeState reads the daemon state file.
+func (m *Manager) GetRuntimeState() (RuntimeState, error) {
+	data, err := os.ReadFile(m.StateFile)
+	if err != nil {
+		if os.IsNotExist(err) {
+			return RuntimeState{}, nil
+		}
+		return RuntimeState{}, err
+	}
+	var state RuntimeState
+	if err := json.Unmarshal(data, &state); err != nil {
+		return RuntimeState{}, err
+	}
+	return state, nil
 }
 
 // IsRunning checks whether the daemon process is active.

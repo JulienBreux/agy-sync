@@ -18,9 +18,10 @@ func newInitCommand() *cobra.Command {
 	)
 
 	cmd := &cobra.Command{
-		Use:   "init",
-		Short: "Initialize configuration for agy-sync",
-		Long:  "Creates or updates the local configuration file with Google Cloud Project and Antigravity directories.",
+		Use:     "init",
+		GroupID: "setup",
+		Short:   "Initialize configuration for agy-sync",
+		Long:    "Creates or updates the local configuration file with Google Cloud Project and Antigravity directories.",
 		RunE: func(cmd *cobra.Command, args []string) error {
 			if strings.TrimSpace(projectID) == "" {
 				return fmt.Errorf("project-id is required: specify with --project-id")

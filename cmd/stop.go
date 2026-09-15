@@ -20,8 +20,9 @@ func newStopCommand() *cobra.Command {
 	opts := stopOptions{}
 
 	stopCmd := &cobra.Command{
-		Use:   "stop",
-		Short: "Stop the running background synchronization daemon",
+		Use:     "stop",
+		GroupID: "daemon",
+		Short:   "Stop the running background synchronization daemon",
 		Long: `Locates the running agy-sync daemon via its PID file, sends a graceful SIGTERM signal,
 waits for clean shutdown, and removes the PID file.`,
 		RunE: func(cmd *cobra.Command, args []string) error {
