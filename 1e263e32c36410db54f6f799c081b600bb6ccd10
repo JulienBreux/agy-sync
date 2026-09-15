@@ -1,0 +1,3 @@
+Task: Import and Adapt Developer Tooling
+Summary: Created .editorconfig and codecov.yml. Adapted Makefile for agy-sync (build, test, lint, cover, docker, clean). Created multi-stage Dockerfile compiling minimal static binary on alpine. Configured .goreleaser.yaml for multi-platform cross-compilation (linux, darwin, windows amd64/arm64) and homebrew tap.
+Files: .editorconfig, codecov.yml, Makefile, Dockerfile, .goreleaser.yaml, .gitignore
