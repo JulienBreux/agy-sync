@@ -1,0 +1,3 @@
+Task: Firestore Repository (TDD with Emulator)
+Summary: Implemented Firestore repository interface, live client with ADC and modern BulkWriter, artifact persistence, step query filters, in-memory repository for unit testing, and full integration tests against Firestore emulator with 87.2% coverage.
+Files: pkg/firestore/client.go, pkg/firestore/client_test.go, pkg/firestore/fetch.go, pkg/firestore/memory.go, pkg/firestore/repository.go, pkg/firestore/steps.go
