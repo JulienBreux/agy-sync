@@ -7,13 +7,13 @@
 - [x] Task: Conductor - User Manual Verification 'Phase 1: Daemon Controller Package' (Protocol in workflow.md) [bea18e2]
 
 ## Phase 2: CLI Commands (`start`, `stop`, enhanced `status`) and Removal of `watch`
-- [ ] Task: TDD - `start` and `stop` CLI Commands
-  - [ ] Write unit tests in `cmd/start_test.go` and `cmd/stop_test.go`
-  - [ ] Implement `cmd/start.go` with default background fork and `-f, --foreground` flag
-  - [ ] Implement `cmd/stop.go` with graceful termination and PID cleanup
-- [ ] Task: TDD - Enhanced `status` Command & `watch` Removal
-  - [ ] Update `cmd/status.go` and `cmd/status_test.go` to report daemon state (status, PID, log path) and sync metrics in table/JSON
-  - [ ] Remove `cmd/watch.go` and `cmd/watch_test.go`, unbinding from `cmd/root.go`
+- [x] Task: TDD - `start` and `stop` CLI Commands [87a352f]
+  - [x] Write unit tests in `cmd/start_test.go` and `cmd/stop_test.go`
+  - [x] Implement `cmd/start.go` with default background fork and `-f, --foreground` flag
+  - [x] Implement `cmd/stop.go` with graceful termination and PID cleanup
+- [x] Task: TDD - Enhanced `status` Command & `watch` Removal [87a352f]
+  - [x] Update `cmd/status.go` and `cmd/status_test.go` to report daemon state (status, PID, log path) and sync metrics in table/JSON
+  - [x] Remove `cmd/watch.go` and `cmd/watch_test.go`, unbinding from `cmd/root.go`
 - [ ] Task: Conductor - User Manual Verification 'Phase 2: CLI Commands and Watch Removal' (Protocol in workflow.md)
 
 ## Phase 3: End-to-End Integration, Documentation & Verification
