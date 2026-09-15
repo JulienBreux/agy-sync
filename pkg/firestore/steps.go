@@ -7,7 +7,7 @@ import (
 
 	cloudfs "cloud.google.com/go/firestore"
 
-	"github.com/julienbreux/ayg-conv-to-fs/pkg/models"
+	"github.com/julienbreux/agy-sync/pkg/models"
 )
 
 // AppendSteps writes a slice of steps to the conversation's steps subcollection using BulkWriter.

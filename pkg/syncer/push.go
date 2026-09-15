@@ -6,11 +6,11 @@ import (
 	"os"
 	"time"
 
-	"github.com/julienbreux/ayg-conv-to-fs/pkg/config"
-	"github.com/julienbreux/ayg-conv-to-fs/pkg/discovery"
-	"github.com/julienbreux/ayg-conv-to-fs/pkg/firestore"
-	"github.com/julienbreux/ayg-conv-to-fs/pkg/models"
-	"github.com/julienbreux/ayg-conv-to-fs/pkg/parser"
+	"github.com/julienbreux/agy-sync/pkg/config"
+	"github.com/julienbreux/agy-sync/pkg/discovery"
+	"github.com/julienbreux/agy-sync/pkg/firestore"
+	"github.com/julienbreux/agy-sync/pkg/models"
+	"github.com/julienbreux/agy-sync/pkg/parser"
 )
 
 // Engine orchestrates bidirectional synchronization between local Antigravity brain and Firestore.

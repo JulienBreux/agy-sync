@@ -3,8 +3,8 @@ package cmd
 import (
 	"context"
 
-	"github.com/julienbreux/ayg-conv-to-fs/pkg/config"
-	"github.com/julienbreux/ayg-conv-to-fs/pkg/firestore"
+	"github.com/julienbreux/agy-sync/pkg/config"
+	"github.com/julienbreux/agy-sync/pkg/firestore"
 )
 
 // SetFirestoreClientFactory allows tests in cmd_test to stub the repository client.

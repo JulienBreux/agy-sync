@@ -1,4 +1,4 @@
-# Product Guidelines: ayg-conv-to-fs
+# Product Guidelines: agy-sync
 
 ## 1. CLI Experience & Design Philosophy
 - **Human-Centric Terminal Output:** Clean, unobtrusive progress indicators, concise colored status updates, and graceful spinners during network calls.

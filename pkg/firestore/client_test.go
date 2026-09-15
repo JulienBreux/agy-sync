@@ -9,9 +9,9 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/julienbreux/ayg-conv-to-fs/pkg/config"
-	"github.com/julienbreux/ayg-conv-to-fs/pkg/firestore"
-	"github.com/julienbreux/ayg-conv-to-fs/pkg/models"
+	"github.com/julienbreux/agy-sync/pkg/config"
+	"github.com/julienbreux/agy-sync/pkg/firestore"
+	"github.com/julienbreux/agy-sync/pkg/models"
 )
 
 func TestMemoryRepository_ConversationOperations(t *testing.T) {

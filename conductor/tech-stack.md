@@ -1,4 +1,4 @@
-# Technology Stack: ayg-conv-to-fs
+# Technology Stack: agy-sync
 
 ## 1. Core Language & Runtime
 - **Language:** Go (Golang) 1.23+
@@ -6,7 +6,7 @@
 
 ## 2. CLI & Configuration
 - **CLI Engine:** `spf13/cobra` (structured subcommands, flags, auto-generated shell completions).
-- **Configuration:** `spf13/viper` (supports config file, flags, and `AYG_SYNC_*` environment variables).
+- **Configuration:** `spf13/viper` (supports config file, flags, and `AGY_SYNC_*` environment variables).
 
 ## 3. Cloud & Data Layer
 - **Database:** Google Cloud Firestore (`cloud.google.com/go/firestore`) for conversation documents, steps, metadata, and real-time snapshot listeners.

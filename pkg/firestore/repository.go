@@ -3,7 +3,7 @@ package firestore
 import (
 	"context"
 
-	"github.com/julienbreux/ayg-conv-to-fs/pkg/models"
+	"github.com/julienbreux/agy-sync/pkg/models"
 )
 
 // Repository defines the Firestore storage interface for Antigravity conversations.

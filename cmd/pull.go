@@ -7,8 +7,8 @@ import (
 
 	"github.com/spf13/cobra"
 
-	"github.com/julienbreux/ayg-conv-to-fs/pkg/config"
-	"github.com/julienbreux/ayg-conv-to-fs/pkg/syncer"
+	"github.com/julienbreux/agy-sync/pkg/config"
+	"github.com/julienbreux/agy-sync/pkg/syncer"
 )
 
 func newPullCommand() *cobra.Command {

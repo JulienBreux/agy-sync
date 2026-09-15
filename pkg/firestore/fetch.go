@@ -9,7 +9,7 @@ import (
 	cloudfs "cloud.google.com/go/firestore"
 	"google.golang.org/api/iterator"
 
-	"github.com/julienbreux/ayg-conv-to-fs/pkg/models"
+	"github.com/julienbreux/agy-sync/pkg/models"
 )
 
 // GetStepsSince retrieves all steps belonging to convID where step_index > afterIndex, sorted ascending.

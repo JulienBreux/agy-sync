@@ -6,7 +6,7 @@ import (
 
 	"github.com/spf13/cobra"
 
-	"github.com/julienbreux/ayg-conv-to-fs/pkg/config"
+	"github.com/julienbreux/agy-sync/pkg/config"
 )
 
 // GlobalOptions holds flags common to all commands.
@@ -18,12 +18,12 @@ type GlobalOptions struct {
 
 var globalOpts GlobalOptions
 
-// NewRootCommand creates the root cobra command for ayg-sync.
+// NewRootCommand creates the root cobra command for agy-sync.
 func NewRootCommand() *cobra.Command {
 	rootCmd := &cobra.Command{
-		Use:   "ayg-sync",
+		Use:   "agy-sync",
 		Short: "Bidirectional sync tool for Antigravity conversations and Firestore",
-		Long: `ayg-sync is a high-performance synchronization and storage CLI for Google Antigravity (AGY).
+		Long: `agy-sync is a high-performance synchronization and storage CLI for Google Antigravity (AGY).
 It asynchronously monitors local AGY transcripts and artifacts, syncs them to Google Cloud Firestore,
 and allows multi-machine conversation history synchronization.`,
 		SilenceUsage:  true,

@@ -5,7 +5,7 @@ import (
 	"sort"
 	"sync"
 
-	"github.com/julienbreux/ayg-conv-to-fs/pkg/models"
+	"github.com/julienbreux/agy-sync/pkg/models"
 )
 
 // MemoryRepository is an in-memory thread-safe implementation of Repository for testing and local simulation.

@@ -7,7 +7,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/julienbreux/ayg-conv-to-fs/pkg/config"
+	"github.com/julienbreux/agy-sync/pkg/config"
 )
 
 func TestDefaultConfig(t *testing.T) {
@@ -111,9 +111,16 @@ func TestEnvironmentOverride(t *testing.T) {
 	err := config.SaveConfig(configPath, cfg)
 	require.NoError(t, err)
 
-	t.Setenv("AYG_SYNC_PROJECT_ID", "env-override-proj")
-
+	// Test primary AGY_SYNC prefix
+	t.Setenv("AGY_SYNC_PROJECT_ID", "agy-env-override-proj")
 	loaded, err := config.LoadConfig(configPath)
 	require.NoError(t, err)
-	assert.Equal(t, "env-override-proj", loaded.ProjectID)
+	assert.Equal(t, "agy-env-override-proj", loaded.ProjectID)
+
+	// Test legacy AYG_SYNC fallback when AGY_SYNC is not set
+	t.Setenv("AGY_SYNC_PROJECT_ID", "")
+	t.Setenv("AYG_SYNC_PROJECT_ID", "legacy-env-override-proj")
+	loadedLegacy, err := config.LoadConfig(configPath)
+	require.NoError(t, err)
+	assert.Equal(t, "legacy-env-override-proj", loadedLegacy.ProjectID)
 }

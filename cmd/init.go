@@ -6,7 +6,7 @@ import (
 
 	"github.com/spf13/cobra"
 
-	"github.com/julienbreux/ayg-conv-to-fs/pkg/config"
+	"github.com/julienbreux/agy-sync/pkg/config"
 )
 
 func newInitCommand() *cobra.Command {
@@ -19,7 +19,7 @@ func newInitCommand() *cobra.Command {
 
 	cmd := &cobra.Command{
 		Use:   "init",
-		Short: "Initialize configuration for ayg-sync",
+		Short: "Initialize configuration for agy-sync",
 		Long:  "Creates or updates the local configuration file with Google Cloud Project and Antigravity directories.",
 		RunE: func(cmd *cobra.Command, args []string) error {
 			if strings.TrimSpace(projectID) == "" {

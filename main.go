@@ -1,6 +1,6 @@
 package main
 
-import "github.com/julienbreux/ayg-conv-to-fs/cmd"
+import "github.com/julienbreux/agy-sync/cmd"
 
 func main() {
 	cmd.Execute()

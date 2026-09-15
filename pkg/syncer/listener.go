@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/julienbreux/ayg-conv-to-fs/pkg/models"
+	"github.com/julienbreux/agy-sync/pkg/models"
 )
 
 // ShouldSyncRemoteConversation evaluates whether a remote conversation update should be pulled locally.

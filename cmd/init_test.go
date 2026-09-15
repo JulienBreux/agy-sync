@@ -8,8 +8,8 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/julienbreux/ayg-conv-to-fs/cmd"
-	"github.com/julienbreux/ayg-conv-to-fs/pkg/config"
+	"github.com/julienbreux/agy-sync/cmd"
+	"github.com/julienbreux/agy-sync/pkg/config"
 )
 
 func TestRootCommand(t *testing.T) {
@@ -21,7 +21,7 @@ func TestRootCommand(t *testing.T) {
 
 	err := root.Execute()
 	assert.NoError(t, err)
-	assert.Contains(t, buf.String(), "ayg-sync")
+	assert.Contains(t, buf.String(), "agy-sync")
 }
 
 func TestInitCommand(t *testing.T) {

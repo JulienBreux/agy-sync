@@ -7,7 +7,7 @@ import (
 	"io"
 	"os"
 
-	"github.com/julienbreux/ayg-conv-to-fs/pkg/models"
+	"github.com/julienbreux/agy-sync/pkg/models"
 )
 
 // ParseResult holds the outcome of a transcript parsing operation.

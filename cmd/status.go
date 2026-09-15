@@ -7,9 +7,9 @@ import (
 
 	"github.com/spf13/cobra"
 
-	"github.com/julienbreux/ayg-conv-to-fs/pkg/config"
-	"github.com/julienbreux/ayg-conv-to-fs/pkg/discovery"
-	"github.com/julienbreux/ayg-conv-to-fs/pkg/parser"
+	"github.com/julienbreux/agy-sync/pkg/config"
+	"github.com/julienbreux/agy-sync/pkg/discovery"
+	"github.com/julienbreux/agy-sync/pkg/parser"
 )
 
 // ConversationStatus summarizes sync state for a single conversation.
@@ -39,11 +39,11 @@ artifact counts against remote Firestore metadata.`,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			cfg, err := config.LoadConfig(globalOpts.ConfigFile)
 			if err != nil {
-				return fmt.Errorf("failed to load configuration: %w (remediation: run 'ayg-sync init' or specify --config)", err)
+				return fmt.Errorf("failed to load configuration: %w (remediation: run 'agy-sync init' or specify --config)", err)
 			}
 
 			if err := cfg.Validate(); err != nil {
-				return fmt.Errorf("invalid configuration: %w (remediation: check ~/.gemini/ayg-sync/config.yaml)", err)
+				return fmt.Errorf("invalid configuration: %w (remediation: check ~/.config/agy-sync/config.yaml)", err)
 			}
 
 			client, err := newFirestoreClient(cmd.Context(), cfg)

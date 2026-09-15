@@ -11,7 +11,7 @@ import (
 	"go.yaml.in/yaml/v3"
 )
 
-// Config represents the core configuration parameters for ayg-sync.
+// Config represents the core configuration parameters for agy-sync.
 type Config struct {
 	ProjectID           string `mapstructure:"project_id" yaml:"project_id"`
 	DatabaseID          string `mapstructure:"database_id" yaml:"database_id"`
@@ -30,13 +30,13 @@ func DefaultBrainDir() string {
 	return filepath.Join(home, ".gemini", "antigravity-cli", "brain")
 }
 
-// DefaultConfigPath returns the default path to the user's ayg-sync config.yaml.
+// DefaultConfigPath returns the default path to the user's agy-sync config.yaml.
 func DefaultConfigPath() string {
 	home, err := os.UserHomeDir()
 	if err != nil {
 		return "config.yaml"
 	}
-	return filepath.Join(home, ".config", "ayg-sync", "config.yaml")
+	return filepath.Join(home, ".config", "agy-sync", "config.yaml")
 }
 
 // DefaultMachineID returns the hostname or a fallback identifier.
@@ -83,10 +83,19 @@ func LoadConfig(path string) (*Config, error) {
 	v.SetDefault("sync_interval_seconds", 2)
 	v.SetDefault("log_level", "INFO")
 
-	// Environment variable support: AYG_SYNC_PROJECT_ID -> project_id
-	v.SetEnvPrefix("AYG_SYNC")
+	// Environment variable support: AGY_SYNC_PROJECT_ID -> project_id
+	v.SetEnvPrefix("AGY_SYNC")
 	v.SetEnvKeyReplacer(strings.NewReplacer(".", "_"))
 	v.AutomaticEnv()
+
+	// Backwards-compatibility fallback for legacy AYG_SYNC_* variables
+	for _, key := range []string{"project_id", "database_id", "machine_id", "brain_dir", "sync_interval_seconds", "log_level"} {
+		if os.Getenv("AGY_SYNC_"+strings.ToUpper(key)) == "" {
+			if legacy := os.Getenv("AYG_SYNC_" + strings.ToUpper(key)); legacy != "" {
+				v.Set(key, legacy)
+			}
+		}
+	}
 
 	if path != "" {
 		v.SetConfigFile(path)

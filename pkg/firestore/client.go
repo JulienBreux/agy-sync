@@ -9,8 +9,8 @@ import (
 	cloudfs "cloud.google.com/go/firestore"
 	"google.golang.org/api/iterator"
 
-	"github.com/julienbreux/ayg-conv-to-fs/pkg/config"
-	"github.com/julienbreux/ayg-conv-to-fs/pkg/models"
+	"github.com/julienbreux/agy-sync/pkg/config"
+	"github.com/julienbreux/agy-sync/pkg/models"
 )
 
 // Client wraps the official Google Cloud Firestore client.
