@@ -6,7 +6,7 @@
   - [x] Implement `Daemon` manager in `pkg/daemon/daemon.go` with PID file tracking, log redirection, and SIGTERM process termination
 - [x] Task: Conductor - User Manual Verification 'Phase 1: Daemon Controller Package' (Protocol in workflow.md) [bea18e2]
 
-## Phase 2: CLI Commands (`start`, `stop`, enhanced `status`) and Removal of `watch`
+## Phase 2: CLI Commands (`start`, `stop`, enhanced `status`) and Removal of `watch` [checkpoint: 87a352f]
 - [x] Task: TDD - `start` and `stop` CLI Commands [87a352f]
   - [x] Write unit tests in `cmd/start_test.go` and `cmd/stop_test.go`
   - [x] Implement `cmd/start.go` with default background fork and `-f, --foreground` flag
@@ -14,7 +14,7 @@
 - [x] Task: TDD - Enhanced `status` Command & `watch` Removal [87a352f]
   - [x] Update `cmd/status.go` and `cmd/status_test.go` to report daemon state (status, PID, log path) and sync metrics in table/JSON
   - [x] Remove `cmd/watch.go` and `cmd/watch_test.go`, unbinding from `cmd/root.go`
-- [ ] Task: Conductor - User Manual Verification 'Phase 2: CLI Commands and Watch Removal' (Protocol in workflow.md)
+- [x] Task: Conductor - User Manual Verification 'Phase 2: CLI Commands and Watch Removal' (Protocol in workflow.md) [87a352f]
 
 ## Phase 3: End-to-End Integration, Documentation & Verification
 - [ ] Task: E2E Integration Test for Daemon Lifecycle
