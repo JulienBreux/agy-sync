@@ -40,9 +40,9 @@
 - [x] Task: Phase Verification & Checkpoint (Refer to workflow.md) [fb82a3f]
 
 ## Phase 5: Real-time Filesystem Watcher & Remote Listener (`watch`)
-- [ ] Task: Local Filesystem Event Watcher (TDD)
-  - [ ] Write tests for `fsnotify` event debouncing and filtering (`pkg/watcher/watcher_test.go`)
-  - [ ] Implement debounced watcher monitoring `transcript.jsonl` modifications (`pkg/watcher/watcher.go`)
+- [x] Task: Local Filesystem Event Watcher (TDD) [1207c2f]
+  - [x] Write tests for `fsnotify` event debouncing and filtering (`pkg/watcher/watcher_test.go`)
+  - [x] Implement debounced watcher monitoring `transcript.jsonl` modifications (`pkg/watcher/watcher.go`)
 - [ ] Task: Firestore Snapshot Listener (TDD)
   - [ ] Write tests for handling remote Firestore snapshot change streams (`pkg/syncer/listener_test.go`)
   - [ ] Implement remote listener with machine ID loop prevention (`pkg/syncer/listener.go`)
