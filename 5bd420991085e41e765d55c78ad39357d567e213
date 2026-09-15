@@ -1,0 +1,3 @@
+Task: Brain Directory Discovery (TDD)
+Summary: Implemented filesystem directory walker to discover Antigravity conversation folders, locate transcripts, and index user artifacts with SHA256 checksums while ignoring internal system files. Tests achieved 81.9% coverage.
+Files: pkg/discovery/discovery.go, pkg/discovery/discovery_test.go
