@@ -1,10 +1,10 @@
 # Implementation Plan - Clean Project Documentation (`README.md`)
 
 ## Phase 1: Project Overview, Architecture & Core Features Documentation
-- [ ] Task: Document Vision, Badges, and High-Level Architecture
-  - [ ] Write project header, badges, and overview in `README.md`
-  - [ ] Create Mermaid sequence and flow diagrams for bidirectional sync and loop prevention
-  - [ ] Document Firestore document schema (`/conversations`, `/steps`, `/artifacts`) and append-only model
+- [x] Task: Document Vision, Badges, and High-Level Architecture [762215a]
+  - [x] Write project header, badges, and overview in `README.md`
+  - [x] Create Mermaid sequence and flow diagrams for bidirectional sync and loop prevention
+  - [x] Document Firestore document schema (`/conversations`, `/steps`, `/artifacts`) and append-only model
 - [ ] Task: Conductor - User Manual Verification 'Phase 1: Project Overview, Architecture & Core Features Documentation' (Protocol in workflow.md)
 
 ## Phase 2: CLI Command Reference & Configuration Guide
