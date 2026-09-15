@@ -1,0 +1,3 @@
+Task: Push Command Implementation (TDD)
+Summary: Implemented incremental push engine discovering local Antigravity conversations, parsing and streaming new JSONL turns with machine attribution, and uploading artifacts to Firestore. Added Cobra 'push' command with JSON output and progress indicators, with 87.6% coverage on cmd and 83.6% on syncer.
+Files: cmd/push.go, cmd/push_test.go, cmd/root.go, cmd/export_test.go, pkg/syncer/push.go, pkg/syncer/push_test.go, pkg/firestore/memory.go
