@@ -25,10 +25,10 @@
   - [x] Add Cobra command groups: Daemon Management, Data Synchronization, Configuration & Setup
   - [x] Record last polling date in daemon/sync state and display it in `agy-sync status` output (text and JSON)
   - [x] Verify help text grouping and autocompletion output
-- [~] Task: Conductor - User Manual Verification 'Phase 3: CLI Ergonomics, Version Command, Grouping & Exit Codes' (Protocol in workflow.md)
+- [x] Task: Conductor - User Manual Verification 'Phase 3: CLI Ergonomics, Version Command, Grouping & Exit Codes' (Protocol in workflow.md)
 
 ## Phase 4: Full System Verification & Documentation Update
-- [ ] Task: Full System Validation & Documentation Sync
-  - [ ] Verify `make lint`, `make test`, and `make build` pass cleanly
-  - [ ] Update `README.md` to document the new `version` command and grouped help layout
-- [ ] Task: Conductor - User Manual Verification 'Phase 4: Full System Verification & Documentation Update' (Protocol in workflow.md)
+- [x] Task: Full System Validation & Documentation Sync
+  - [x] Verify `make lint`, `make test`, and `make build` pass cleanly
+  - [x] Update `README.md` to document the new `version` command and grouped help layout
+- [~] Task: Conductor - User Manual Verification 'Phase 4: Full System Verification & Documentation Update' (Protocol in workflow.md)
