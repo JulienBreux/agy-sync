@@ -1,7 +1,7 @@
 # Technology Stack: agy-sync
 
 ## 1. Core Language & Runtime
-- **Language:** Go (Golang) 1.23+
+- **Language:** Go (Golang) 1.27+
 - **Rationale:** Compiled static binary, zero runtime dependencies, minimal memory footprint for background daemons, and native concurrency for streaming sync.
 
 ## 2. CLI & Configuration
