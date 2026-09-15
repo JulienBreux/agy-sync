@@ -23,7 +23,7 @@ Create a comprehensive, production-grade `README.md` for `agy-sync`. The documen
 
 ### 2.4 Configuration Guide
 - Configuration schema (`~/.config/agy-sync/config.yaml`).
-- Environment variable overrides (`AGY_SYNC_*` and legacy fallback `AYG_SYNC_*`).
+- Environment variable overrides (`AGY_SYNC_*`).
 - Google Cloud Application Default Credentials (ADC) setup.
 
 ### 2.5 Developer & Testing Guide
