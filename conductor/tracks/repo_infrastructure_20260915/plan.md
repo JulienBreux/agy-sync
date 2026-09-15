@@ -1,10 +1,10 @@
 # Implementation Plan - Import & Adapt Automation and Community Assets from `JulienBreux/run-cli`
 
-## Phase 1: Community & Governance Documentation
+## Phase 1: Community & Governance Documentation [checkpoint: 2a21810]
 - [x] Task: Import and Adapt Community Files [2a21810]
   - [x] Fetch and adapt `CODE_OF_CONDUCT.md`, `MAINTAINERS.md`, `SECURITY.md`, and `SUPPORT.md`
   - [x] Adapt `CONTRIBUTING.md` tailored for `agy-sync` (TDD, Go 1.27+, commit conventions)
-- [ ] Task: Conductor - User Manual Verification 'Phase 1: Community & Governance Documentation' (Protocol in workflow.md)
+- [x] Task: Conductor - User Manual Verification 'Phase 1: Community & Governance Documentation' (Protocol in workflow.md) [2a21810]
 
 ## Phase 2: Build & Packaging Tooling
 - [ ] Task: Import and Adapt Developer Tooling
