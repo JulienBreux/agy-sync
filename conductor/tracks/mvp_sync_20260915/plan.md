@@ -15,9 +15,9 @@
   - [x] Write unit tests for parsing AGY JSONL transcript entries, step indices, tool calls, and truncated fields (`pkg/parser/parser_test.go`)
   - [x] Implement incremental JSONL scanner with byte-offset tracking (`pkg/parser/parser.go`)
   - [x] Implement models for Conversation, Step, ToolCall, and Artifact (`pkg/models/models.go`)
-- [ ] Task: Brain Directory Discovery (TDD)
-  - [ ] Write unit tests for scanning `~/.gemini/antigravity-cli/brain/` (`pkg/discovery/discovery_test.go`)
-  - [ ] Implement directory walker identifying active conversations and artifacts (`pkg/discovery/discovery.go`)
+- [x] Task: Brain Directory Discovery (TDD) [5bd4209]
+  - [x] Write unit tests for scanning `~/.gemini/antigravity-cli/brain/` (`pkg/discovery/discovery_test.go`)
+  - [x] Implement directory walker identifying active conversations and artifacts (`pkg/discovery/discovery.go`)
 - [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
 
 ## Phase 3: Firestore Cloud Storage & Data Layer
