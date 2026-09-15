@@ -16,5 +16,5 @@
 
 ---
 
-- [~] **Track: Import & adapt repository automation, CI/CD, and community assets from run-cli**
+- [x] **Track: Import & adapt repository automation, CI/CD, and community assets from run-cli**
   *Link: [./tracks/repo_infrastructure_20260915/index.md](./tracks/repo_infrastructure_20260915/index.md)*
