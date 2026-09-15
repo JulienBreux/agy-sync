@@ -21,11 +21,11 @@
 - [x] Task: Phase Verification & Checkpoint (Refer to workflow.md) [5bd4209]
 
 ## Phase 3: Firestore Cloud Storage & Data Layer
-- [ ] Task: Firestore Repository (TDD with Emulator)
-  - [ ] Write tests using Firestore emulator for conversation upsert and step append (`pkg/firestore/client_test.go`)
-  - [ ] Implement Firestore client initialization with ADC (`pkg/firestore/client.go`)
-  - [ ] Implement idempotent batch step write operations with monotonic indexing (`pkg/firestore/steps.go`)
-  - [ ] Implement remote step retrieval and query methods (`pkg/firestore/fetch.go`)
+- [x] Task: Firestore Repository (TDD with Emulator) [2330823]
+  - [x] Write tests using Firestore emulator for conversation upsert and step append (`pkg/firestore/client_test.go`)
+  - [x] Implement Firestore client initialization with ADC (`pkg/firestore/client.go`)
+  - [x] Implement idempotent batch step write operations with monotonic indexing (`pkg/firestore/steps.go`)
+  - [x] Implement remote step retrieval and query methods (`pkg/firestore/fetch.go`)
 - [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
 
 ## Phase 4: Synchronization Commands (`push` & `pull`)
