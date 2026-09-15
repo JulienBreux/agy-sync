@@ -43,9 +43,9 @@
 - [x] Task: Local Filesystem Event Watcher (TDD) [1207c2f]
   - [x] Write tests for `fsnotify` event debouncing and filtering (`pkg/watcher/watcher_test.go`)
   - [x] Implement debounced watcher monitoring `transcript.jsonl` modifications (`pkg/watcher/watcher.go`)
-- [ ] Task: Firestore Snapshot Listener (TDD)
-  - [ ] Write tests for handling remote Firestore snapshot change streams (`pkg/syncer/listener_test.go`)
-  - [ ] Implement remote listener with machine ID loop prevention (`pkg/syncer/listener.go`)
+- [x] Task: Firestore Snapshot Listener (TDD) [b3e83a9]
+  - [x] Write tests for handling remote Firestore snapshot change streams (`pkg/syncer/listener_test.go`)
+  - [x] Implement remote listener with machine ID loop prevention (`pkg/syncer/listener.go`)
 - [ ] Task: Cobra `watch` Command
   - [ ] Integrate watcher + listener into unified daemon command (`cmd/watch.go`)
 - [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
