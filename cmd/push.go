@@ -8,8 +8,8 @@ import (
 	"github.com/spf13/cobra"
 
 	"github.com/julienbreux/agy-sync/pkg/config"
-	"github.com/julienbreux/agy-sync/pkg/firestore"
-	"github.com/julienbreux/agy-sync/pkg/syncer"
+	"github.com/julienbreux/agy-sync/internal/firestore"
+	"github.com/julienbreux/agy-sync/internal/syncer"
 )
 
 var newFirestoreClient = func(ctx context.Context, cfg *config.Config) (firestore.Repository, error) {

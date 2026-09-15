@@ -4,7 +4,7 @@ import (
 	"context"
 
 	"github.com/julienbreux/agy-sync/pkg/config"
-	"github.com/julienbreux/agy-sync/pkg/firestore"
+	"github.com/julienbreux/agy-sync/internal/firestore"
 )
 
 // SetFirestoreClientFactory allows tests in cmd_test to stub the repository client.

@@ -10,7 +10,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/julienbreux/agy-sync/cmd"
-	"github.com/julienbreux/agy-sync/pkg/daemon"
+	"github.com/julienbreux/agy-sync/internal/daemon"
 )
 
 func TestStopCommand_NotRunning(t *testing.T) {

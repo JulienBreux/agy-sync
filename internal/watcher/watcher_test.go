@@ -10,7 +10,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/julienbreux/agy-sync/pkg/watcher"
+	"github.com/julienbreux/agy-sync/internal/watcher"
 )
 
 func TestWatcher_DetectTranscriptChange(t *testing.T) {

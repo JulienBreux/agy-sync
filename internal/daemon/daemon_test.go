@@ -7,7 +7,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/julienbreux/agy-sync/pkg/daemon"
+	"github.com/julienbreux/agy-sync/internal/daemon"
 )
 
 func TestDefaultPaths(t *testing.T) {

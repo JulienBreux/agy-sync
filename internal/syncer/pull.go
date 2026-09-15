@@ -7,7 +7,7 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/julienbreux/agy-sync/pkg/parser"
+	"github.com/julienbreux/agy-sync/internal/parser"
 )
 
 // PullOptions specifies configuration for a pull synchronization operation.

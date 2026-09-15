@@ -9,9 +9,9 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/julienbreux/agy-sync/pkg/config"
-	"github.com/julienbreux/agy-sync/pkg/firestore"
+	"github.com/julienbreux/agy-sync/internal/firestore"
 	"github.com/julienbreux/agy-sync/pkg/models"
-	"github.com/julienbreux/agy-sync/pkg/syncer"
+	"github.com/julienbreux/agy-sync/internal/syncer"
 )
 
 func TestListener_IgnoreSelfUpdates(t *testing.T) {

@@ -9,9 +9,9 @@ import (
 	"github.com/spf13/cobra"
 
 	"github.com/julienbreux/agy-sync/pkg/config"
-	"github.com/julienbreux/agy-sync/pkg/daemon"
-	"github.com/julienbreux/agy-sync/pkg/syncer"
-	"github.com/julienbreux/agy-sync/pkg/watcher"
+	"github.com/julienbreux/agy-sync/internal/daemon"
+	"github.com/julienbreux/agy-sync/internal/syncer"
+	"github.com/julienbreux/agy-sync/internal/watcher"
 )
 
 type startOptions struct {

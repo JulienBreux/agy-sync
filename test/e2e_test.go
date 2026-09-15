@@ -13,10 +13,10 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/julienbreux/agy-sync/pkg/config"
-	"github.com/julienbreux/agy-sync/pkg/discovery"
-	"github.com/julienbreux/agy-sync/pkg/firestore"
-	"github.com/julienbreux/agy-sync/pkg/parser"
-	"github.com/julienbreux/agy-sync/pkg/syncer"
+	"github.com/julienbreux/agy-sync/internal/discovery"
+	"github.com/julienbreux/agy-sync/internal/firestore"
+	"github.com/julienbreux/agy-sync/internal/parser"
+	"github.com/julienbreux/agy-sync/internal/syncer"
 )
 
 func sha256Bytes(data []byte) string {

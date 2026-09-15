@@ -8,7 +8,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/julienbreux/agy-sync/pkg/discovery"
+	"github.com/julienbreux/agy-sync/internal/discovery"
 )
 
 func createMockBrain(t *testing.T) string {

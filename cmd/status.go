@@ -10,10 +10,10 @@ import (
 	"github.com/spf13/cobra"
 
 	"github.com/julienbreux/agy-sync/pkg/config"
-	"github.com/julienbreux/agy-sync/pkg/daemon"
-	"github.com/julienbreux/agy-sync/pkg/discovery"
+	"github.com/julienbreux/agy-sync/internal/daemon"
+	"github.com/julienbreux/agy-sync/internal/discovery"
 	"github.com/julienbreux/agy-sync/pkg/models"
-	"github.com/julienbreux/agy-sync/pkg/parser"
+	"github.com/julienbreux/agy-sync/internal/parser"
 )
 
 // DaemonStatus represents the runtime status of the background synchronization daemon.

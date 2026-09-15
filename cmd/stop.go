@@ -7,7 +7,7 @@ import (
 
 	"github.com/spf13/cobra"
 
-	"github.com/julienbreux/agy-sync/pkg/daemon"
+	"github.com/julienbreux/agy-sync/internal/daemon"
 )
 
 type stopOptions struct {

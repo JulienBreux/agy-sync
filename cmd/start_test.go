@@ -13,8 +13,8 @@ import (
 
 	"github.com/julienbreux/agy-sync/cmd"
 	"github.com/julienbreux/agy-sync/pkg/config"
-	"github.com/julienbreux/agy-sync/pkg/daemon"
-	"github.com/julienbreux/agy-sync/pkg/firestore"
+	"github.com/julienbreux/agy-sync/internal/daemon"
+	"github.com/julienbreux/agy-sync/internal/firestore"
 )
 
 func TestStartCommand_MissingConfig(t *testing.T) {
