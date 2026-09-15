@@ -18,3 +18,8 @@
 
 - [x] **Track: Import & adapt repository automation, CI/CD, and community assets from run-cli**
   *Link: [./tracks/repo_infrastructure_20260915/index.md](./tracks/repo_infrastructure_20260915/index.md)*
+
+---
+
+- [ ] **Track: Modernize this Go application using the best CLI and language practices**
+  *Link: [./tracks/modernize_go_20260915/index.md](./tracks/modernize_go_20260915/index.md)*
