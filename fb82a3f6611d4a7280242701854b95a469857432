@@ -1,0 +1,3 @@
+Task: Pull Command Implementation (TDD)
+Summary: Implemented pull engine capable of downloading conversation turns and artifacts from Firestore and reconstructing the Antigravity directory hierarchy and JSONL transcript logs with incremental append support. Added Cobra 'pull' command supporting positional argument and flag, with 89.0% coverage on cmd and 81.4% on syncer.
+Files: cmd/pull.go, cmd/pull_test.go, cmd/root.go, pkg/syncer/pull.go, pkg/syncer/pull_test.go
