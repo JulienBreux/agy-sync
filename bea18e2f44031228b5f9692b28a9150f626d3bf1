@@ -1,0 +1,3 @@
+Task: TDD - Daemon Controller Logic
+Summary: Designed and developed pkg/daemon with unit test coverage. Implemented Manager struct managing PID files, log redirection, process liveness detection with syscall.Kill(pid, 0), stale PID cleanup, background detachment, and graceful SIGTERM shutdown with SIGKILL fallback.
+Files: pkg/daemon/daemon.go, pkg/daemon/daemon_test.go
