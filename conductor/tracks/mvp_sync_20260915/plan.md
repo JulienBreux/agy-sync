@@ -1,6 +1,6 @@
 # Implementation Plan: MVP Core Ingestion & Bidirectional Firestore Sync
 
-## Phase 1: Scaffolding, Configuration & CLI Foundation
+## Phase 1: Scaffolding, Configuration & CLI Foundation [checkpoint: fe6122c]
 - [x] Task: Go Module Setup & Project Structure [c64d4b7]
   - [x] Initialize `go.mod` (Go 1.23+) and establish package structure (`cmd/`, `pkg/config/`, `pkg/parser/`, `pkg/firestore/`, `pkg/syncer/`)
   - [x] Configure `golangci-lint` and test harnesses
@@ -8,7 +8,7 @@
   - [x] Write unit tests for config load, validation, and defaults (`pkg/config/config_test.go`)
   - [x] Implement Viper-based config manager (`pkg/config/config.go`)
   - [x] Implement Cobra root and `init` command (`cmd/init.go`)
-- [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
+- [x] Task: Phase Verification & Checkpoint (Refer to workflow.md) [fe6122c]
 
 ## Phase 2: Ingestion & JSONL Transcript Parser
 - [ ] Task: Transcript Parsing & Step Extraction (TDD)
