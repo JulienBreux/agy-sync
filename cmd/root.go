@@ -36,6 +36,7 @@ and allows multi-machine conversation history synchronization.`,
 
 	rootCmd.AddCommand(newInitCommand())
 	rootCmd.AddCommand(newPushCommand())
+	rootCmd.AddCommand(newPullCommand())
 
 	return rootCmd
 }
