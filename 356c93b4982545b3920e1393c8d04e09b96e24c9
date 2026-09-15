@@ -1,0 +1,3 @@
+Task: Cobra watch Command
+Summary: Implemented real-time watch daemon integrating debounced filesystem watcher and remote Firestore listener with graceful context shutdown and configurable polling intervals, with 88.4% test coverage on cmd package.
+Files: cmd/watch.go, cmd/watch_test.go, cmd/root.go
