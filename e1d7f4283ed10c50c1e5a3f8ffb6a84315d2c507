@@ -1,0 +1,3 @@
+Task: Observability, Error Handling & CLI Polishing
+Summary: Implemented 'status' command displaying local vs remote step progress, artifact counts, sync flags, JSON formatting support, and actionable remediation hints for missing credentials or configurations, maintaining 89.5% cmd package coverage.
+Files: cmd/status.go, cmd/status_test.go, cmd/root.go
