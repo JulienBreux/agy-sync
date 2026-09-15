@@ -7,11 +7,11 @@
 - [x] Task: Conductor - User Manual Verification 'Phase 1: Community & Governance Documentation' (Protocol in workflow.md) [2a21810]
 
 ## Phase 2: Build & Packaging Tooling
-- [ ] Task: Import and Adapt Developer Tooling
-  - [ ] Create `.editorconfig` and `codecov.yml`
-  - [ ] Adapt `Makefile` for `agy-sync` (`build`, `test`, `lint`, `cover`, `docker`, `clean`)
-  - [ ] Adapt multi-stage `Dockerfile` compiling minimal static `agy-sync` binary
-  - [ ] Adapt `.goreleaser.yaml` for multi-architecture binary builds (`amd64`, `arm64`)
+- [x] Task: Import and Adapt Developer Tooling [1e263e3]
+  - [x] Create `.editorconfig` and `codecov.yml`
+  - [x] Adapt `Makefile` for `agy-sync` (`build`, `test`, `lint`, `cover`, `docker`, `clean`)
+  - [x] Adapt multi-stage `Dockerfile` compiling minimal static `agy-sync` binary
+  - [x] Adapt `.goreleaser.yaml` for multi-architecture binary builds (`amd64`, `arm64`)
 - [ ] Task: Conductor - User Manual Verification 'Phase 2: Build & Packaging Tooling' (Protocol in workflow.md)
 
 ## Phase 3: GitHub Workflows, Templates & Verification
