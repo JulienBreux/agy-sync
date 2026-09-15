@@ -6,6 +6,8 @@ agy-sync
 *.out
 *.test
 coverage/
+coverage.txt
+coverage.html
 
 # OS / IDE
 .DS_Store

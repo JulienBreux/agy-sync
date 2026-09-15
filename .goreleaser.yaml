@@ -1,0 +1,76 @@
+# yaml-language-server: $schema=https://goreleaser.com/static/schema.json
+# vim: set ts=2 sw=2 tw=0 fo=cnqoj
+
+version: 2
+
+project_name: agy-sync
+
+before:
+  hooks:
+    - go mod tidy
+
+builds:
+  - main: ./main.go
+    env:
+      - CGO_ENABLED=0
+    goos:
+      - linux
+      - windows
+      - darwin
+    goarch:
+      - amd64
+      - arm64
+    ldflags:
+      - -s -w
+
+archives:
+  - formats: [tar.gz]
+    name_template: >-
+      {{ .ProjectName }}_
+      {{- title .Os }}_
+      {{- if eq .Arch "amd64" }}x86_64
+      {{- else if eq .Arch "386" }}i386
+      {{- else }}{{ .Arch }}{{ end }}
+      {{- if .Arm }}v{{ .Arm }}{{ end }}
+    format_overrides:
+      - goos: windows
+        formats: [zip]
+
+brews:
+  - name: agy-sync
+    homepage: https://github.com/JulienBreux/agy-sync/
+    description: Google Antigravity session synchronization CLI for Cloud Firestore
+    repository:
+      owner: JulienBreux
+      name: homebrew-tap
+
+changelog:
+  disable: false
+  use: github
+  sort: asc
+  filters:
+    exclude:
+      - "(?i)conductor"
+      - "^docs(\\(.*\\))?:"
+      - "^test(\\(.*\\))?:"
+  groups:
+    - title: Features
+      regexp: "^.*feat[(\\w)]*:+.*$"
+      order: 0
+    - title: "Bug fixes"
+      regexp: "^.*fix[(\\w)]*:+.*$"
+      order: 1
+    - title: "Enhancements"
+      regexp: "^.*chore[(\\w)]*:+.*$"
+      order: 2
+    - title: "Refactor"
+      regexp: "^.*refactor[(\\w)]*:+.*$"
+      order: 3
+    - title: "Build process updates"
+      regexp: ^.*?(build|ci)(\(.+\))??!?:.+$
+      order: 4
+    - title: "Documentation updates"
+      regexp: ^.*?docs?(\(.+\))??!?:.+$
+      order: 5
+    - title: Others
+      order: 999
