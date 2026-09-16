@@ -1,0 +1,8 @@
+Task: Add SQLite dependency and configuration fields
+Summary: Added modernc.org/sqlite pure-Go dependency, added ConversationsDir, SummariesDB, and NoDBSync to Config with default values and validation.
+Files:
+- go.mod
+- go.sum
+- pkg/config/config.go
+- pkg/config/config_test.go
+Why: Provides core configuration and dependency for SQLite database synchronization and reconstruction.
