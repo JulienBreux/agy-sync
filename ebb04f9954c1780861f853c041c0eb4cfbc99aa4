@@ -1,0 +1,7 @@
+Task: Implement internal/reconstructor for individual conversation databases (conversations/<id>.db)
+Summary: Implemented Reconstructor with WAL mode, busy timeout, table creation, and step upserts.
+Files:
+- internal/reconstructor/reconstructor.go
+- internal/reconstructor/conversation.go
+- internal/reconstructor/conversation_test.go
+Why: Allows local Antigravity CLI and IDE to query conversation steps directly from the reconstructed SQLite database.
