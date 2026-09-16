@@ -89,11 +89,11 @@ conversations/
 
 ### Collections & Documents
 
-| Path | Purpose | Key Attributes |
-| :--- | :--- | :--- |
-| `/conversations/{id}` | Conversation parent document | `last_synced_step`, `source_machine`, `updated_at` |
-| `/conversations/{id}/steps/{stepIndex}` | Immutable transcript turn | `step_index`, `type`, `source`, `content`, `machine_id` |
-| `/conversations/{id}/artifacts/{id}` | User/planner generated artifacts | `path`, `sha256`, `size_bytes`, `content` |
+| Path                                    | Purpose                          | Key Attributes                                          |
+| :-------------------------------------- | :------------------------------- | :------------------------------------------------------ |
+| `/conversations/{id}`                   | Conversation parent document     | `last_synced_step`, `source_machine`, `updated_at`      |
+| `/conversations/{id}/steps/{stepIndex}` | Immutable transcript turn        | `step_index`, `type`, `source`, `content`, `machine_id` |
+| `/conversations/{id}/artifacts/{id}`    | User/planner generated artifacts | `path`, `sha256`, `size_bytes`, `content`               |
 
 ---
 
@@ -103,12 +103,12 @@ conversations/
 
 All commands accept the following persistent flags:
 
-| Flag | Description | Default |
-| :--- | :--- | :--- |
-| `--config <path>` | Path to YAML configuration file | `~/.config/agy-sync/config.yaml` |
-| `--json` | Output results formatted as JSON (scripting/CI) | `false` |
-| `--log-level <level>` | Minimum log level (`debug`, `info`, `warn`, `error`) | `info` |
-| `-v, --verbose` | Enable debug / verbose log streaming | `false` |
+| Flag                  | Description                                          | Default                          |
+| :-------------------- | :--------------------------------------------------- | :------------------------------- |
+| `--config <path>`     | Path to YAML configuration file                      | `~/.config/agy-sync/config.yaml` |
+| `--json`              | Output results formatted as JSON (scripting/CI)      | `false`                          |
+| `--log-level <level>` | Minimum log level (`debug`, `info`, `warn`, `error`) | `info`                           |
+| `-v, --verbose`       | Enable debug / verbose log streaming                 | `false`                          |
 
 ---
 
@@ -239,7 +239,7 @@ agy-sync status --json
 **Sample Terminal Output:**
 ```
 ==================================================
-          Antigravity Sync Status                
+          Antigravity Sync Status
 ==================================================
 Daemon Status:   RUNNING (PID: 12345)
 Last Polling:    2026-09-15 14:49:34 UTC (15s ago)
@@ -252,9 +252,9 @@ Summaries DB:    /Users/username/.gemini/antigravity-cli/conversation_summaries.
 SQLite DB Sync:  Enabled
 Sessions Found:  1
 
-CONVERSATION ID                        LOCAL STEPS  REMOTE STEPS ARTIFACTS  LOCAL DB  SYNCED  
+CONVERSATION ID                        LOCAL STEPS  REMOTE STEPS ARTIFACTS  LOCAL DB  SYNCED
 ----------------------------------------------------------------------------------------------
-624296c6-d623-4c39-92d4-3906f8c07140   42           42           5          Yes       Yes     
+624296c6-d623-4c39-92d4-3906f8c07140   42           42           5          Yes       Yes
 ```
 
 ---
@@ -297,17 +297,17 @@ log_level: "INFO"
 
 ### Environment Variables
 
-| Variable | Description | Default |
-| :--- | :--- | :--- |
-| `AGY_SYNC_PROJECT_ID` | GCP Project ID | *(None)* |
-| `AGY_SYNC_DATABASE_ID` | Firestore Database ID | `(default)` |
-| `AGY_SYNC_MACHINE_ID` | Unique machine identifier | Hostname |
-| `AGY_SYNC_BRAIN_DIR` | Antigravity brain path | `~/.gemini/antigravity-cli/brain` |
-| `AGY_SYNC_CONVERSATIONS_DIR` | Antigravity conversations directory | `~/.gemini/antigravity-cli/conversations` |
-| `AGY_SYNC_SUMMARIES_DB` | Path to conversation summaries SQLite DB | `~/.gemini/antigravity-cli/conversation_summaries.db` |
-| `AGY_SYNC_NO_DB_SYNC` | Disable SQLite database reconstruction | `false` |
-| `AGY_SYNC_SYNC_INTERVAL_SECONDS` | Polling interval | `2` |
-| `AGY_SYNC_LOG_LEVEL` | Log level (`DEBUG`, `INFO`, `WARN`, `ERROR`) | `INFO` |
+| Variable                         | Description                                  | Default                                               |
+| :------------------------------- | :------------------------------------------- | :---------------------------------------------------- |
+| `AGY_SYNC_PROJECT_ID`            | GCP Project ID                               | *(None)*                                              |
+| `AGY_SYNC_DATABASE_ID`           | Firestore Database ID                        | `(default)`                                           |
+| `AGY_SYNC_MACHINE_ID`            | Unique machine identifier                    | Hostname                                              |
+| `AGY_SYNC_BRAIN_DIR`             | Antigravity brain path                       | `~/.gemini/antigravity-cli/brain`                     |
+| `AGY_SYNC_CONVERSATIONS_DIR`     | Antigravity conversations directory          | `~/.gemini/antigravity-cli/conversations`             |
+| `AGY_SYNC_SUMMARIES_DB`          | Path to conversation summaries SQLite DB     | `~/.gemini/antigravity-cli/conversation_summaries.db` |
+| `AGY_SYNC_NO_DB_SYNC`            | Disable SQLite database reconstruction       | `false`                                               |
+| `AGY_SYNC_SYNC_INTERVAL_SECONDS` | Polling interval                             | `2`                                                   |
+| `AGY_SYNC_LOG_LEVEL`             | Log level (`DEBUG`, `INFO`, `WARN`, `ERROR`) | `INFO`                                                |
 
 > [!NOTE]
 > For backwards compatibility, `agy-sync` also accepts legacy `AYG_SYNC_*` environment variables if `AGY_SYNC_*` is unset.
