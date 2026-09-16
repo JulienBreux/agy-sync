@@ -14,7 +14,12 @@ import (
 )
 
 func newPullCommand() *cobra.Command {
-	var conversationID string
+	var (
+		conversationID   string
+		noDBSync         bool
+		conversationsDir string
+		summariesDB      string
+	)
 
 	pullCmd := &cobra.Command{
 		Use:     "pull [conversation-id]",
@@ -37,6 +42,16 @@ the local Antigravity brain directory and JSONL log structure.`,
 			cfg, err := config.LoadConfig(globalOpts.ConfigFile)
 			if err != nil {
 				return fmt.Errorf("failed to load configuration: %w", err)
+			}
+
+			if cmd.Flags().Changed("no-db-sync") {
+				cfg.NoDBSync = noDBSync
+			}
+			if conversationsDir != "" {
+				cfg.ConversationsDir = conversationsDir
+			}
+			if summariesDB != "" {
+				cfg.SummariesDB = summariesDB
 			}
 
 			if err := cfg.Validate(); err != nil {
@@ -81,6 +96,9 @@ the local Antigravity brain directory and JSONL log structure.`,
 	}
 
 	pullCmd.Flags().StringVarP(&conversationID, "conversation", "c", "", "Conversation ID to pull")
+	pullCmd.Flags().BoolVar(&noDBSync, "no-db-sync", false, "Disable SQLite database reconstruction")
+	pullCmd.Flags().StringVar(&conversationsDir, "conversations-dir", "", "Path to local conversations directory")
+	pullCmd.Flags().StringVar(&summariesDB, "summaries-db", "", "Path to conversation summaries SQLite database")
 
 	return pullCmd
 }

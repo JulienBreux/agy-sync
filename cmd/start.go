@@ -21,6 +21,9 @@ type startOptions struct {
 	pidFile          string
 	logFile          string
 	stateFile        string
+	noDBSync         bool
+	conversationsDir string
+	summariesDB      string
 }
 
 func newStartCommand() *cobra.Command {
@@ -60,6 +63,15 @@ Use -f / --foreground to run directly in the current terminal session.`,
 					"--interval", opts.pollInterval.String(),
 					"--debounce", opts.debounceDuration.String(),
 				}
+				if cmd.Flags().Changed("no-db-sync") && opts.noDBSync {
+					bgArgs = append(bgArgs, "--no-db-sync")
+				}
+				if opts.conversationsDir != "" {
+					bgArgs = append(bgArgs, "--conversations-dir", opts.conversationsDir)
+				}
+				if opts.summariesDB != "" {
+					bgArgs = append(bgArgs, "--summaries-db", opts.summariesDB)
+				}
 				if globalOpts.Verbose {
 					bgArgs = append(bgArgs, "-v")
 				}
@@ -90,6 +102,16 @@ Use -f / --foreground to run directly in the current terminal session.`,
 			cfg, err := config.LoadConfig(globalOpts.ConfigFile)
 			if err != nil {
 				return fmt.Errorf("failed to load configuration: %w", err)
+			}
+
+			if cmd.Flags().Changed("no-db-sync") {
+				cfg.NoDBSync = opts.noDBSync
+			}
+			if opts.conversationsDir != "" {
+				cfg.ConversationsDir = opts.conversationsDir
+			}
+			if opts.summariesDB != "" {
+				cfg.SummariesDB = opts.summariesDB
 			}
 
 			if err := cfg.Validate(); err != nil {
@@ -177,6 +199,9 @@ Use -f / --foreground to run directly in the current terminal session.`,
 	startCmd.Flags().StringVar(&opts.pidFile, "pid-file", daemon.DefaultPIDPath(), "Path to PID file")
 	startCmd.Flags().StringVar(&opts.logFile, "log-file", daemon.DefaultLogPath(), "Path to daemon log file")
 	startCmd.Flags().StringVar(&opts.stateFile, "state-file", daemon.DefaultStatePath(), "Path to daemon runtime state file")
+	startCmd.Flags().BoolVar(&opts.noDBSync, "no-db-sync", false, "Disable SQLite database reconstruction")
+	startCmd.Flags().StringVar(&opts.conversationsDir, "conversations-dir", "", "Path to local conversations directory")
+	startCmd.Flags().StringVar(&opts.summariesDB, "summaries-db", "", "Path to conversation summaries SQLite database")
 
 	return startCmd
 }

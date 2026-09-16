@@ -4,16 +4,18 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"os"
+	"path/filepath"
 	"strings"
 	"time"
 
 	"github.com/spf13/cobra"
 
-	"github.com/julienbreux/agy-sync/pkg/config"
 	"github.com/julienbreux/agy-sync/internal/daemon"
 	"github.com/julienbreux/agy-sync/internal/discovery"
-	"github.com/julienbreux/agy-sync/pkg/models"
 	"github.com/julienbreux/agy-sync/internal/parser"
+	"github.com/julienbreux/agy-sync/pkg/config"
+	"github.com/julienbreux/agy-sync/pkg/models"
 )
 
 // DaemonStatus represents the runtime status of the background synchronization daemon.
@@ -32,6 +34,7 @@ type ConversationStatus struct {
 	RemoteSteps    int    `json:"remote_steps"`
 	ArtifactsCount int    `json:"artifacts_count"`
 	Synced         bool   `json:"synced"`
+	HasLocalDB     bool   `json:"has_local_db"`
 }
 
 // StatusReport represents the overall system synchronization status.
@@ -40,15 +43,21 @@ type StatusReport struct {
 	ProjectID          string               `json:"project_id"`
 	MachineID          string               `json:"machine_id"`
 	BrainDir           string               `json:"brain_dir"`
+	ConversationsDir   string               `json:"conversations_dir"`
+	SummariesDB        string               `json:"summaries_db"`
+	DBSyncEnabled      bool                 `json:"db_sync_enabled"`
 	ConversationsCount int                  `json:"conversations_count"`
 	Conversations      []ConversationStatus `json:"conversations"`
 }
 
 type statusOptions struct {
-	conversationID string
-	pidFile        string
-	logFile        string
-	stateFile      string
+	conversationID   string
+	pidFile          string
+	logFile          string
+	stateFile        string
+	noDBSync         bool
+	conversationsDir string
+	summariesDB      string
 }
 
 func newStatusCommand() *cobra.Command {
@@ -69,6 +78,16 @@ artifact counts against remote Firestore metadata, and reports daemon process he
 			cfg, err := config.LoadConfig(globalOpts.ConfigFile)
 			if err != nil {
 				return fmt.Errorf("failed to load configuration: %w (remediation: run 'agy-sync init' or specify --config)", err)
+			}
+
+			if cmd.Flags().Changed("no-db-sync") {
+				cfg.NoDBSync = opts.noDBSync
+			}
+			if opts.conversationsDir != "" {
+				cfg.ConversationsDir = opts.conversationsDir
+			}
+			if opts.summariesDB != "" {
+				cfg.SummariesDB = opts.summariesDB
 			}
 
 			if err := cfg.Validate(); err != nil {
@@ -135,6 +154,9 @@ artifact counts against remote Firestore metadata, and reports daemon process he
 				ProjectID:          cfg.ProjectID,
 				MachineID:          cfg.MachineID,
 				BrainDir:           cfg.BrainDir,
+				ConversationsDir:   cfg.ConversationsDir,
+				SummariesDB:        cfg.SummariesDB,
+				DBSyncEnabled:      !cfg.NoDBSync,
 				ConversationsCount: len(discovered),
 				Conversations:      make([]ConversationStatus, 0, len(discovered)),
 			}
@@ -158,12 +180,21 @@ artifact counts against remote Firestore metadata, and reports daemon process he
 					}
 				}
 
+				hasLocalDB := false
+				if cfg.ConversationsDir != "" {
+					dbPath := filepath.Join(cfg.ConversationsDir, d.ID+".db")
+					if _, err := os.Stat(dbPath); err == nil {
+						hasLocalDB = true
+					}
+				}
+
 				report.Conversations = append(report.Conversations, ConversationStatus{
 					ID:             d.ID,
 					LocalSteps:     localSteps,
 					RemoteSteps:    remoteSteps,
 					ArtifactsCount: len(d.Artifacts),
 					Synced:         synced,
+					HasLocalDB:     hasLocalDB,
 				})
 			}
 
@@ -193,6 +224,13 @@ artifact counts against remote Firestore metadata, and reports daemon process he
 			cmd.Printf("GCP Project ID:  %s\n", report.ProjectID)
 			cmd.Printf("Machine ID:      %s\n", report.MachineID)
 			cmd.Printf("Brain Directory: %s\n", report.BrainDir)
+			cmd.Printf("Conversations:   %s\n", report.ConversationsDir)
+			cmd.Printf("Summaries DB:    %s\n", report.SummariesDB)
+			dbSyncStr := "Enabled"
+			if !report.DBSyncEnabled {
+				dbSyncStr = "Disabled"
+			}
+			cmd.Printf("SQLite DB Sync:  %s\n", dbSyncStr)
 			cmd.Printf("Sessions Found:  %d\n\n", report.ConversationsCount)
 
 			if len(report.Conversations) == 0 {
@@ -200,16 +238,20 @@ artifact counts against remote Firestore metadata, and reports daemon process he
 				return nil
 			}
 
-			cmd.Printf("%-38s %-12s %-12s %-10s %-8s\n", "CONVERSATION ID", "LOCAL STEPS", "REMOTE STEPS", "ARTIFACTS", "SYNCED")
-			cmd.Println(strings.Repeat("-", 84))
+			cmd.Printf("%-38s %-12s %-12s %-10s %-10s %-8s\n", "CONVERSATION ID", "LOCAL STEPS", "REMOTE STEPS", "ARTIFACTS", "LOCAL DB", "SYNCED")
+			cmd.Println(strings.Repeat("-", 94))
 
 			for _, c := range report.Conversations {
 				syncedStr := "No"
 				if c.Synced {
 					syncedStr = "Yes"
 				}
-				cmd.Printf("%-38s %-12d %-12d %-10d %-8s\n",
-					c.ID, c.LocalSteps, c.RemoteSteps, c.ArtifactsCount, syncedStr)
+				dbStr := "No"
+				if c.HasLocalDB {
+					dbStr = "Yes"
+				}
+				cmd.Printf("%-38s %-12d %-12d %-10d %-10s %-8s\n",
+					c.ID, c.LocalSteps, c.RemoteSteps, c.ArtifactsCount, dbStr, syncedStr)
 			}
 
 			return nil
@@ -220,6 +262,9 @@ artifact counts against remote Firestore metadata, and reports daemon process he
 	statusCmd.Flags().StringVar(&opts.pidFile, "pid-file", daemon.DefaultPIDPath(), "Path to PID file")
 	statusCmd.Flags().StringVar(&opts.logFile, "log-file", daemon.DefaultLogPath(), "Path to daemon log file")
 	statusCmd.Flags().StringVar(&opts.stateFile, "state-file", daemon.DefaultStatePath(), "Path to daemon runtime state file")
+	statusCmd.Flags().BoolVar(&opts.noDBSync, "no-db-sync", false, "Disable SQLite database sync display")
+	statusCmd.Flags().StringVar(&opts.conversationsDir, "conversations-dir", "", "Path to local conversations directory")
+	statusCmd.Flags().StringVar(&opts.summariesDB, "summaries-db", "", "Path to conversation summaries SQLite database")
 
 	return statusCmd
 }

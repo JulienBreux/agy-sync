@@ -64,6 +64,8 @@ machine_id: "status-machine-1"
 	assert.Contains(t, buf.String(), "Antigravity Sync Status")
 	assert.Contains(t, buf.String(), "Daemon Status:   STOPPED")
 	assert.Contains(t, buf.String(), "Last Polling:    Never / Inactive")
+	assert.Contains(t, buf.String(), "SQLite DB Sync:  Enabled")
+	assert.Contains(t, buf.String(), "LOCAL DB")
 	assert.Contains(t, buf.String(), "test-status-proj")
 	assert.Contains(t, buf.String(), convID)
 
@@ -78,8 +80,20 @@ machine_id: "status-machine-1"
 	require.NoError(t, err)
 	assert.Contains(t, bufJSON.String(), `"project_id": "test-status-proj"`)
 	assert.Contains(t, bufJSON.String(), `"conversations_count": 1`)
+	assert.Contains(t, bufJSON.String(), `"db_sync_enabled": true`)
 	assert.Contains(t, bufJSON.String(), `"daemon": {`)
 	assert.Contains(t, bufJSON.String(), `"state": "STOPPED"`)
+
+	// Status with --no-db-sync flag
+	rootDisabled := cmd.NewRootCommand()
+	bufDisabled := new(bytes.Buffer)
+	rootDisabled.SetOut(bufDisabled)
+	rootDisabled.SetErr(bufDisabled)
+
+	rootDisabled.SetArgs([]string{"status", "--config", configPath, "--state-file", stateFile, "--no-db-sync"})
+	err = rootDisabled.Execute()
+	require.NoError(t, err)
+	assert.Contains(t, bufDisabled.String(), "SQLite DB Sync:  Disabled")
 
 	// Single conversation filter
 	rootFilter := cmd.NewRootCommand()
