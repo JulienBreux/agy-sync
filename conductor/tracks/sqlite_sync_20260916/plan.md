@@ -23,7 +23,7 @@
 - [x] Task: Add CLI flags and update Status command [2abbcfd]
     - [x] Add `--no-db-sync`, `--conversations-dir`, `--summaries-db` flags to `cmd/pull.go` and `cmd/start.go`
     - [x] Update `cmd/status.go` to display SQLite database sync status and test status output
-- [ ] Task: Conductor - User Manual Verification 'Phase 3: Integration into Pull, Syncer Listener & CLI Commands' (Protocol in workflow.md)
+- [x] Task: Conductor - User Manual Verification 'Phase 3: Integration into Pull, Syncer Listener & CLI Commands' (Protocol in workflow.md)
 
 ## Phase 4: Modern Go Quality, Idiomatic Standards & Linting
 - [ ] Task: Ensure Modern Go Idioms, Context Propagation & Structured Logging
