@@ -13,23 +13,31 @@ import (
 	"github.com/julienbreux/agy-sync/internal/firestore"
 	"github.com/julienbreux/agy-sync/internal/logger"
 	"github.com/julienbreux/agy-sync/internal/parser"
+	"github.com/julienbreux/agy-sync/internal/reconstructor"
 	"github.com/julienbreux/agy-sync/pkg/config"
 	"github.com/julienbreux/agy-sync/pkg/models"
 )
 
 // Engine orchestrates bidirectional synchronization between local Antigravity brain and Firestore.
 type Engine struct {
-	cfg    *config.Config
-	repo   firestore.Repository
-	parser *parser.TranscriptParser
+	cfg           *config.Config
+	repo          firestore.Repository
+	parser        *parser.TranscriptParser
+	reconstructor *reconstructor.Reconstructor
 }
 
 // NewEngine creates an initialized sync Engine.
 func NewEngine(cfg *config.Config, repo firestore.Repository) *Engine {
+	var rec *reconstructor.Reconstructor
+	if cfg != nil && !cfg.NoDBSync && cfg.ConversationsDir != "" && cfg.SummariesDB != "" {
+		rec = reconstructor.New(cfg.ConversationsDir, cfg.SummariesDB)
+	}
+
 	return &Engine{
-		cfg:    cfg,
-		repo:   repo,
-		parser: parser.NewTranscriptParser(),
+		cfg:           cfg,
+		repo:          repo,
+		parser:        parser.NewTranscriptParser(),
+		reconstructor: rec,
 	}
 }
 

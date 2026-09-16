@@ -12,6 +12,7 @@ import (
 
 	"github.com/julienbreux/agy-sync/internal/logger"
 	"github.com/julienbreux/agy-sync/internal/parser"
+	"github.com/julienbreux/agy-sync/internal/reconstructor"
 )
 
 // PullOptions specifies configuration for a pull synchronization operation.
@@ -127,6 +128,21 @@ func (e *Engine) Pull(ctx context.Context, opts PullOptions) (*PullResult, error
 
 		if err := g.Wait(); err != nil {
 			return nil, err
+		}
+	}
+
+	// 3. Reconstruct local SQLite database and summary if enabled
+	if e.reconstructor != nil && !e.cfg.NoDBSync {
+		if parseRes, err := e.parser.ParseFile(transcriptPath); err == nil {
+			if err := e.reconstructor.ReconstructConversationDB(ctx, opts.ConversationID, parseRes.Steps); err != nil {
+				log.WarnContext(ctx, "Failed reconstructing conversation sqlite database", "conversation_id", opts.ConversationID, "error", err)
+			} else {
+				summaryParams := reconstructor.BuildSummaryFromSteps(opts.ConversationID, remoteConv.Title, parseRes.Steps)
+				summaryParams.ProjectID = e.cfg.ProjectID
+				if err := e.reconstructor.UpsertSummary(ctx, summaryParams); err != nil {
+					log.WarnContext(ctx, "Failed upserting conversation summary in sqlite", "conversation_id", opts.ConversationID, "error", err)
+				}
+			}
 		}
 	}
 

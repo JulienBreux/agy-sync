@@ -151,3 +151,110 @@ func TestPull_MissingConversationID(t *testing.T) {
 	require.Error(t, err)
 	assert.Contains(t, err.Error(), "conversation_id is required")
 }
+
+func TestPull_ReconstructSQLiteDB(t *testing.T) {
+	tempDir := t.TempDir()
+	tempBrain := filepath.Join(tempDir, "brain")
+	convsDir := filepath.Join(tempDir, "conversations")
+	summariesDB := filepath.Join(tempDir, "conversation_summaries.db")
+	convID := "pull-sqlite-test"
+
+	cfg := &config.Config{
+		ProjectID:        "test-proj",
+		BrainDir:         tempBrain,
+		ConversationsDir: convsDir,
+		SummariesDB:      summariesDB,
+		NoDBSync:         false,
+		MachineID:        "machine-puller",
+	}
+
+	repo := firestore.NewMemoryRepository()
+	t.Cleanup(func() {
+		_ = repo.Close()
+	})
+
+	ctx := t.Context()
+
+	require.NoError(t, repo.UpsertConversation(ctx, &models.Conversation{
+		ID:             convID,
+		Title:          "SQLite Pull Test Title",
+		CreatedAt:      time.Now().UTC(),
+		UpdatedAt:      time.Now().UTC(),
+		LastSyncedStep: 0,
+		SourceMachine:  "remote-machine",
+	}))
+
+	require.NoError(t, repo.AppendSteps(ctx, convID, []models.Step{
+		{
+			StepIndex: 0,
+			Source:    "USER_EXPLICIT",
+			Type:      "USER_INPUT",
+			Status:    "DONE",
+			CreatedAt: time.Now().UTC(),
+			Content:   "Testing SQLite reconstruction on pull",
+		},
+	}))
+
+	engine := syncer.NewEngine(cfg, repo)
+	_, err := engine.Pull(ctx, syncer.PullOptions{ConversationID: convID})
+	require.NoError(t, err)
+
+	// Verify conversation DB was created
+	convDBPath := filepath.Join(convsDir, convID+".db")
+	assert.FileExists(t, convDBPath)
+
+	// Verify summaries DB was created
+	assert.FileExists(t, summariesDB)
+}
+
+func TestPull_NoDBSync(t *testing.T) {
+	tempDir := t.TempDir()
+	tempBrain := filepath.Join(tempDir, "brain")
+	convsDir := filepath.Join(tempDir, "conversations")
+	summariesDB := filepath.Join(tempDir, "conversation_summaries.db")
+	convID := "no-db-sync-test"
+
+	cfg := &config.Config{
+		ProjectID:        "test-proj",
+		BrainDir:         tempBrain,
+		ConversationsDir: convsDir,
+		SummariesDB:      summariesDB,
+		NoDBSync:         true,
+		MachineID:        "machine-puller",
+	}
+
+	repo := firestore.NewMemoryRepository()
+	t.Cleanup(func() {
+		_ = repo.Close()
+	})
+
+	ctx := t.Context()
+
+	require.NoError(t, repo.UpsertConversation(ctx, &models.Conversation{
+		ID:             convID,
+		Title:          "No DB Sync Title",
+		CreatedAt:      time.Now().UTC(),
+		UpdatedAt:      time.Now().UTC(),
+		LastSyncedStep: 0,
+		SourceMachine:  "remote-machine",
+	}))
+
+	require.NoError(t, repo.AppendSteps(ctx, convID, []models.Step{
+		{
+			StepIndex: 0,
+			Source:    "USER_EXPLICIT",
+			Type:      "USER_INPUT",
+			Status:    "DONE",
+			CreatedAt: time.Now().UTC(),
+			Content:   "Testing No DB Sync",
+		},
+	}))
+
+	engine := syncer.NewEngine(cfg, repo)
+	_, err := engine.Pull(ctx, syncer.PullOptions{ConversationID: convID})
+	require.NoError(t, err)
+
+	convDBPath := filepath.Join(convsDir, convID+".db")
+	assert.NoFileExists(t, convDBPath)
+	assert.NoFileExists(t, summariesDB)
+}
