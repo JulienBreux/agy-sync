@@ -31,6 +31,6 @@
 
 ---
 
-- [ ] **Track: Remote Conversation History, Steps & Title Synchronization**
+- [x] **Track: Remote Conversation History, Steps & Title Synchronization**
   *Link: [./tracks/remote_history_sync_20260916/index.md](./tracks/remote_history_sync_20260916/index.md)*
 
