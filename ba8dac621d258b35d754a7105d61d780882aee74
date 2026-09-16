@@ -1,0 +1,7 @@
+Task: Integrate Reconstructor into Engine Pull & Syncer Listener
+Summary: Integrated Reconstructor into NewEngine and Pull method, automatically reconstructing individual conversation SQLite DBs and updating conversation_summaries.db while respecting NoDBSync flag.
+Files:
+- internal/syncer/push.go
+- internal/syncer/pull.go
+- internal/syncer/pull_test.go
+Why: Connects SQLite reconstruction directly to the sync engine's pull cycle.
