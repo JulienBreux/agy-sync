@@ -1,0 +1,9 @@
+Task: Add CLI flags and update Status command
+Summary: Added --no-db-sync, --conversations-dir, and --summaries-db flags to pull, start, and status commands; updated status output with SQLite sync state and per-conversation local DB presence.
+Files:
+- cmd/pull.go
+- cmd/pull_test.go
+- cmd/start.go
+- cmd/status.go
+- cmd/status_test.go
+Why: Exposes SQLite reconstruction options to CLI users and reflects database status in commands.
