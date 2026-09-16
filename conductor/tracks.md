@@ -23,3 +23,9 @@
 
 - [x] **Track: Modernize this Go application using the best CLI and language practices**
   *Link: [./tracks/modernize_go_20260915/index.md](./tracks/modernize_go_20260915/index.md)*
+
+---
+
+- [ ] **Track: Antigravity SQLite Database Reconstruction & Synchronization**
+  *Link: [./tracks/sqlite_sync_20260916/index.md](./tracks/sqlite_sync_20260916/index.md)*
+
