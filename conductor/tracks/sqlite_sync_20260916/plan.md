@@ -11,9 +11,9 @@
 - [x] Task: Implement `internal/reconstructor` for individual conversation databases (`conversations/<id>.db`) [ebb04f9]
     - [x] Write failing unit tests for schema creation and step insertion in `internal/reconstructor/conversation_test.go`
     - [x] Implement `ReconstructConversationDB` with WAL mode, busy timeout, table creation, and step upserts
-- [ ] Task: Implement `internal/reconstructor` for global summaries (`conversation_summaries.db`)
-    - [ ] Write failing unit tests for summary upserts and metadata parsing in `internal/reconstructor/summary_test.go`
-    - [ ] Implement `UpsertSummary` with title extraction and workspace URI preservation
+- [x] Task: Implement `internal/reconstructor` for global summaries (`conversation_summaries.db`) [0e86657]
+    - [x] Write failing unit tests for summary upserts and metadata parsing in `internal/reconstructor/summary_test.go`
+    - [x] Implement `UpsertSummary` with title extraction and workspace URI preservation
 - [ ] Task: Conductor - User Manual Verification 'Phase 2: Conversation & Summary SQLite Reconstructor Package' (Protocol in workflow.md)
 
 ## Phase 3: Integration into Pull, Syncer Listener & CLI Commands
