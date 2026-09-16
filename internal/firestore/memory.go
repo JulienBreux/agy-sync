@@ -16,6 +16,7 @@ type MemoryRepository struct {
 	conversations map[string]*models.Conversation
 	steps         map[string]map[int]models.Step
 	artifacts     map[string]map[string]*models.Artifact
+	dbChunks      map[string]map[int]models.DBChunk
 }
 
 // NewMemoryRepository constructs a new in-memory repository instance.
@@ -24,6 +25,7 @@ func NewMemoryRepository() *MemoryRepository {
 		conversations: make(map[string]*models.Conversation),
 		steps:         make(map[string]map[int]models.Step),
 		artifacts:     make(map[string]map[string]*models.Artifact),
+		dbChunks:      make(map[string]map[int]models.DBChunk),
 	}
 }
 
@@ -161,6 +163,44 @@ func (m *MemoryRepository) ListArtifacts(_ context.Context, convID string) ([]mo
 	for art := range maps.Values(convArtifacts) {
 		results = append(results, *art)
 	}
+
+	return results, nil
+}
+
+// SaveDBChunks saves database chunks for a conversation in memory.
+func (m *MemoryRepository) SaveDBChunks(_ context.Context, convID string, chunks []models.DBChunk) error {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+
+	if _, ok := m.dbChunks[convID]; !ok {
+		m.dbChunks[convID] = make(map[int]models.DBChunk)
+	}
+
+	for _, chunk := range chunks {
+		m.dbChunks[convID][chunk.ChunkIndex] = chunk
+	}
+
+	return nil
+}
+
+// GetDBChunks retrieves all database chunks for a conversation sorted by ChunkIndex.
+func (m *MemoryRepository) GetDBChunks(_ context.Context, convID string) ([]models.DBChunk, error) {
+	m.mu.RLock()
+	defer m.mu.RUnlock()
+
+	chunkMap, ok := m.dbChunks[convID]
+	if !ok {
+		return []models.DBChunk{}, nil
+	}
+
+	results := make([]models.DBChunk, 0, len(chunkMap))
+	for _, chunk := range chunkMap {
+		results = append(results, chunk)
+	}
+
+	slices.SortFunc(results, func(a, b models.DBChunk) int {
+		return cmp.Compare(a.ChunkIndex, b.ChunkIndex)
+	})
 
 	return results, nil
 }

@@ -243,3 +243,85 @@ func TestClient_EmulatorIntegration(t *testing.T) {
 	require.NoError(t, err)
 	assert.NotEmpty(t, arts)
 }
+
+func TestMemoryRepository_DBChunkOperations(t *testing.T) {
+	ctx := t.Context()
+	repo := firestore.NewMemoryRepository()
+	t.Cleanup(func() {
+		_ = repo.Close()
+	})
+
+	convID := "conv-test-chunks"
+	chunks := []models.DBChunk{
+		{
+			ChunkIndex:  0,
+			TotalChunks: 2,
+			SizeBytes:   4,
+			SHA256:      "sha-chunk-0",
+			Data:        []byte("part"),
+		},
+		{
+			ChunkIndex:  1,
+			TotalChunks: 2,
+			SizeBytes:   4,
+			SHA256:      "sha-chunk-1",
+			Data:        []byte("two!"),
+		},
+	}
+
+	err := repo.SaveDBChunks(ctx, convID, chunks)
+	require.NoError(t, err)
+
+	fetchedChunks, err := repo.GetDBChunks(ctx, convID)
+	require.NoError(t, err)
+	require.Len(t, fetchedChunks, 2)
+	assert.Equal(t, 0, fetchedChunks[0].ChunkIndex)
+	assert.Equal(t, []byte("part"), fetchedChunks[0].Data)
+	assert.Equal(t, 1, fetchedChunks[1].ChunkIndex)
+	assert.Equal(t, []byte("two!"), fetchedChunks[1].Data)
+
+	// Test empty / unknown convID
+	emptyChunks, err := repo.GetDBChunks(ctx, "nonexistent-conv")
+	require.NoError(t, err)
+	assert.Empty(t, emptyChunks)
+}
+
+func TestMemoryRepository_ExtendedConversationMetadata(t *testing.T) {
+	ctx := t.Context()
+	repo := firestore.NewMemoryRepository()
+	t.Cleanup(func() {
+		_ = repo.Close()
+	})
+
+	now := time.Now().UTC()
+	conv := &models.Conversation{
+		ID:                     "conv-meta",
+		Title:                  "Full Title",
+		Preview:                "Preview text",
+		StepCount:              10,
+		CreatedAt:              now,
+		UpdatedAt:              now,
+		LastSyncedStep:         9,
+		SourceMachine:          "mac",
+		DBSHA256:               "sha-db",
+		DBSizeBytes:            2048,
+		DBChunksCount:          2,
+		LastUserInputTime:      now,
+		LastUserInputStepIndex: 5,
+		RawSummary:             []byte("raw-summary-bytes"),
+	}
+
+	err := repo.UpsertConversation(ctx, conv)
+	require.NoError(t, err)
+
+	fetched, err := repo.GetConversation(ctx, "conv-meta")
+	require.NoError(t, err)
+	require.NotNil(t, fetched)
+	assert.Equal(t, "Full Title", fetched.Title)
+	assert.Equal(t, "Preview text", fetched.Preview)
+	assert.Equal(t, 10, fetched.StepCount)
+	assert.Equal(t, "sha-db", fetched.DBSHA256)
+	assert.Equal(t, int64(2048), fetched.DBSizeBytes)
+	assert.Equal(t, 2, fetched.DBChunksCount)
+	assert.Equal(t, []byte("raw-summary-bytes"), fetched.RawSummary)
+}

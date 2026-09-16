@@ -17,4 +17,6 @@ type Repository interface {
 	SaveArtifact(ctx context.Context, artifact *models.Artifact) error
 	GetArtifact(ctx context.Context, convID, artifactID string) (*models.Artifact, error)
 	ListArtifacts(ctx context.Context, convID string) ([]models.Artifact, error)
+	SaveDBChunks(ctx context.Context, convID string, chunks []models.DBChunk) error
+	GetDBChunks(ctx context.Context, convID string) ([]models.DBChunk, error)
 }
