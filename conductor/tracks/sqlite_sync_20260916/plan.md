@@ -8,9 +8,9 @@
 - [x] Task: Conductor - User Manual Verification 'Phase 1: SQLite Storage Driver & Configuration' (Protocol in workflow.md)
 
 ## Phase 2: Conversation & Summary SQLite Reconstructor Package
-- [ ] Task: Implement `internal/reconstructor` for individual conversation databases (`conversations/<id>.db`)
-    - [ ] Write failing unit tests for schema creation and step insertion in `internal/reconstructor/conversation_test.go`
-    - [ ] Implement `ReconstructConversationDB` with WAL mode, busy timeout, table creation, and step upserts
+- [x] Task: Implement `internal/reconstructor` for individual conversation databases (`conversations/<id>.db`) [ebb04f9]
+    - [x] Write failing unit tests for schema creation and step insertion in `internal/reconstructor/conversation_test.go`
+    - [x] Implement `ReconstructConversationDB` with WAL mode, busy timeout, table creation, and step upserts
 - [ ] Task: Implement `internal/reconstructor` for global summaries (`conversation_summaries.db`)
     - [ ] Write failing unit tests for summary upserts and metadata parsing in `internal/reconstructor/summary_test.go`
     - [ ] Implement `UpsertSummary` with title extraction and workspace URI preservation
