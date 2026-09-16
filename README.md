@@ -19,6 +19,7 @@ Antigravity stores session states, tool executions, and generated artifacts loca
 
 - **Bidirectional Multi-Machine Sync:** Keep *n* machines synchronized in real-time. Changes written on Machine Alpha stream to Firestore and are automatically pulled onto Machine Beta.
 - **Append-Only Step Log:** Monotonic step indices (`step_000001`, `step_000002`, ...) prevent merge conflicts, data loss, or out-of-order writes.
+- **Local SQLite Reconstruction:** Reconstructs Antigravity's internal SQLite databases (`conversations/<id>.db` and `conversation_summaries.db`) automatically upon pulling, making sessions immediately visible and resumable via `agy resume` and the Antigravity IDE.
 - **Loop Prevention:** Every sync payload is tagged with the origin machine's unique `MachineID`. Machines automatically ignore echoes of their own updates.
 - **Real-time Filesystem Watcher:** Non-blocking `fsnotify` watcher detects incremental transcript appends (`transcript.jsonl`) and new artifact files with sub-second latency and debouncing.
 - **Byte-Offset Incremental Streaming:** Efficiently reads only newly appended JSONL bytes without re-parsing entire conversation histories.
@@ -143,7 +144,7 @@ agy-sync push -c 624296c6-d623-4c39-92d4-3906f8c07140
 ---
 
 ### `agy-sync pull`
-Downloads conversation transcripts and artifacts from Firestore and reconstructs the local Antigravity brain directory and JSONL log structure with exact byte parity.
+Downloads conversation transcripts and artifacts from Firestore and reconstructs the local Antigravity brain directory, JSONL log structure with exact byte parity, and local SQLite databases (`conversations/<id>.db` and `conversation_summaries.db`).
 
 ```bash
 # Pull conversation by argument
@@ -151,11 +152,17 @@ agy-sync pull 624296c6-d623-4c39-92d4-3906f8c07140
 
 # Or via flag
 agy-sync pull -c 624296c6-d623-4c39-92d4-3906f8c07140
+
+# Pull without modifying SQLite databases
+agy-sync pull 624296c6-d623-4c39-92d4-3906f8c07140 --no-db-sync
 ```
 
 **Arguments / Flags:**
 - `<conversation-id>`: Unique ID of the conversation in Firestore.
 - `-c, --conversation <string>`: Optional flag alternative to specify the conversation ID.
+- `--no-db-sync`: Disable SQLite database reconstruction.
+- `--conversations-dir <path>`: Path to local conversations directory (default: `~/.gemini/antigravity-cli/conversations`).
+- `--summaries-db <path>`: Path to conversation summaries SQLite database (default: `~/.gemini/antigravity-cli/conversation_summaries.db`).
 
 ---
 
@@ -182,6 +189,9 @@ agy-sync start --pid-file ~/.config/agy-sync/agy-sync.pid --log-file ~/.config/a
 - `--debounce <duration>`: Filesystem event debounce interval (default: `200ms`).
 - `--pid-file <path>`: Path to PID file (default: `~/.config/agy-sync/agy-sync.pid`).
 - `--log-file <path>`: Path to daemon log file (default: `~/.config/agy-sync/daemon.log`).
+- `--no-db-sync`: Disable SQLite database reconstruction during remote pulls.
+- `--conversations-dir <path>`: Path to local conversations directory.
+- `--summaries-db <path>`: Path to conversation summaries SQLite database.
 
 ---
 
@@ -204,7 +214,7 @@ agy-sync stop --timeout 10s
 ---
 
 ### `agy-sync status`
-Displays side-by-side synchronization status between your local brain directory and remote Firestore collections, along with daemon process health and the timestamp of the last remote poll.
+Displays side-by-side synchronization status between your local brain directory and remote Firestore collections, along with daemon process health, SQLite database sync status, and the timestamp of the last remote poll.
 
 ```bash
 # Terminal formatted table
@@ -222,6 +232,9 @@ agy-sync status --json
 - `--pid-file <path>`: Path to PID file (default: `~/.config/agy-sync/agy-sync.pid`).
 - `--log-file <path>`: Path to daemon log file (default: `~/.config/agy-sync/daemon.log`).
 - `--state-file <path>`: Path to daemon runtime state file (default: `~/.config/agy-sync/daemon.state.json`).
+- `--no-db-sync`: Disable SQLite database sync status check.
+- `--conversations-dir <path>`: Path to local conversations directory.
+- `--summaries-db <path>`: Path to conversation summaries SQLite database.
 
 **Sample Terminal Output:**
 ```
@@ -234,11 +247,14 @@ Daemon Log:      /Users/username/.config/agy-sync/daemon.log
 GCP Project ID:  my-gcp-project
 Machine ID:      macbook-pro
 Brain Directory: /Users/username/.gemini/antigravity-cli/brain
+Conversations:   /Users/username/.gemini/antigravity-cli/conversations
+Summaries DB:    /Users/username/.gemini/antigravity-cli/conversation_summaries.db
+SQLite DB Sync:  Enabled
 Sessions Found:  1
 
-CONVERSATION ID                        LOCAL STEPS  REMOTE STEPS ARTIFACTS  SYNCED  
-------------------------------------------------------------------------------------
-624296c6-d623-4c39-92d4-3906f8c07140   42           42           5          Yes     
+CONVERSATION ID                        LOCAL STEPS  REMOTE STEPS ARTIFACTS  LOCAL DB  SYNCED  
+----------------------------------------------------------------------------------------------
+624296c6-d623-4c39-92d4-3906f8c07140   42           42           5          Yes       Yes     
 ```
 
 ---
@@ -272,6 +288,9 @@ project_id: "my-gcp-project"
 database_id: "(default)"
 machine_id: "macbook-pro-work"
 brain_dir: "/Users/alice/.gemini/antigravity-cli/brain"
+conversations_dir: "/Users/alice/.gemini/antigravity-cli/conversations"
+summaries_db: "/Users/alice/.gemini/antigravity-cli/conversation_summaries.db"
+no_db_sync: false
 sync_interval_seconds: 2
 log_level: "INFO"
 ```
@@ -284,6 +303,9 @@ log_level: "INFO"
 | `AGY_SYNC_DATABASE_ID` | Firestore Database ID | `(default)` |
 | `AGY_SYNC_MACHINE_ID` | Unique machine identifier | Hostname |
 | `AGY_SYNC_BRAIN_DIR` | Antigravity brain path | `~/.gemini/antigravity-cli/brain` |
+| `AGY_SYNC_CONVERSATIONS_DIR` | Antigravity conversations directory | `~/.gemini/antigravity-cli/conversations` |
+| `AGY_SYNC_SUMMARIES_DB` | Path to conversation summaries SQLite DB | `~/.gemini/antigravity-cli/conversation_summaries.db` |
+| `AGY_SYNC_NO_DB_SYNC` | Disable SQLite database reconstruction | `false` |
 | `AGY_SYNC_SYNC_INTERVAL_SECONDS` | Polling interval | `2` |
 | `AGY_SYNC_LOG_LEVEL` | Log level (`DEBUG`, `INFO`, `WARN`, `ERROR`) | `INFO` |
 

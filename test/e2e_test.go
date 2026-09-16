@@ -2,6 +2,7 @@ package test_test
 
 import (
 	"crypto/sha256"
+	"database/sql"
 	"encoding/hex"
 	"fmt"
 	"os"
@@ -11,6 +12,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	_ "modernc.org/sqlite"
 
 	"github.com/julienbreux/agy-sync/internal/discovery"
 	"github.com/julienbreux/agy-sync/internal/firestore"
@@ -36,10 +38,14 @@ func TestE2E_MultiMachineRoundTripSync(t *testing.T) {
 
 	// 2. Setup Machine Alpha (Machine A)
 	machineAlphaBrain := t.TempDir()
+	alphaConvsDir := filepath.Join(t.TempDir(), "alpha_conversations")
+	alphaSummariesDB := filepath.Join(t.TempDir(), "alpha_summaries.db")
 	cfgAlpha := &config.Config{
-		ProjectID: "e2e-project",
-		BrainDir:  machineAlphaBrain,
-		MachineID: "machine-alpha",
+		ProjectID:        "e2e-project",
+		BrainDir:         machineAlphaBrain,
+		MachineID:        "machine-alpha",
+		ConversationsDir: alphaConvsDir,
+		SummariesDB:      alphaSummariesDB,
 	}
 
 	convID := "624296c6-d623-4c39-92d4-3906f8c07140"
@@ -86,10 +92,14 @@ func TestE2E_MultiMachineRoundTripSync(t *testing.T) {
 
 	// 3. Setup Machine Beta (Machine B) - initially empty brain dir
 	machineBetaBrain := t.TempDir()
+	betaConvsDir := filepath.Join(t.TempDir(), "beta_conversations")
+	betaSummariesDB := filepath.Join(t.TempDir(), "beta_summaries.db")
 	cfgBeta := &config.Config{
-		ProjectID: "e2e-project",
-		BrainDir:  machineBetaBrain,
-		MachineID: "machine-beta",
+		ProjectID:        "e2e-project",
+		BrainDir:         machineBetaBrain,
+		MachineID:        "machine-beta",
+		ConversationsDir: betaConvsDir,
+		SummariesDB:      betaSummariesDB,
 	}
 
 	engineBeta := syncer.NewEngine(cfgBeta, sharedRepo)
@@ -136,6 +146,36 @@ func TestE2E_MultiMachineRoundTripSync(t *testing.T) {
 	assert.Equal(t, scratchContent, betaScratchBytes)
 	assert.Equal(t, sha256Bytes(scratchContent), sha256Bytes(betaScratchBytes))
 
+	// Verify SQLite database reconstruction on Machine Beta
+	betaDBPath := filepath.Join(betaConvsDir, convID+".db")
+	assert.FileExists(t, betaDBPath)
+	dbBeta, err := sql.Open("sqlite", betaDBPath)
+	require.NoError(t, err)
+	defer func() {
+		_ = dbBeta.Close()
+	}()
+
+	var betaStepCount int
+	err = dbBeta.QueryRowContext(ctx, "SELECT count(*) FROM steps").Scan(&betaStepCount)
+	require.NoError(t, err)
+	assert.Equal(t, 3, betaStepCount)
+
+	// Verify conversation_summaries.db on Machine Beta
+	assert.FileExists(t, betaSummariesDB)
+	dbBetaSum, err := sql.Open("sqlite", betaSummariesDB)
+	require.NoError(t, err)
+	defer func() {
+		_ = dbBetaSum.Close()
+	}()
+
+	var betaSummaryPreview string
+	var betaSummaryCount int
+	err = dbBetaSum.QueryRowContext(ctx, "SELECT preview, step_count FROM conversation_summaries WHERE conversation_id = ?", convID).
+		Scan(&betaSummaryPreview, &betaSummaryCount)
+	require.NoError(t, err)
+	assert.Equal(t, "Please design a sync tool", betaSummaryPreview)
+	assert.Equal(t, 3, betaSummaryCount)
+
 	// 5. Machine Beta appends Step 3 and writes a new artifact
 	step3 := `{"step_index":3,"source":"USER_EXPLICIT","type":"USER_INPUT","status":"DONE","created_at":"2026-09-15T10:05:00Z","content":"Beta machine follow up"}` + "\n"
 	fBeta, err := os.OpenFile(betaTranscriptPath, os.O_APPEND|os.O_WRONLY, 0o644)
@@ -169,6 +209,34 @@ func TestE2E_MultiMachineRoundTripSync(t *testing.T) {
 	alphaBetaNoteBytes, err := os.ReadFile(alphaBetaNotePath)
 	require.NoError(t, err)
 	assert.Equal(t, betaNewNote, alphaBetaNoteBytes)
+
+	// Verify SQLite database reconstruction on Machine Alpha after remote sync
+	alphaDBPath := filepath.Join(alphaConvsDir, convID+".db")
+	assert.FileExists(t, alphaDBPath)
+	dbAlpha, err := sql.Open("sqlite", alphaDBPath)
+	require.NoError(t, err)
+	defer func() {
+		_ = dbAlpha.Close()
+	}()
+
+	var alphaStepCount int
+	err = dbAlpha.QueryRowContext(ctx, "SELECT count(*) FROM steps").Scan(&alphaStepCount)
+	require.NoError(t, err)
+	assert.Equal(t, 4, alphaStepCount)
+
+	// Verify conversation_summaries.db on Machine Alpha
+	assert.FileExists(t, alphaSummariesDB)
+	dbAlphaSum, err := sql.Open("sqlite", alphaSummariesDB)
+	require.NoError(t, err)
+	defer func() {
+		_ = dbAlphaSum.Close()
+	}()
+
+	var alphaSummaryCount int
+	err = dbAlphaSum.QueryRowContext(ctx, "SELECT step_count FROM conversation_summaries WHERE conversation_id = ?", convID).
+		Scan(&alphaSummaryCount)
+	require.NoError(t, err)
+	assert.Equal(t, 4, alphaSummaryCount)
 
 	// 7. Verify loop prevention: Alpha pushing again does not push redundant steps
 	pushResultAlpha2, err := engineAlpha.Push(ctx, syncer.PushOptions{ConversationID: convID})
