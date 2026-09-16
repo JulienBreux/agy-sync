@@ -17,9 +17,9 @@
 - [x] Task: Conductor - User Manual Verification 'Phase 2: Conversation & Summary SQLite Reconstructor Package' (Protocol in workflow.md)
 
 ## Phase 3: Integration into Pull, Syncer Listener & CLI Commands
-- [ ] Task: Integrate Reconstructor into Engine Pull & Syncer Listener
-    - [ ] Write failing tests in `internal/syncer/pull_test.go` and `internal/syncer/listener_test.go` verifying SQLite DB creation on pull
-    - [ ] Wire reconstructor into `Pull` and `OnConversationUpdated` respecting `NoDBSync`
+- [x] Task: Integrate Reconstructor into Engine Pull & Syncer Listener [ba8dac6]
+    - [x] Write failing tests in `internal/syncer/pull_test.go` and `internal/syncer/listener_test.go` verifying SQLite DB creation on pull
+    - [x] Wire reconstructor into `Pull` and `OnConversationUpdated` respecting `NoDBSync`
 - [ ] Task: Add CLI flags and update Status command
     - [ ] Add `--no-db-sync`, `--conversations-dir`, `--summaries-db` flags to `cmd/pull.go` and `cmd/start.go`
     - [ ] Update `cmd/status.go` to display SQLite database sync status and test status output
