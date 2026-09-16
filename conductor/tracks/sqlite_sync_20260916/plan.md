@@ -14,7 +14,7 @@
 - [x] Task: Implement `internal/reconstructor` for global summaries (`conversation_summaries.db`) [0e86657]
     - [x] Write failing unit tests for summary upserts and metadata parsing in `internal/reconstructor/summary_test.go`
     - [x] Implement `UpsertSummary` with title extraction and workspace URI preservation
-- [ ] Task: Conductor - User Manual Verification 'Phase 2: Conversation & Summary SQLite Reconstructor Package' (Protocol in workflow.md)
+- [x] Task: Conductor - User Manual Verification 'Phase 2: Conversation & Summary SQLite Reconstructor Package' (Protocol in workflow.md)
 
 ## Phase 3: Integration into Pull, Syncer Listener & CLI Commands
 - [ ] Task: Integrate Reconstructor into Engine Pull & Syncer Listener
