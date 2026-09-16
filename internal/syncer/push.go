@@ -2,8 +2,11 @@ package syncer
 
 import (
 	"context"
+	"crypto/sha256"
+	"encoding/hex"
 	"fmt"
 	"os"
+	"path/filepath"
 	"sync"
 	"time"
 
@@ -191,6 +194,88 @@ func (e *Engine) pushConversation(ctx context.Context, dConv *discovery.Discover
 		if err := g.Wait(); err != nil {
 			return err
 		}
+	}
+
+	// 3. Extract summary metadata (title, preview, timestamps, step count, raw_summary)
+	var summaryExtracted bool
+	if e.reconstructor != nil {
+		if summary, err := e.reconstructor.ReadLocalSummary(ctx, dConv.ID); err == nil && summary != nil {
+			if summary.Title != "" {
+				remoteConv.Title = summary.Title
+			}
+			if summary.Preview != "" {
+				remoteConv.Preview = summary.Preview
+			}
+			if summary.StepCount > 0 {
+				remoteConv.StepCount = summary.StepCount
+			}
+			if !summary.LastUserInputTime.IsZero() {
+				remoteConv.LastUserInputTime = summary.LastUserInputTime
+			}
+			if summary.LastUserInputStepIndex >= 0 {
+				remoteConv.LastUserInputStepIndex = summary.LastUserInputStepIndex
+			}
+			if len(summary.RawSummary) > 0 {
+				remoteConv.RawSummary = summary.RawSummary
+			}
+			summaryExtracted = true
+		}
+	}
+
+	// Fallback to transcript steps if summary wasn't extracted from conversation_summaries.db
+	if !summaryExtracted && dConv.HasTranscript {
+		if parseRes, err := e.parser.ParseFile(dConv.TranscriptPath); err == nil && len(parseRes.Steps) > 0 {
+			summary := reconstructor.BuildSummaryFromSteps(dConv.ID, remoteConv.Title, parseRes.Steps)
+			remoteConv.Title = summary.Title
+			remoteConv.Preview = summary.Preview
+			remoteConv.StepCount = summary.StepCount
+			remoteConv.LastUserInputTime = summary.LastUserInputTime
+			remoteConv.LastUserInputStepIndex = summary.LastUserInputStepIndex
+		}
+	}
+
+	// 4. Push SQLite database snapshot (chunked)
+	if e.cfg != nil && !e.cfg.NoDBSync && e.cfg.ConversationsDir != "" {
+		localDBPath := filepath.Join(e.cfg.ConversationsDir, dConv.ID+".db")
+		if _, statErr := os.Stat(localDBPath); statErr == nil {
+			data, sha256Hex, sizeBytes, err := reconstructor.SnapshotConversationDB(localDBPath)
+			if err != nil {
+				log.WarnContext(ctx, "Failed creating SQLite snapshot for push", "conversation_id", dConv.ID, "error", err)
+			} else if sha256Hex != remoteConv.DBSHA256 {
+				const chunkSize = 512 * 1024
+				totalChunks := (len(data) + chunkSize - 1) / chunkSize
+				if totalChunks == 0 {
+					totalChunks = 1
+				}
+				chunks := make([]models.DBChunk, 0, totalChunks)
+				for i := 0; i < len(data); i += chunkSize {
+					end := min(i+chunkSize, len(data))
+					chunkData := data[i:end]
+					chunkHash := sha256.Sum256(chunkData)
+					chunks = append(chunks, models.DBChunk{
+						ChunkIndex:  len(chunks),
+						TotalChunks: totalChunks,
+						SizeBytes:   len(chunkData),
+						SHA256:      hex.EncodeToString(chunkHash[:]),
+						Data:        chunkData,
+					})
+				}
+				if err := e.repo.SaveDBChunks(ctx, dConv.ID, chunks); err != nil {
+					return fmt.Errorf("failed saving db chunks for %s: %w", dConv.ID, err)
+				}
+				remoteConv.DBSHA256 = sha256Hex
+				remoteConv.DBSizeBytes = sizeBytes
+				remoteConv.DBChunksCount = len(chunks)
+				log.DebugContext(ctx, "Uploaded DB snapshot chunks", "conversation_id", dConv.ID, "chunks", len(chunks), "size_bytes", sizeBytes)
+			}
+		}
+	}
+
+	// Update conversation metadata
+	remoteConv.SourceMachine = e.cfg.MachineID
+	remoteConv.UpdatedAt = time.Now().UTC()
+	if err := e.repo.UpsertConversation(ctx, remoteConv); err != nil {
+		return fmt.Errorf("failed updating conversation metadata: %w", err)
 	}
 
 	res.ConversationsSynced++
