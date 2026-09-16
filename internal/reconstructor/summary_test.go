@@ -98,3 +98,62 @@ func TestUpsertSummary(t *testing.T) {
 	assert.Equal(t, 3, stepCount)
 	assert.Equal(t, `["file:///path/to/project"]`, workspaceURIs)
 }
+
+func TestBuildSummaryFromSteps_DefaultTitleToPreview(t *testing.T) {
+	steps := []models.Step{
+		{
+			StepIndex: 0,
+			Source:    "USER_EXPLICIT",
+			Type:      "USER_INPUT",
+			Status:    "DONE",
+			CreatedAt: time.Now(),
+			Content:   "Explain SQLite WAL Mode in Antigravity",
+		},
+	}
+
+	// When title is empty, Title should default to Preview so agy displays the title instead of UUID
+	params := reconstructor.BuildSummaryFromSteps("conv-auto-title", "", steps)
+	assert.Equal(t, "Explain SQLite WAL Mode in Antigravity", params.Preview)
+	assert.Equal(t, "Explain SQLite WAL Mode in Antigravity", params.Title)
+}
+
+func TestReadLocalSummary(t *testing.T) {
+	tempDir := t.TempDir()
+	summariesDB := filepath.Join(tempDir, "conversation_summaries.db")
+	convsDir := filepath.Join(tempDir, "conversations")
+	rec := reconstructor.New(convsDir, summariesDB)
+	ctx := context.Background()
+
+	convID := "conv-read-summary-1"
+	t1 := time.Date(2026, 9, 16, 12, 0, 0, 0, time.UTC)
+
+	// Upsert a summary first
+	params := reconstructor.SummaryParams{
+		ConversationID:         convID,
+		Title:                  "Local Read Title",
+		Preview:                "Local Read Preview",
+		StepCount:              15,
+		LastModifiedTime:       t1,
+		LastUserInputTime:      t1,
+		LastUserInputStepIndex: 4,
+		RawSummary:             []byte{0xDE, 0xAD, 0xBE, 0xEF},
+	}
+	err := rec.UpsertSummary(ctx, params)
+	require.NoError(t, err)
+
+	// Read local summary using reconstructor
+	readParams, err := rec.ReadLocalSummary(ctx, convID)
+	require.NoError(t, err)
+	require.NotNil(t, readParams)
+	assert.Equal(t, convID, readParams.ConversationID)
+	assert.Equal(t, "Local Read Title", readParams.Title)
+	assert.Equal(t, "Local Read Preview", readParams.Preview)
+	assert.Equal(t, 15, readParams.StepCount)
+	assert.Equal(t, 4, readParams.LastUserInputStepIndex)
+	assert.Equal(t, []byte{0xDE, 0xAD, 0xBE, 0xEF}, readParams.RawSummary)
+
+	// Non-existent conversation should return nil, nil
+	notFound, err := rec.ReadLocalSummary(ctx, "nonexistent-conv")
+	require.NoError(t, err)
+	assert.Nil(t, notFound)
+}

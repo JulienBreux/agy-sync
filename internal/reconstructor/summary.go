@@ -2,9 +2,11 @@ package reconstructor
 
 import (
 	"context"
+	"database/sql"
 	"encoding/json"
 	"errors"
 	"fmt"
+	"os"
 	"strings"
 	"time"
 
@@ -61,6 +63,7 @@ type SummaryParams struct {
 	LastUserInputTime      time.Time
 	LastUserInputStepIndex int
 	AppDataDir             string
+	RawSummary             []byte
 	GroupID                string
 }
 
@@ -105,6 +108,10 @@ func BuildSummaryFromSteps(conversationID, title string, steps []models.Step) Su
 			cleaned = cleaned[:80]
 		}
 		params.Preview = cleaned
+	}
+
+	if params.Title == "" && params.Preview != "" {
+		params.Title = params.Preview
 	}
 
 	return params
@@ -155,8 +162,8 @@ func (r *Reconstructor) UpsertSummary(ctx context.Context, params SummaryParams)
 		workspace_uris, status, source, project_id, agent_name,
 		parent_conversation_id, nesting_depth, battle_id, winning_conversation_id,
 		not_fully_idle, killed, last_user_input_time, last_user_input_step_index,
-		app_data_dir, group_id
-	) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+		app_data_dir, raw_summary, group_id
+	) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
 	ON CONFLICT(conversation_id) DO UPDATE SET
 		title = CASE WHEN excluded.title != '' THEN excluded.title ELSE conversation_summaries.title END,
 		preview = CASE WHEN excluded.preview != '' THEN excluded.preview ELSE conversation_summaries.preview END,
@@ -166,6 +173,7 @@ func (r *Reconstructor) UpsertSummary(ctx context.Context, params SummaryParams)
 		status = CASE WHEN excluded.status != '' THEN excluded.status ELSE conversation_summaries.status END,
 		last_user_input_time = CASE WHEN excluded.last_user_input_step_index >= 0 THEN excluded.last_user_input_time ELSE conversation_summaries.last_user_input_time END,
 		last_user_input_step_index = MAX(excluded.last_user_input_step_index, conversation_summaries.last_user_input_step_index),
+		raw_summary = CASE WHEN excluded.raw_summary IS NOT NULL THEN excluded.raw_summary ELSE conversation_summaries.raw_summary END,
 		group_id = CASE WHEN excluded.group_id != '' THEN excluded.group_id ELSE conversation_summaries.group_id END;
 	`
 
@@ -193,6 +201,7 @@ func (r *Reconstructor) UpsertSummary(ctx context.Context, params SummaryParams)
 		lastUserInputStr,
 		params.LastUserInputStepIndex,
 		params.AppDataDir,
+		params.RawSummary,
 		params.GroupID,
 	)
 	if err != nil {
@@ -207,4 +216,120 @@ func (r *Reconstructor) UpsertSummary(ctx context.Context, params SummaryParams)
 		"conversation_id", params.ConversationID)
 
 	return nil
+}
+
+// ReadLocalSummary reads an existing summary record from conversation_summaries.db.
+// If the file or conversation does not exist, it returns (nil, nil).
+func (r *Reconstructor) ReadLocalSummary(ctx context.Context, conversationID string) (*SummaryParams, error) {
+	if conversationID == "" {
+		return nil, errors.New("conversation_id cannot be empty")
+	}
+
+	if _, err := os.Stat(r.summariesDBPath); err != nil {
+		return nil, nil
+	}
+
+	db, err := r.OpenDB(r.summariesDBPath)
+	if err != nil {
+		return nil, err
+	}
+	defer func() {
+		_ = db.Close()
+	}()
+
+	const query = `
+	SELECT
+		title, preview, step_count, last_modified_time, workspace_uris,
+		status, source, project_id, agent_name, parent_conversation_id,
+		nesting_depth, battle_id, winning_conversation_id, not_fully_idle,
+		killed, last_user_input_time, last_user_input_step_index, app_data_dir,
+		raw_summary, group_id
+	FROM conversation_summaries
+	WHERE conversation_id = ?;
+	`
+
+	var (
+		title, preview, workspaceURIsJSON string
+		stepCount, nestingDepth           int
+		status, source, projectID         string
+		agentName, parentConvID           string
+		battleID, winningConvID           string
+		notFullyIdle, killed              bool
+		lastModStr, lastInputStr          string
+		lastInputStepIndex                int
+		appDataDir, groupID               string
+		rawSummary                        []byte
+	)
+
+	err = db.QueryRowContext(ctx, query, conversationID).Scan(
+		&title, &preview, &stepCount, &lastModStr, &workspaceURIsJSON,
+		&status, &source, &projectID, &agentName, &parentConvID,
+		&nestingDepth, &battleID, &winningConvID, &notFullyIdle,
+		&killed, &lastInputStr, &lastInputStepIndex, &appDataDir,
+		&rawSummary, &groupID,
+	)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, nil
+		}
+		return nil, fmt.Errorf("failed reading conversation summary %s: %w", conversationID, err)
+	}
+
+	var uris []string
+	if workspaceURIsJSON != "" && workspaceURIsJSON != "[]" {
+		_ = json.Unmarshal([]byte(workspaceURIsJSON), &uris)
+	}
+
+	if title == "" && preview != "" {
+		title = preview
+	}
+
+	return &SummaryParams{
+		ConversationID:         conversationID,
+		Title:                  title,
+		Preview:                preview,
+		StepCount:              stepCount,
+		LastModifiedTime:       parseSQLiteTime(lastModStr),
+		WorkspaceURIs:          uris,
+		Status:                 status,
+		Source:                 source,
+		ProjectID:              projectID,
+		AgentName:              agentName,
+		ParentConversationID:   parentConvID,
+		NestingDepth:           nestingDepth,
+		BattleID:               battleID,
+		WinningConversationID:  winningConvID,
+		NotFullyIdle:           notFullyIdle,
+		Killed:                 killed,
+		LastUserInputTime:      parseSQLiteTime(lastInputStr),
+		LastUserInputStepIndex: lastInputStepIndex,
+		AppDataDir:             appDataDir,
+		RawSummary:             rawSummary,
+		GroupID:                groupID,
+	}, nil
+}
+
+func parseSQLiteTime(s string) time.Time {
+	s = strings.TrimSpace(s)
+	if s == "" {
+		return time.Time{}
+	}
+
+	formats := []string{
+		"2006-01-02 15:04:05.999999-07:00",
+		"2006-01-02 15:04:05.999999+00:00",
+		"2006-01-02 15:04:05-07:00",
+		"2006-01-02 15:04:05+00:00",
+		time.RFC3339Nano,
+		time.RFC3339,
+		"2006-01-02 15:04:05",
+	}
+
+	for _, f := range formats {
+		if t, err := time.Parse(f, s); err == nil {
+			return t
+		}
+	}
+
+	return time.Time{}
 }
