@@ -18,6 +18,9 @@ type Config struct {
 	DatabaseID          string `mapstructure:"database_id" yaml:"database_id"`
 	MachineID           string `mapstructure:"machine_id" yaml:"machine_id"`
 	BrainDir            string `mapstructure:"brain_dir" yaml:"brain_dir"`
+	ConversationsDir    string `mapstructure:"conversations_dir" yaml:"conversations_dir"`
+	SummariesDB         string `mapstructure:"summaries_db" yaml:"summaries_db"`
+	NoDBSync            bool   `mapstructure:"no_db_sync" yaml:"no_db_sync"`
 	SyncIntervalSeconds int    `mapstructure:"sync_interval_seconds" yaml:"sync_interval_seconds"`
 	LogLevel            string `mapstructure:"log_level" yaml:"log_level"`
 }
@@ -29,6 +32,24 @@ func DefaultBrainDir() string {
 		return ""
 	}
 	return filepath.Join(home, ".gemini", "antigravity-cli", "brain")
+}
+
+// DefaultConversationsDir returns the default directory for Antigravity SQLite conversation storage.
+func DefaultConversationsDir() string {
+	home, err := os.UserHomeDir()
+	if err != nil {
+		return ""
+	}
+	return filepath.Join(home, ".gemini", "antigravity-cli", "conversations")
+}
+
+// DefaultSummariesDB returns the default path for Antigravity conversation summaries database.
+func DefaultSummariesDB() string {
+	home, err := os.UserHomeDir()
+	if err != nil {
+		return ""
+	}
+	return filepath.Join(home, ".gemini", "antigravity-cli", "conversation_summaries.db")
 }
 
 // DefaultConfigPath returns the default path to the user's agy-sync config.yaml.
@@ -52,6 +73,9 @@ func DefaultConfig() *Config {
 		DatabaseID:          "(default)",
 		MachineID:           DefaultMachineID(),
 		BrainDir:            DefaultBrainDir(),
+		ConversationsDir:    DefaultConversationsDir(),
+		SummariesDB:         DefaultSummariesDB(),
+		NoDBSync:            false,
 		SyncIntervalSeconds: 2,
 		LogLevel:            "INFO",
 	}
@@ -68,6 +92,14 @@ func (c *Config) Validate() error {
 	if strings.TrimSpace(c.BrainDir) == "" {
 		return errors.New("brain_dir is required")
 	}
+	if !c.NoDBSync {
+		if strings.TrimSpace(c.ConversationsDir) == "" {
+			return errors.New("conversations_dir is required when db sync is enabled")
+		}
+		if strings.TrimSpace(c.SummariesDB) == "" {
+			return errors.New("summaries_db is required when db sync is enabled")
+		}
+	}
 	return nil
 }
 
@@ -78,6 +110,9 @@ func LoadConfig(path string) (*Config, error) {
 	v.SetDefault("database_id", "(default)")
 	v.SetDefault("machine_id", DefaultMachineID())
 	v.SetDefault("brain_dir", DefaultBrainDir())
+	v.SetDefault("conversations_dir", DefaultConversationsDir())
+	v.SetDefault("summaries_db", DefaultSummariesDB())
+	v.SetDefault("no_db_sync", false)
 	v.SetDefault("sync_interval_seconds", 2)
 	v.SetDefault("log_level", "INFO")
 
