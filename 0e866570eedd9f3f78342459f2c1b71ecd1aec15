@@ -1,0 +1,6 @@
+Task: Implement internal/reconstructor for global summaries (conversation_summaries.db)
+Summary: Implemented UpsertSummary and BuildSummaryFromSteps with workspace URI and preview preservation.
+Files:
+- internal/reconstructor/summary.go
+- internal/reconstructor/summary_test.go
+Why: Ensures pulled and synced conversations are registered in conversation_summaries.db so they immediately display in agy resume and Antigravity IDE.
