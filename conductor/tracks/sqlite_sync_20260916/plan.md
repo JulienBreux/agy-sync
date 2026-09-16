@@ -5,7 +5,7 @@
     - [x] Add `modernc.org/sqlite` pure-Go driver dependency to `go.mod`
     - [x] Write failing unit tests in `pkg/config/config_test.go` for `ConversationsDir`, `SummariesDB`, and `NoDBSync`
     - [x] Implement configuration defaults and validation in `pkg/config/config.go`
-- [ ] Task: Conductor - User Manual Verification 'Phase 1: SQLite Storage Driver & Configuration' (Protocol in workflow.md)
+- [x] Task: Conductor - User Manual Verification 'Phase 1: SQLite Storage Driver & Configuration' (Protocol in workflow.md)
 
 ## Phase 2: Conversation & Summary SQLite Reconstructor Package
 - [ ] Task: Implement `internal/reconstructor` for individual conversation databases (`conversations/<id>.db`)
