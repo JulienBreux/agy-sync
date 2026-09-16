@@ -161,4 +161,3 @@ machine_id: "status-machine-1"
 	require.NoError(t, err)
 	assert.Contains(t, bufJSON.String(), `"last_polled_at": "2026-09-15T16:40:00Z"`)
 }
-

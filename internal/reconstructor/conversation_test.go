@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"path/filepath"
+	"slices"
 	"testing"
 	"time"
 
@@ -67,7 +68,9 @@ func TestReconstructConversationDB(t *testing.T) {
 
 	db, err := sql.Open("sqlite", dbPath)
 	require.NoError(t, err)
-	defer db.Close()
+	defer func() {
+		_ = db.Close()
+	}()
 
 	// Verify trajectory_meta table
 	var cascadeID string
@@ -90,13 +93,15 @@ func TestReconstructConversationDB(t *testing.T) {
 	assert.Equal(t, 3, status)    // DONE
 
 	// Idempotency / Upsert test: running with updated step 2 and new step 3
-	updatedSteps := append(steps, models.Step{
-		StepIndex: 3,
-		Source:    "MODEL",
-		Type:      "GENERIC",
-		Status:    "DONE",
-		CreatedAt: time.Now(),
-		Content:   "Done!",
+	updatedSteps := slices.Concat(steps, []models.Step{
+		{
+			StepIndex: 3,
+			Source:    "MODEL",
+			Type:      "GENERIC",
+			Status:    "DONE",
+			CreatedAt: time.Now(),
+			Content:   "Done!",
+		},
 	})
 
 	err = rec.ReconstructConversationDB(ctx, convID, updatedSteps)

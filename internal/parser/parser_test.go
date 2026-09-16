@@ -9,8 +9,8 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/julienbreux/agy-sync/pkg/models"
 	"github.com/julienbreux/agy-sync/internal/parser"
+	"github.com/julienbreux/agy-sync/pkg/models"
 )
 
 const sampleTranscriptJSONL = `{"step_index":0,"source":"USER_EXPLICIT","type":"USER_INPUT","status":"DONE","created_at":"2026-09-15T09:40:46Z","content":"Hello world"}

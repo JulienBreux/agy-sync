@@ -9,10 +9,10 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/julienbreux/agy-sync/pkg/config"
 	"github.com/julienbreux/agy-sync/internal/firestore"
-	"github.com/julienbreux/agy-sync/pkg/models"
 	"github.com/julienbreux/agy-sync/internal/syncer"
+	"github.com/julienbreux/agy-sync/pkg/config"
+	"github.com/julienbreux/agy-sync/pkg/models"
 )
 
 func TestPull_ReconstructNewConversation(t *testing.T) {

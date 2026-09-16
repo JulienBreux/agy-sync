@@ -3,6 +3,7 @@ package reconstructor
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"strings"
 	"time"
@@ -112,7 +113,7 @@ func BuildSummaryFromSteps(conversationID, title string, steps []models.Step) Su
 // UpsertSummary inserts or updates the record for a conversation in conversation_summaries.db.
 func (r *Reconstructor) UpsertSummary(ctx context.Context, params SummaryParams) error {
 	if params.ConversationID == "" {
-		return fmt.Errorf("conversation_id cannot be empty")
+		return errors.New("conversation_id cannot be empty")
 	}
 
 	log := logger.FromContext(ctx)
@@ -124,7 +125,9 @@ func (r *Reconstructor) UpsertSummary(ctx context.Context, params SummaryParams)
 	if err != nil {
 		return err
 	}
-	defer db.Close()
+	defer func() {
+		_ = db.Close()
+	}()
 
 	tx, err := db.BeginTx(ctx, nil)
 	if err != nil {

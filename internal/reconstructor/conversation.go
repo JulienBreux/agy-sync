@@ -3,6 +3,7 @@ package reconstructor
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"path/filepath"
 
@@ -82,7 +83,7 @@ func StepStatusToInt(s string) int {
 // ReconstructConversationDB recreates or updates the SQLite database for an individual conversation.
 func (r *Reconstructor) ReconstructConversationDB(ctx context.Context, conversationID string, steps []models.Step) error {
 	if conversationID == "" {
-		return fmt.Errorf("conversation_id cannot be empty")
+		return errors.New("conversation_id cannot be empty")
 	}
 
 	log := logger.FromContext(ctx)
@@ -93,7 +94,9 @@ func (r *Reconstructor) ReconstructConversationDB(ctx context.Context, conversat
 	if err != nil {
 		return err
 	}
-	defer db.Close()
+	defer func() {
+		_ = db.Close()
+	}()
 
 	tx, err := db.BeginTx(ctx, nil)
 	if err != nil {
@@ -133,7 +136,9 @@ func (r *Reconstructor) ReconstructConversationDB(ctx context.Context, conversat
 	if err != nil {
 		return fmt.Errorf("failed preparing step statement: %w", err)
 	}
-	defer stmt.Close()
+	defer func() {
+		_ = stmt.Close()
+	}()
 
 	for _, step := range steps {
 		stepJSON, err := json.Marshal(step)

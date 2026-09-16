@@ -112,4 +112,3 @@ func (c *Client) ListConversations(ctx context.Context) ([]*models.Conversation,
 	}
 	return conversations, nil
 }
-

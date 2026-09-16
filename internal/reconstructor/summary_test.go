@@ -62,7 +62,9 @@ func TestUpsertSummary(t *testing.T) {
 
 	db, err := sql.Open("sqlite", summariesDB)
 	require.NoError(t, err)
-	defer db.Close()
+	defer func() {
+		_ = db.Close()
+	}()
 
 	var preview, status string
 	var stepCount, lastInputIdx int

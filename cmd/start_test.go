@@ -12,9 +12,9 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/julienbreux/agy-sync/cmd"
-	"github.com/julienbreux/agy-sync/pkg/config"
 	"github.com/julienbreux/agy-sync/internal/daemon"
 	"github.com/julienbreux/agy-sync/internal/firestore"
+	"github.com/julienbreux/agy-sync/pkg/config"
 )
 
 func TestStartCommand_MissingConfig(t *testing.T) {
