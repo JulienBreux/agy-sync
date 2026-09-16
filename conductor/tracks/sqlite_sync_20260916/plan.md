@@ -1,10 +1,10 @@
 # Implementation Plan: Antigravity SQLite Database Reconstruction & Synchronization
 
 ## Phase 1: SQLite Storage Driver & Configuration
-- [ ] Task: Add SQLite dependency and configuration fields
-    - [ ] Add `modernc.org/sqlite` pure-Go driver dependency to `go.mod`
-    - [ ] Write failing unit tests in `pkg/config/config_test.go` for `ConversationsDir`, `SummariesDB`, and `NoDBSync`
-    - [ ] Implement configuration defaults and validation in `pkg/config/config.go`
+- [x] Task: Add SQLite dependency and configuration fields [e0ea5e1]
+    - [x] Add `modernc.org/sqlite` pure-Go driver dependency to `go.mod`
+    - [x] Write failing unit tests in `pkg/config/config_test.go` for `ConversationsDir`, `SummariesDB`, and `NoDBSync`
+    - [x] Implement configuration defaults and validation in `pkg/config/config.go`
 - [ ] Task: Conductor - User Manual Verification 'Phase 1: SQLite Storage Driver & Configuration' (Protocol in workflow.md)
 
 ## Phase 2: Conversation & Summary SQLite Reconstructor Package
