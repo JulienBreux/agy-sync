@@ -1,0 +1,6 @@
+Task: End-to-End Test and Documentation
+Summary: Extended test/e2e_test.go with round-trip multi-machine SQLite reconstruction assertions (verifying conversations/<id>.db steps and trajectory_meta, as well as conversation_summaries.db preview, step count, and updates). Updated README.md with SQLite features, CLI flags, status output, and configuration guide.
+Files:
+- test/e2e_test.go
+- README.md
+Why: Ensures SQLite database reconstruction works seamlessly in real multi-machine round-trip workflows and provides complete user documentation.
