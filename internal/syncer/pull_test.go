@@ -1,6 +1,8 @@
 package syncer_test
 
 import (
+	"crypto/sha256"
+	"encoding/hex"
 	"os"
 	"path/filepath"
 	"testing"
@@ -10,6 +12,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/julienbreux/agy-sync/internal/firestore"
+	"github.com/julienbreux/agy-sync/internal/reconstructor"
 	"github.com/julienbreux/agy-sync/internal/syncer"
 	"github.com/julienbreux/agy-sync/pkg/config"
 	"github.com/julienbreux/agy-sync/pkg/models"
@@ -257,4 +260,153 @@ func TestPull_NoDBSync(t *testing.T) {
 	convDBPath := filepath.Join(convsDir, convID+".db")
 	assert.NoFileExists(t, convDBPath)
 	assert.NoFileExists(t, summariesDB)
+}
+
+func TestPull_DBChunkReassemblyAndSummary(t *testing.T) {
+	tempDir := t.TempDir()
+	tempBrain := filepath.Join(tempDir, "brain")
+	convsDir := filepath.Join(tempDir, "conversations")
+	summariesDB := filepath.Join(tempDir, "conversation_summaries.db")
+	convID := "chunk-pull-conv"
+
+	cfg := &config.Config{
+		ProjectID:        "test-proj",
+		BrainDir:         tempBrain,
+		ConversationsDir: convsDir,
+		SummariesDB:      summariesDB,
+		NoDBSync:         false,
+		MachineID:        "machine-puller",
+	}
+
+	repo := firestore.NewMemoryRepository()
+	t.Cleanup(func() {
+		_ = repo.Close()
+	})
+
+	ctx := t.Context()
+
+	fullBinaryData := []byte("SQLite format 3\x00-actual-database-binary-content-reassembled-from-chunks")
+	fullHash := sha256.Sum256(fullBinaryData)
+	fullHashHex := hex.EncodeToString(fullHash[:])
+
+	now := time.Now().UTC().Truncate(time.Second)
+
+	require.NoError(t, repo.UpsertConversation(ctx, &models.Conversation{
+		ID:                     convID,
+		Title:                  "Reassembled Title",
+		Preview:                "Reassembled Preview",
+		StepCount:              5,
+		CreatedAt:              now,
+		UpdatedAt:              now,
+		LastSyncedStep:         0,
+		SourceMachine:          "remote-laptop",
+		DBSHA256:               fullHashHex,
+		DBSizeBytes:            int64(len(fullBinaryData)),
+		DBChunksCount:          2,
+		LastUserInputTime:      now,
+		LastUserInputStepIndex: 0,
+		RawSummary:             []byte("raw-protobuf-bytes"),
+	}))
+
+	chunk0 := fullBinaryData[:20]
+	chunk1 := fullBinaryData[20:]
+	hash0 := sha256.Sum256(chunk0)
+	hash1 := sha256.Sum256(chunk1)
+
+	require.NoError(t, repo.SaveDBChunks(ctx, convID, []models.DBChunk{
+		{
+			ChunkIndex:  0,
+			TotalChunks: 2,
+			SizeBytes:   len(chunk0),
+			SHA256:      hex.EncodeToString(hash0[:]),
+			Data:        chunk0,
+		},
+		{
+			ChunkIndex:  1,
+			TotalChunks: 2,
+			SizeBytes:   len(chunk1),
+			SHA256:      hex.EncodeToString(hash1[:]),
+			Data:        chunk1,
+		},
+	}))
+
+	engine := syncer.NewEngine(cfg, repo)
+	res, err := engine.Pull(ctx, syncer.PullOptions{ConversationID: convID})
+	require.NoError(t, err)
+	assert.Equal(t, convID, res.ConversationID)
+
+	// 1. Verify local SQLite DB was reassembled with exact byte-for-byte content
+	convDBPath := filepath.Join(convsDir, convID+".db")
+	require.FileExists(t, convDBPath)
+	fileBytes, err := os.ReadFile(convDBPath)
+	require.NoError(t, err)
+	assert.Equal(t, fullBinaryData, fileBytes)
+
+	// 2. Verify summary in conversation_summaries.db
+	rec := reconstructor.New(convsDir, summariesDB)
+	summary, err := rec.ReadLocalSummary(ctx, convID)
+	require.NoError(t, err)
+	require.NotNil(t, summary)
+	assert.Equal(t, "Reassembled Title", summary.Title)
+	assert.Equal(t, "Reassembled Preview", summary.Preview)
+	assert.Equal(t, 5, summary.StepCount)
+	assert.Equal(t, []byte("raw-protobuf-bytes"), summary.RawSummary)
+}
+
+func TestPull_FallbackToTranscriptDefaultTitle(t *testing.T) {
+	tempDir := t.TempDir()
+	tempBrain := filepath.Join(tempDir, "brain")
+	convsDir := filepath.Join(tempDir, "conversations")
+	summariesDB := filepath.Join(tempDir, "conversation_summaries.db")
+	convID := "fallback-conv"
+
+	cfg := &config.Config{
+		ProjectID:        "test-proj",
+		BrainDir:         tempBrain,
+		ConversationsDir: convsDir,
+		SummariesDB:      summariesDB,
+		NoDBSync:         false,
+		MachineID:        "machine-puller",
+	}
+
+	repo := firestore.NewMemoryRepository()
+	t.Cleanup(func() {
+		_ = repo.Close()
+	})
+
+	ctx := t.Context()
+
+	// Seed conversation without DB chunks, empty title, and a prompt
+	require.NoError(t, repo.UpsertConversation(ctx, &models.Conversation{
+		ID:             convID,
+		Title:          "",
+		Preview:        "Write a REST API in Go",
+		CreatedAt:      time.Now().UTC(),
+		UpdatedAt:      time.Now().UTC(),
+		LastSyncedStep: 0,
+		SourceMachine:  "remote-machine",
+	}))
+
+	require.NoError(t, repo.AppendSteps(ctx, convID, []models.Step{
+		{
+			StepIndex: 0,
+			Source:    "USER_EXPLICIT",
+			Type:      "USER_INPUT",
+			Status:    "DONE",
+			CreatedAt: time.Now().UTC(),
+			Content:   "Write a REST API in Go",
+		},
+	}))
+
+	engine := syncer.NewEngine(cfg, repo)
+	_, err := engine.Pull(ctx, syncer.PullOptions{ConversationID: convID})
+	require.NoError(t, err)
+
+	rec := reconstructor.New(convsDir, summariesDB)
+	summary, err := rec.ReadLocalSummary(ctx, convID)
+	require.NoError(t, err)
+	require.NotNil(t, summary)
+	// Title must NOT be empty
+	assert.Equal(t, "Write a REST API in Go", summary.Title)
+	assert.Equal(t, "Write a REST API in Go", summary.Preview)
 }

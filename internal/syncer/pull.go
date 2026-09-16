@@ -2,10 +2,13 @@ package syncer
 
 import (
 	"context"
+	"crypto/sha256"
+	"encoding/hex"
 	"errors"
 	"fmt"
 	"os"
 	"path/filepath"
+	"sort"
 	"sync"
 
 	"golang.org/x/sync/errgroup"
@@ -131,16 +134,99 @@ func (e *Engine) Pull(ctx context.Context, opts PullOptions) (*PullResult, error
 		}
 	}
 
-	// 3. Reconstruct local SQLite database and summary if enabled
+	// 3. Restore local SQLite database and summary if enabled
 	if e.reconstructor != nil && !e.cfg.NoDBSync {
-		if parseRes, err := e.parser.ParseFile(transcriptPath); err == nil {
-			if err := e.reconstructor.ReconstructConversationDB(ctx, opts.ConversationID, parseRes.Steps); err != nil {
-				log.WarnContext(ctx, "Failed reconstructing conversation sqlite database", "conversation_id", opts.ConversationID, "error", err)
-			} else {
-				summaryParams := reconstructor.BuildSummaryFromSteps(opts.ConversationID, remoteConv.Title, parseRes.Steps)
-				summaryParams.ProjectID = e.cfg.ProjectID
-				if err := e.reconstructor.UpsertSummary(ctx, summaryParams); err != nil {
-					log.WarnContext(ctx, "Failed upserting conversation summary in sqlite", "conversation_id", opts.ConversationID, "error", err)
+		dbRestored := false
+
+		// Check if remote conversation has DB chunks
+		if remoteConv.DBChunksCount > 0 {
+			chunks, err := e.repo.GetDBChunks(ctx, opts.ConversationID)
+			if err != nil {
+				log.WarnContext(ctx, "Failed fetching remote DB chunks", "conversation_id", opts.ConversationID, "error", err)
+			} else if len(chunks) > 0 {
+				sort.Slice(chunks, func(i, j int) bool {
+					return chunks[i].ChunkIndex < chunks[j].ChunkIndex
+				})
+
+				totalSize := 0
+				for _, c := range chunks {
+					totalSize += len(c.Data)
+				}
+				assembled := make([]byte, 0, totalSize)
+				for _, c := range chunks {
+					assembled = append(assembled, c.Data...)
+				}
+
+				assembledHash := sha256.Sum256(assembled)
+				assembledHashHex := hex.EncodeToString(assembledHash[:])
+
+				if remoteConv.DBSHA256 != "" && assembledHashHex != remoteConv.DBSHA256 {
+					log.WarnContext(ctx, "DB chunks SHA256 checksum mismatch, falling back to log reconstructor",
+						"conversation_id", opts.ConversationID,
+						"expected_sha256", remoteConv.DBSHA256,
+						"actual_sha256", assembledHashHex,
+					)
+				} else {
+					if err := os.MkdirAll(e.cfg.ConversationsDir, 0o755); err != nil {
+						log.WarnContext(ctx, "Failed creating conversations dir", "dir", e.cfg.ConversationsDir, "error", err)
+					} else {
+						convDBPath := filepath.Join(e.cfg.ConversationsDir, opts.ConversationID+".db")
+						tmpDBPath := convDBPath + ".tmp"
+						if err := os.WriteFile(tmpDBPath, assembled, 0o600); err != nil {
+							log.WarnContext(ctx, "Failed writing temporary DB file", "path", tmpDBPath, "error", err)
+						} else {
+							if err := os.Rename(tmpDBPath, convDBPath); err != nil {
+								_ = os.Remove(tmpDBPath)
+								log.WarnContext(ctx, "Failed atomically renaming DB file", "path", convDBPath, "error", err)
+							} else {
+								dbRestored = true
+								log.DebugContext(ctx, "Successfully restored SQLite database from remote chunks",
+									"conversation_id", opts.ConversationID,
+									"chunks", len(chunks),
+									"size_bytes", len(assembled),
+								)
+							}
+						}
+					}
+				}
+			}
+		}
+
+		// Prepare summary parameters
+		title := remoteConv.Title
+		if title == "" {
+			title = remoteConv.Preview
+		}
+
+		if dbRestored {
+			summaryParams := reconstructor.SummaryParams{
+				ConversationID:         opts.ConversationID,
+				Title:                  title,
+				Preview:                remoteConv.Preview,
+				StepCount:              remoteConv.StepCount,
+				LastUserInputTime:      remoteConv.LastUserInputTime,
+				LastUserInputStepIndex: remoteConv.LastUserInputStepIndex,
+				RawSummary:             remoteConv.RawSummary,
+				ProjectID:              e.cfg.ProjectID,
+				LastModifiedTime:       remoteConv.UpdatedAt,
+			}
+			if err := e.reconstructor.UpsertSummary(ctx, summaryParams); err != nil {
+				log.WarnContext(ctx, "Failed upserting conversation summary in sqlite", "conversation_id", opts.ConversationID, "error", err)
+			}
+		} else {
+			// Fallback: reconstruct from transcript logs if no DB chunks or chunk restore failed
+			if parseRes, err := e.parser.ParseFile(transcriptPath); err == nil {
+				if err := e.reconstructor.ReconstructConversationDB(ctx, opts.ConversationID, parseRes.Steps); err != nil {
+					log.WarnContext(ctx, "Failed reconstructing conversation sqlite database", "conversation_id", opts.ConversationID, "error", err)
+				} else {
+					summaryParams := reconstructor.BuildSummaryFromSteps(opts.ConversationID, title, parseRes.Steps)
+					summaryParams.ProjectID = e.cfg.ProjectID
+					if len(remoteConv.RawSummary) > 0 {
+						summaryParams.RawSummary = remoteConv.RawSummary
+					}
+					if err := e.reconstructor.UpsertSummary(ctx, summaryParams); err != nil {
+						log.WarnContext(ctx, "Failed upserting conversation summary in sqlite", "conversation_id", opts.ConversationID, "error", err)
+					}
 				}
 			}
 		}
