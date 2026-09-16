@@ -35,4 +35,4 @@
 - [x] Task: End-to-End Test and Documentation [bb2a96b]
     - [x] Extend `test/e2e_test.go` to verify full multi-machine pull restores both `brain/` and `conversations/<id>.db`
     - [x] Update `README.md` and documentation with SQLite synchronization details
-- [~] Task: Conductor - User Manual Verification 'Phase 5: End-to-End Testing & Documentation' (Protocol in workflow.md)
+- [x] Task: Conductor - User Manual Verification 'Phase 5: End-to-End Testing & Documentation' (Protocol in workflow.md)
