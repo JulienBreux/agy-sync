@@ -26,11 +26,10 @@
 - [x] Task: Conductor - User Manual Verification 'Phase 3: Integration into Pull, Syncer Listener & CLI Commands' (Protocol in workflow.md)
 
 ## Phase 4: Modern Go Quality, Idiomatic Standards & Linting
-- [ ] Task: Ensure Modern Go Idioms, Context Propagation & Structured Logging
-    - [ ] Audit reconstructor and syncer changes for modern Go practices (`log/slog`, `context.Context`, `errors.Join` / `%w`, `slices`/`maps`)
-    - [ ] Run `golangci-lint run` and address all static analysis and lint warnings
-    - [ ] Run `go fmt ./...` and `go vet ./...`
-- [ ] Task: Conductor - User Manual Verification 'Phase 4: Modern Go Quality, Idiomatic Standards & Linting' (Protocol in workflow.md)
+- [x] Task: Ensure Modern Go Idioms, Context Propagation & Structured Logging [716859a]
+    - [x] Audit reconstructor and syncer changes for modern Go practices (`log/slog`, `context.Context`, `errors.Join` / `%w`, `slices`/`maps`)
+    - [x] Run `golangci-lint run`, `go fmt ./...`, and `go vet ./...` addressing all static analysis and lint warnings
+- [~] Task: Conductor - User Manual Verification 'Phase 4: Modern Go Quality, Idiomatic Standards & Linting' (Protocol in workflow.md)
 
 ## Phase 5: End-to-End Testing & Documentation
 - [ ] Task: End-to-End Test and Documentation
