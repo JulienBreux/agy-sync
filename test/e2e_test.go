@@ -17,6 +17,7 @@ import (
 	"github.com/julienbreux/agy-sync/internal/discovery"
 	"github.com/julienbreux/agy-sync/internal/firestore"
 	"github.com/julienbreux/agy-sync/internal/parser"
+	"github.com/julienbreux/agy-sync/internal/reconstructor"
 	"github.com/julienbreux/agy-sync/internal/syncer"
 	"github.com/julienbreux/agy-sync/pkg/config"
 	"github.com/julienbreux/agy-sync/pkg/models"
@@ -304,4 +305,137 @@ func TestE2E_MultiMachineRoundTripSync_Emulator(t *testing.T) {
 
 	betaTranscript := filepath.Join(machineBetaBrain, convID, ".system_generated", "logs", "transcript.jsonl")
 	assert.FileExists(t, betaTranscript)
+}
+
+func TestE2E_ChunkedDBSyncAndSummaryPreservation(t *testing.T) {
+	ctx := t.Context()
+	sharedRepo := firestore.NewMemoryRepository()
+	t.Cleanup(func() {
+		_ = sharedRepo.Close()
+	})
+
+	convID := "e2e-chunk-sync-conversation-uuid"
+
+	// 1. Setup Machine Alpha with a real SQLite DB containing protobuf binary mock
+	alphaTemp := t.TempDir()
+	alphaBrain := filepath.Join(alphaTemp, "brain")
+	alphaConvs := filepath.Join(alphaTemp, "conversations")
+	alphaSummaries := filepath.Join(alphaTemp, "conversation_summaries.db")
+	require.NoError(t, os.MkdirAll(alphaConvs, 0o755))
+
+	// Setup brain transcript
+	logsDir := filepath.Join(alphaBrain, convID, ".system_generated", "logs")
+	require.NoError(t, os.MkdirAll(logsDir, 0o755))
+	transcriptContent := `{"step_index":0,"source":"USER_EXPLICIT","type":"USER_INPUT","status":"DONE","created_at":"2026-09-15T12:00:00Z","content":"Build an autonomous compiler"}
+{"step_index":1,"source":"MODEL","type":"PLANNER_RESPONSE","status":"DONE","created_at":"2026-09-15T12:01:00Z","content":"Starting compiler implementation"}
+`
+	require.NoError(t, os.WriteFile(filepath.Join(logsDir, "transcript.jsonl"), []byte(transcriptContent), 0o644))
+
+	// Initialize local SQLite conversation database with custom binary payload
+	alphaDBPath := filepath.Join(alphaConvs, convID+".db")
+	dbAlpha, err := sql.Open("sqlite", alphaDBPath)
+	require.NoError(t, err)
+	_, err = dbAlpha.Exec(`
+		CREATE TABLE steps (
+			idx INTEGER PRIMARY KEY,
+			step_type INTEGER NOT NULL DEFAULT 0,
+			status INTEGER NOT NULL DEFAULT 0,
+			has_subtrajectory NUMERIC NOT NULL DEFAULT 0,
+			metadata BLOB,
+			error_details BLOB,
+			permissions BLOB,
+			task_details BLOB,
+			render_info BLOB,
+			step_payload BLOB,
+			step_format INTEGER NOT NULL DEFAULT 0
+		);
+		INSERT INTO steps (idx, step_type, status, step_payload) VALUES (0, 14, 3, X'0800120650726f6d7074');
+		INSERT INTO steps (idx, step_type, status, step_payload) VALUES (1, 15, 3, X'08011206416e73776572');
+	`)
+	require.NoError(t, err)
+	require.NoError(t, dbAlpha.Close())
+
+	// Initialize local summary in conversation_summaries.db
+	recAlpha := reconstructor.New(alphaConvs, alphaSummaries)
+	err = recAlpha.UpsertSummary(ctx, reconstructor.SummaryParams{
+		ConversationID: convID,
+		Title:          "Autonomous Compiler Project",
+		Preview:        "Build an autonomous compiler",
+		StepCount:      2,
+		RawSummary:     []byte{0xDE, 0xAD, 0xBE, 0xEF},
+		ProjectID:      "compiler-proj",
+	})
+	require.NoError(t, err)
+
+	// Machine Alpha Pushes to Shared Repository
+	cfgAlpha := &config.Config{
+		ProjectID:        "compiler-proj",
+		BrainDir:         alphaBrain,
+		ConversationsDir: alphaConvs,
+		SummariesDB:      alphaSummaries,
+		MachineID:        "machine-alpha",
+	}
+	engineAlpha := syncer.NewEngine(cfgAlpha, sharedRepo)
+	pushRes, err := engineAlpha.Push(ctx, syncer.PushOptions{})
+	require.NoError(t, err)
+	assert.Equal(t, 1, pushRes.ConversationsSynced)
+
+	// Check remote metadata in Firestore
+	remoteConv, err := sharedRepo.GetConversation(ctx, convID)
+	require.NoError(t, err)
+	require.NotNil(t, remoteConv)
+	assert.Equal(t, "Autonomous Compiler Project", remoteConv.Title)
+	assert.Equal(t, "Build an autonomous compiler", remoteConv.Preview)
+	assert.Equal(t, []byte{0xDE, 0xAD, 0xBE, 0xEF}, remoteConv.RawSummary)
+	assert.NotEmpty(t, remoteConv.DBSHA256)
+	assert.Positive(t, remoteConv.DBChunksCount)
+	assert.Positive(t, remoteConv.DBSizeBytes)
+
+	// 2. Setup Machine Beta (clean environment, simulating Cloud Shell)
+	betaTemp := t.TempDir()
+	betaBrain := filepath.Join(betaTemp, "brain")
+	betaConvs := filepath.Join(betaTemp, "conversations")
+	betaSummaries := filepath.Join(betaTemp, "conversation_summaries.db")
+
+	cfgBeta := &config.Config{
+		ProjectID:        "compiler-proj",
+		BrainDir:         betaBrain,
+		ConversationsDir: betaConvs,
+		SummariesDB:      betaSummaries,
+		MachineID:        "cloud-shell-beta",
+	}
+	engineBeta := syncer.NewEngine(cfgBeta, sharedRepo)
+
+	// Machine Beta Pulls
+	pullRes, err := engineBeta.Pull(ctx, syncer.PullOptions{ConversationID: convID})
+	require.NoError(t, err)
+	assert.Equal(t, convID, pullRes.ConversationID)
+
+	// Verify local SQLite DB on Machine Beta
+	betaDBPath := filepath.Join(betaConvs, convID+".db")
+	require.FileExists(t, betaDBPath)
+
+	// Verify byte-level SQLite database contents and readability on Machine Beta
+	dbBeta, err := sql.Open("sqlite", betaDBPath)
+	require.NoError(t, err)
+	defer func() {
+		_ = dbBeta.Close()
+	}()
+
+	var count int
+	var payload []byte
+	err = dbBeta.QueryRowContext(ctx, "SELECT count(*), step_payload FROM steps WHERE idx = 0").Scan(&count, &payload)
+	require.NoError(t, err)
+	assert.Equal(t, 1, count)
+	assert.Equal(t, []byte{0x08, 0x00, 0x12, 0x06, 0x50, 0x72, 0x6f, 0x6d, 0x70, 0x74}, payload)
+
+	// Verify conversation_summaries.db on Machine Beta has human-readable title and preview
+	recBeta := reconstructor.New(betaConvs, betaSummaries)
+	betaSummary, err := recBeta.ReadLocalSummary(ctx, convID)
+	require.NoError(t, err)
+	require.NotNil(t, betaSummary)
+	assert.Equal(t, "Autonomous Compiler Project", betaSummary.Title)
+	assert.Equal(t, "Build an autonomous compiler", betaSummary.Preview)
+	assert.Equal(t, 2, betaSummary.StepCount)
+	assert.Equal(t, []byte{0xDE, 0xAD, 0xBE, 0xEF}, betaSummary.RawSummary)
 }

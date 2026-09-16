@@ -19,7 +19,9 @@ Antigravity stores session states, tool executions, and generated artifacts loca
 
 - **Bidirectional Multi-Machine Sync:** Keep *n* machines synchronized in real-time. Changes written on Machine Alpha stream to Firestore and are automatically pulled onto Machine Beta.
 - **Append-Only Step Log:** Monotonic step indices (`step_000001`, `step_000002`, ...) prevent merge conflicts, data loss, or out-of-order writes.
-- **Local SQLite Reconstruction:** Reconstructs Antigravity's internal SQLite databases (`conversations/<id>.db` and `conversation_summaries.db`) automatically upon pulling, making sessions immediately visible and resumable via `agy resume` and the Antigravity IDE.
+- **Byte-for-Byte SQLite Database Sync:** Snapshots active Antigravity WAL databases via `VACUUM INTO` and transfers them chunked (512KB slices) to Firestore with SHA256 integrity validation, guaranteeing 100% authentic tool executions, protobuf payloads, and resumption history across devices (e.g. Google Cloud Shell).
+- **Summary & Title Fidelity:** Extracts and syncs human-readable titles, first-prompt previews, step counts, and protobuf summary blobs to `conversation_summaries.db`, eliminating raw UUID labels in the `agy` interactive picker.
+- **Automatic Fallback Reconstruction:** If chunked database snapshots are unavailable, the local SQLite database and summaries are reconstructed from transcript JSONL logs automatically.
 - **Loop Prevention:** Every sync payload is tagged with the origin machine's unique `MachineID`. Machines automatically ignore echoes of their own updates.
 - **Real-time Filesystem Watcher:** Non-blocking `fsnotify` watcher detects incremental transcript appends (`transcript.jsonl`) and new artifact files with sub-second latency and debouncing.
 - **Byte-Offset Incremental Streaming:** Efficiently reads only newly appended JSONL bytes without re-parsing entire conversation histories.
@@ -78,22 +80,26 @@ flowchart TD
 ```
 conversations/
 └── {conversation_id}
-    ├── metadata: { id, title, created_at, updated_at, last_synced_step, source_machine }
+    ├── metadata: { id, title, preview, step_count, last_user_input_time, created_at, updated_at, db_sha256, db_size_bytes, db_chunks_count, last_synced_step, source_machine }
     ├── steps/
     │   ├── step_000001: { step_index, source, type, status, content, thinking, tool_calls, machine_id, timestamp }
     │   └── step_000002: { ... }
-    └── artifacts/
-        ├── {artifact_hash_or_name}: { path, mime_type, size_bytes, sha256, content_blob, updated_at }
-        └── ...
+    ├── artifacts/
+    │   ├── {artifact_hash_or_name}: { path, mime_type, size_bytes, sha256, content_blob, updated_at }
+    │   └── ...
+    └── db_chunks/
+        ├── 000000: { chunk_index, total_chunks, size_bytes, sha256, data }
+        └── 000001: { ... }
 ```
 
 ### Collections & Documents
 
-| Path                                    | Purpose                          | Key Attributes                                          |
-| :-------------------------------------- | :------------------------------- | :------------------------------------------------------ |
-| `/conversations/{id}`                   | Conversation parent document     | `last_synced_step`, `source_machine`, `updated_at`      |
-| `/conversations/{id}/steps/{stepIndex}` | Immutable transcript turn        | `step_index`, `type`, `source`, `content`, `machine_id` |
-| `/conversations/{id}/artifacts/{id}`    | User/planner generated artifacts | `path`, `sha256`, `size_bytes`, `content`               |
+| Path                                     | Purpose                                   | Key Attributes                                                     |
+| :--------------------------------------- | :---------------------------------------- | :----------------------------------------------------------------- |
+| `/conversations/{id}`                    | Conversation parent document              | `title`, `preview`, `step_count`, `db_sha256`, `last_synced_step`  |
+| `/conversations/{id}/steps/{stepIndex}`  | Immutable transcript turn                 | `step_index`, `type`, `source`, `content`, `machine_id`            |
+| `/conversations/{id}/artifacts/{id}`     | User/planner generated artifacts          | `path`, `sha256`, `size_bytes`, `content`                          |
+| `/conversations/{id}/db_chunks/{index}`  | Chunked raw SQLite database slices (512K) | `chunk_index`, `total_chunks`, `size_bytes`, `sha256`, `data`      |
 
 ---
 

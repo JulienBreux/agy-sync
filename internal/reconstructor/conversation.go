@@ -129,7 +129,7 @@ func (r *Reconstructor) ReconstructConversationDB(ctx context.Context, conversat
 		status = excluded.status,
 		has_subtrajectory = excluded.has_subtrajectory,
 		metadata = excluded.metadata,
-		step_payload = excluded.step_payload,
+		step_payload = COALESCE(steps.step_payload, excluded.step_payload),
 		step_format = excluded.step_format;
 	`
 	stmt, err := tx.PrepareContext(ctx, stepQuery)

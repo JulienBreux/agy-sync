@@ -1,12 +1,14 @@
 package syncer_test
 
 import (
+	"database/sql"
 	"os"
 	"path/filepath"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	_ "modernc.org/sqlite"
 
 	"github.com/julienbreux/agy-sync/internal/firestore"
 	"github.com/julienbreux/agy-sync/internal/reconstructor"
@@ -159,12 +161,16 @@ func TestPush_DBChunkAndSummarySync(t *testing.T) {
 
 	// Create a real SQLite DB for the conversation
 	localDBPath := filepath.Join(convsDir, convID+".db")
-	require.NoError(t, os.WriteFile(localDBPath, []byte("SQLite format 3\x00-fake-binary-content-for-testing-chunks"), 0o600))
+	db, err := sql.Open("sqlite", localDBPath)
+	require.NoError(t, err)
+	_, err = db.Exec("CREATE TABLE test (id INT); INSERT INTO test VALUES (1);")
+	require.NoError(t, err)
+	require.NoError(t, db.Close())
 
 	// Upsert summary into conversation_summaries.db
 	rec := reconstructor.New(convsDir, summariesDB)
 	ctx := t.Context()
-	err := rec.UpsertSummary(ctx, reconstructor.SummaryParams{
+	err = rec.UpsertSummary(ctx, reconstructor.SummaryParams{
 		ConversationID: convID,
 		Title:          "Snapshot Sync Feature",
 		Preview:        "Initial prompt",

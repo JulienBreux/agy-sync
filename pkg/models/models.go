@@ -38,7 +38,7 @@ type Conversation struct {
 	DBSHA256               string    `json:"db_sha256,omitempty" firestore:"db_sha256,omitempty"`
 	DBSizeBytes            int64     `json:"db_size_bytes,omitempty" firestore:"db_size_bytes,omitempty"`
 	DBChunksCount          int       `json:"db_chunks_count,omitempty" firestore:"db_chunks_count,omitempty"`
-	LastUserInputTime      time.Time `json:"last_user_input_time,omitempty" firestore:"last_user_input_time,omitempty"`
+	LastUserInputTime      time.Time `json:"last_user_input_time,omitzero" firestore:"last_user_input_time,omitempty"`
 	LastUserInputStepIndex int       `json:"last_user_input_step_index,omitempty" firestore:"last_user_input_step_index,omitempty"`
 	RawSummary             []byte    `json:"raw_summary,omitempty" firestore:"raw_summary,omitempty"`
 }

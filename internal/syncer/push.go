@@ -222,20 +222,36 @@ func (e *Engine) pushConversation(ctx context.Context, dConv *discovery.Discover
 		}
 	}
 
-	// Fallback to transcript steps if summary wasn't extracted from conversation_summaries.db
-	if !summaryExtracted && dConv.HasTranscript {
+	// Ensure StepCount and summary metadata are up-to-date with transcript
+	if dConv.HasTranscript {
 		if parseRes, err := e.parser.ParseFile(dConv.TranscriptPath); err == nil && len(parseRes.Steps) > 0 {
-			summary := reconstructor.BuildSummaryFromSteps(dConv.ID, remoteConv.Title, parseRes.Steps)
-			remoteConv.Title = summary.Title
-			remoteConv.Preview = summary.Preview
-			remoteConv.StepCount = summary.StepCount
-			remoteConv.LastUserInputTime = summary.LastUserInputTime
-			remoteConv.LastUserInputStepIndex = summary.LastUserInputStepIndex
+			if len(parseRes.Steps) > remoteConv.StepCount {
+				remoteConv.StepCount = len(parseRes.Steps)
+			}
+			if !summaryExtracted {
+				summary := reconstructor.BuildSummaryFromSteps(dConv.ID, remoteConv.Title, parseRes.Steps)
+				if remoteConv.Title == "" {
+					remoteConv.Title = summary.Title
+				}
+				if remoteConv.Preview == "" {
+					remoteConv.Preview = summary.Preview
+				}
+				remoteConv.LastUserInputTime = summary.LastUserInputTime
+				remoteConv.LastUserInputStepIndex = summary.LastUserInputStepIndex
+			}
 		}
 	}
 
 	// 4. Push SQLite database snapshot (chunked)
 	if e.cfg != nil && !e.cfg.NoDBSync && e.cfg.ConversationsDir != "" {
+		if e.reconstructor != nil && dConv.HasTranscript {
+			if parseRes, err := e.parser.ParseFile(dConv.TranscriptPath); err == nil && len(parseRes.Steps) > 0 {
+				if err := e.reconstructor.ReconstructConversationDB(ctx, dConv.ID, parseRes.Steps); err != nil {
+					log.WarnContext(ctx, "Failed updating local DB before snapshot", "conversation_id", dConv.ID, "error", err)
+				}
+			}
+		}
+
 		localDBPath := filepath.Join(e.cfg.ConversationsDir, dConv.ID+".db")
 		if _, statErr := os.Stat(localDBPath); statErr == nil {
 			data, sha256Hex, sizeBytes, err := reconstructor.SnapshotConversationDB(localDBPath)
