@@ -1,0 +1,6 @@
+Task: Integrate Trajectory DB Models in internal/reconstructor/conversation.go
+
+Summary:
+- Added TrajectoryMetaFromConversation and StepToConversationDBStep in internal/reconstructor/conversation.go.
+- Refactored ReconstructConversationDB to use typed models.
+- Added TestTrajectoryTableModelsMapping testing typed trajectory models scan and auxiliary table schemas.
