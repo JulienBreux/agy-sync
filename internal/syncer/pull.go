@@ -192,22 +192,42 @@ func (e *Engine) Pull(ctx context.Context, opts PullOptions) (*PullResult, error
 			}
 		}
 
-		// Prepare summary parameters
-		title := remoteConv.Title
-		if title == "" {
-			title = remoteConv.Preview
+		// Adapt workspace URIs to destination machine's user home directory
+		destHome, _ := os.UserHomeDir()
+		adaptedWorkspaceURIs := AdaptWorkspaceURIs(remoteConv.WorkspaceURIs, destHome)
+
+		projectID := remoteConv.ProjectID
+		if projectID == "" && e.cfg != nil {
+			projectID = e.cfg.ProjectID
+		}
+
+		appDataDir := remoteConv.AppDataDir
+		if appDataDir == "" && e.cfg != nil && e.cfg.BrainDir != "" {
+			appDataDir = filepath.Dir(e.cfg.BrainDir)
 		}
 
 		if dbRestored {
 			summaryParams := reconstructor.SummaryParams{
 				ConversationID:         opts.ConversationID,
-				Title:                  title,
+				Title:                  remoteConv.Title,
 				Preview:                remoteConv.Preview,
 				StepCount:              remoteConv.StepCount,
+				WorkspaceURIs:          adaptedWorkspaceURIs,
+				Status:                 remoteConv.Status,
+				Source:                 remoteConv.Source,
+				ProjectID:              projectID,
+				AgentName:              remoteConv.AgentName,
+				ParentConversationID:   remoteConv.ParentConversationID,
+				NestingDepth:           remoteConv.NestingDepth,
+				BattleID:               remoteConv.BattleID,
+				WinningConversationID:  remoteConv.WinningConversationID,
+				NotFullyIdle:           remoteConv.NotFullyIdle,
+				Killed:                 remoteConv.Killed,
 				LastUserInputTime:      remoteConv.LastUserInputTime,
 				LastUserInputStepIndex: remoteConv.LastUserInputStepIndex,
+				AppDataDir:             appDataDir,
 				RawSummary:             remoteConv.RawSummary,
-				ProjectID:              e.cfg.ProjectID,
+				GroupID:                remoteConv.GroupID,
 				LastModifiedTime:       remoteConv.UpdatedAt,
 			}
 			if err := e.reconstructor.UpsertSummary(ctx, summaryParams); err != nil {
@@ -219,10 +239,48 @@ func (e *Engine) Pull(ctx context.Context, opts PullOptions) (*PullResult, error
 				if err := e.reconstructor.ReconstructConversationDB(ctx, opts.ConversationID, parseRes.Steps); err != nil {
 					log.WarnContext(ctx, "Failed reconstructing conversation sqlite database", "conversation_id", opts.ConversationID, "error", err)
 				} else {
-					summaryParams := reconstructor.BuildSummaryFromSteps(opts.ConversationID, title, parseRes.Steps)
-					summaryParams.ProjectID = e.cfg.ProjectID
+					summaryParams := reconstructor.BuildSummaryFromSteps(opts.ConversationID, remoteConv.Title, parseRes.Steps)
+					summaryParams.WorkspaceURIs = adaptedWorkspaceURIs
+					if remoteConv.Status != "" {
+						summaryParams.Status = remoteConv.Status
+					}
+					if remoteConv.Source != "" {
+						summaryParams.Source = remoteConv.Source
+					}
+					summaryParams.ProjectID = projectID
+					if remoteConv.AgentName != "" {
+						summaryParams.AgentName = remoteConv.AgentName
+					}
+					if remoteConv.ParentConversationID != "" {
+						summaryParams.ParentConversationID = remoteConv.ParentConversationID
+					}
+					summaryParams.NestingDepth = remoteConv.NestingDepth
+					if remoteConv.BattleID != "" {
+						summaryParams.BattleID = remoteConv.BattleID
+					}
+					if remoteConv.WinningConversationID != "" {
+						summaryParams.WinningConversationID = remoteConv.WinningConversationID
+					}
+					summaryParams.NotFullyIdle = remoteConv.NotFullyIdle
+					summaryParams.Killed = remoteConv.Killed
+					if remoteConv.Preview != "" {
+						summaryParams.Preview = remoteConv.Preview
+					}
+					if !remoteConv.LastUserInputTime.IsZero() {
+						summaryParams.LastUserInputTime = remoteConv.LastUserInputTime
+					}
+					if remoteConv.LastUserInputStepIndex >= 0 {
+						summaryParams.LastUserInputStepIndex = remoteConv.LastUserInputStepIndex
+					}
+					summaryParams.AppDataDir = appDataDir
 					if len(remoteConv.RawSummary) > 0 {
 						summaryParams.RawSummary = remoteConv.RawSummary
+					}
+					if remoteConv.GroupID != "" {
+						summaryParams.GroupID = remoteConv.GroupID
+					}
+					if !remoteConv.UpdatedAt.IsZero() {
+						summaryParams.LastModifiedTime = remoteConv.UpdatedAt
 					}
 					if err := e.reconstructor.UpsertSummary(ctx, summaryParams); err != nil {
 						log.WarnContext(ctx, "Failed upserting conversation summary in sqlite", "conversation_id", opts.ConversationID, "error", err)

@@ -410,3 +410,198 @@ func TestPull_FallbackToTranscriptDefaultTitle(t *testing.T) {
 	assert.Equal(t, "Write a REST API in Go", summary.Title)
 	assert.Equal(t, "Write a REST API in Go", summary.Preview)
 }
+
+func TestPull_RestoreAll21ColumnsWithAdaptedURIs(t *testing.T) {
+	tempDir := t.TempDir()
+	tempBrain := filepath.Join(tempDir, "brain")
+	convsDir := filepath.Join(tempDir, "conversations")
+	summariesDB := filepath.Join(tempDir, "conversation_summaries.db")
+	convID := "pull-conv-all-21"
+
+	cfg := &config.Config{
+		ProjectID:        "local-proj",
+		BrainDir:         tempBrain,
+		ConversationsDir: convsDir,
+		SummariesDB:      summariesDB,
+		NoDBSync:         false,
+		MachineID:        "machine-puller",
+	}
+
+	repo := firestore.NewMemoryRepository()
+	t.Cleanup(func() {
+		_ = repo.Close()
+	})
+
+	ctx := t.Context()
+	t1 := time.Date(2026, 9, 18, 12, 0, 0, 0, time.UTC)
+	t2 := time.Date(2026, 9, 18, 12, 5, 0, 0, time.UTC)
+
+	// Seed dummy SQLite chunk
+	dummyChunkData := make([]byte, 16)
+	copy(dummyChunkData, []byte("SQLite format 3\x00"))
+	hash := sha256.Sum256(dummyChunkData)
+	hashHex := hex.EncodeToString(hash[:])
+
+	// Seed conversation with all 21 columns
+	remoteConv := &models.Conversation{
+		ID:                     convID,
+		Title:                  "Remote Title",
+		Preview:                "Remote Preview",
+		StepCount:              10,
+		CreatedAt:              t1,
+		UpdatedAt:              t2,
+		LastSyncedStep:         2,
+		SourceMachine:          "remote-machine",
+		WorkspaceURIs:          []string{"file:///Users/remoteuser/Projects/myproject"},
+		Status:                 "active",
+		Source:                 "cli",
+		ProjectID:              "remote-proj",
+		AgentName:              "conductor",
+		ParentConversationID:   "parent-xyz",
+		NestingDepth:           1,
+		BattleID:               "battle-1",
+		WinningConversationID:  "winner-1",
+		NotFullyIdle:           true,
+		Killed:                 false,
+		LastUserInputTime:      t1,
+		LastUserInputStepIndex: 3,
+		AppDataDir:             "/Users/remoteuser/.gemini/antigravity-cli",
+		RawSummary:             []byte{0xDE, 0xAD},
+		GroupID:                "grp-456",
+		DBChunksCount:          1,
+		DBSizeBytes:            16,
+		DBSHA256:               hashHex,
+	}
+	require.NoError(t, repo.UpsertConversation(ctx, remoteConv))
+
+	require.NoError(t, repo.SaveDBChunks(ctx, convID, []models.DBChunk{
+		{
+			ChunkIndex:  0,
+			TotalChunks: 1,
+			SizeBytes:   len(dummyChunkData),
+			SHA256:      hashHex,
+			Data:        dummyChunkData,
+		},
+	}))
+
+	engine := syncer.NewEngine(cfg, repo)
+	_, err := engine.Pull(ctx, syncer.PullOptions{ConversationID: convID})
+	require.NoError(t, err)
+
+	rec := reconstructor.New(convsDir, summariesDB)
+	summary, err := rec.ReadLocalSummary(ctx, convID)
+	require.NoError(t, err)
+	require.NotNil(t, summary)
+
+	assert.Equal(t, "Remote Title", summary.Title)
+	assert.Equal(t, "Remote Preview", summary.Preview)
+	assert.Equal(t, 10, summary.StepCount)
+
+	// Verify workspace URI adaptation to local machine home
+	home, err := os.UserHomeDir()
+	require.NoError(t, err)
+	expectedURI := "file://" + home + "/Projects/myproject"
+	assert.Equal(t, []string{expectedURI}, summary.WorkspaceURIs)
+
+	assert.Equal(t, "active", summary.Status)
+	assert.Equal(t, "cli", summary.Source)
+	assert.Equal(t, "remote-proj", summary.ProjectID)
+	assert.Equal(t, "conductor", summary.AgentName)
+	assert.Equal(t, "parent-xyz", summary.ParentConversationID)
+	assert.Equal(t, 1, summary.NestingDepth)
+	assert.Equal(t, "battle-1", summary.BattleID)
+	assert.Equal(t, "winner-1", summary.WinningConversationID)
+	assert.True(t, summary.NotFullyIdle)
+	assert.False(t, summary.Killed)
+	assert.Equal(t, 3, summary.LastUserInputStepIndex)
+	assert.Equal(t, []byte{0xDE, 0xAD}, summary.RawSummary)
+	assert.Equal(t, "grp-456", summary.GroupID)
+}
+
+func TestPull_FallbackTranscript_RestoreAll21Columns(t *testing.T) {
+	tempDir := t.TempDir()
+	tempBrain := filepath.Join(tempDir, "brain")
+	convsDir := filepath.Join(tempDir, "conversations")
+	summariesDB := filepath.Join(tempDir, "conversation_summaries.db")
+	convID := "pull-conv-fallback-21"
+
+	cfg := &config.Config{
+		ProjectID:        "local-proj",
+		BrainDir:         tempBrain,
+		ConversationsDir: convsDir,
+		SummariesDB:      summariesDB,
+		NoDBSync:         false,
+		MachineID:        "machine-puller",
+	}
+
+	repo := firestore.NewMemoryRepository()
+	t.Cleanup(func() {
+		_ = repo.Close()
+	})
+
+	ctx := t.Context()
+	t1 := time.Date(2026, 9, 18, 12, 0, 0, 0, time.UTC)
+
+	// Seed conversation without DB chunks
+	remoteConv := &models.Conversation{
+		ID:                    convID,
+		Title:                 "Fallback Title",
+		Preview:               "Fallback Preview",
+		CreatedAt:             t1,
+		UpdatedAt:             t1,
+		WorkspaceURIs:         []string{"file:///home/remoteuser/workspace"},
+		Status:                "active",
+		Source:                "cli",
+		ProjectID:             "remote-proj",
+		AgentName:             "conductor",
+		ParentConversationID:  "parent-fallback",
+		NestingDepth:          2,
+		BattleID:              "battle-fb",
+		WinningConversationID: "winner-fb",
+		NotFullyIdle:          false,
+		Killed:                true,
+		RawSummary:            []byte{0xBE, 0xEF},
+		GroupID:               "grp-fb",
+	}
+	require.NoError(t, repo.UpsertConversation(ctx, remoteConv))
+
+	// Seed 1 step in repo so transcript is created
+	require.NoError(t, repo.AppendSteps(ctx, convID, []models.Step{
+		{
+			StepIndex: 0,
+			Source:    "USER_EXPLICIT",
+			Type:      "USER_INPUT",
+			Status:    "DONE",
+			CreatedAt: t1,
+			Content:   "Fallback prompt",
+		},
+	}))
+
+	engine := syncer.NewEngine(cfg, repo)
+	_, err := engine.Pull(ctx, syncer.PullOptions{ConversationID: convID})
+	require.NoError(t, err)
+
+	rec := reconstructor.New(convsDir, summariesDB)
+	summary, err := rec.ReadLocalSummary(ctx, convID)
+	require.NoError(t, err)
+	require.NotNil(t, summary)
+
+	assert.Equal(t, "Fallback Title", summary.Title)
+	home, err := os.UserHomeDir()
+	require.NoError(t, err)
+	assert.Equal(t, []string{"file://" + home + "/workspace"}, summary.WorkspaceURIs)
+	assert.Equal(t, "active", summary.Status)
+	assert.Equal(t, "cli", summary.Source)
+	assert.Equal(t, "remote-proj", summary.ProjectID)
+	assert.Equal(t, "conductor", summary.AgentName)
+	assert.Equal(t, "parent-fallback", summary.ParentConversationID)
+	assert.Equal(t, 2, summary.NestingDepth)
+	assert.Equal(t, "battle-fb", summary.BattleID)
+	assert.Equal(t, "winner-fb", summary.WinningConversationID)
+	assert.False(t, summary.NotFullyIdle)
+	assert.True(t, summary.Killed)
+	assert.Equal(t, []byte{0xBE, 0xEF}, summary.RawSummary)
+	assert.Equal(t, "grp-fb", summary.GroupID)
+}
+
+
