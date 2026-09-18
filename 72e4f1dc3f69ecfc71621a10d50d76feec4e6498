@@ -1,0 +1,6 @@
+Task: Implement In-Memory & Interface Deletion Methods
+
+Summary:
+- Added DeleteConversation and ClearAll to firestore.Repository interface.
+- Implemented thread-safe DeleteConversation and ClearAll in MemoryRepository.
+- Added comprehensive unit tests in memory_test.go covering single conversation deletion and full purge.
