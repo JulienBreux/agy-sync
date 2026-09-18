@@ -1,0 +1,5 @@
+Task: Implement Trajectory Database Table Models
+
+Summary:
+- Defined TrajectoryMeta, ConversationDBStep, GenMetadata, ExecutorMetadata, ParentReference, TrajectoryMetadataBlob, and BattleModeInfo models in pkg/models/trajectory.go.
+- Added comprehensive serialization tests for all trajectory models in pkg/models/trajectory_test.go.
