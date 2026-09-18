@@ -1,0 +1,6 @@
+Task: Update internal/reconstructor to Fully Map All 21 Columns
+
+Summary:
+- Updated ON CONFLICT DO UPDATE SET in UpsertSummary to preserve and update all 21 columns.
+- Removed artificial preview fallback in ReadLocalSummary to strictly mirror stored SQLite title.
+- Added comprehensive roundtrip and strict mirroring tests in summary_test.go.
