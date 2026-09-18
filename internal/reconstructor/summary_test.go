@@ -157,3 +157,127 @@ func TestReadLocalSummary(t *testing.T) {
 	require.NoError(t, err)
 	assert.Nil(t, notFound)
 }
+
+func TestUpsertAndReadLocalSummary_All21Columns(t *testing.T) {
+	tempDir := t.TempDir()
+	summariesDB := filepath.Join(tempDir, "conversation_summaries.db")
+	convsDir := filepath.Join(tempDir, "conversations")
+	rec := reconstructor.New(convsDir, summariesDB)
+	ctx := context.Background()
+
+	convID := "conv-all-21-columns"
+	t1 := time.Date(2026, 9, 18, 14, 30, 0, 0, time.UTC)
+	t2 := time.Date(2026, 9, 18, 14, 35, 0, 0, time.UTC)
+
+	params := reconstructor.SummaryParams{
+		ConversationID:         convID,
+		Title:                  "Full Fidelity Title",
+		Preview:                "Full Fidelity Preview",
+		StepCount:              42,
+		LastModifiedTime:       t2,
+		WorkspaceURIs:          []string{"file:///Users/julienbreux/workspace1", "file:///Users/julienbreux/workspace2"},
+		Status:                 "active",
+		Source:                 "cli",
+		ProjectID:              "project-xyz",
+		AgentName:              "conductor",
+		ParentConversationID:   "parent-conv-999",
+		NestingDepth:           2,
+		BattleID:               "battle-mode-1",
+		WinningConversationID:  convID,
+		NotFullyIdle:           true,
+		Killed:                 false,
+		LastUserInputTime:      t1,
+		LastUserInputStepIndex: 7,
+		AppDataDir:             "/Users/julienbreux/.gemini/antigravity-cli",
+		RawSummary:             []byte{0x01, 0x02, 0x03, 0x04},
+		GroupID:                "group-meta-1",
+	}
+
+	err := rec.UpsertSummary(ctx, params)
+	require.NoError(t, err)
+
+	read, err := rec.ReadLocalSummary(ctx, convID)
+	require.NoError(t, err)
+	require.NotNil(t, read)
+
+	assert.Equal(t, params.ConversationID, read.ConversationID)
+	assert.Equal(t, params.Title, read.Title)
+	assert.Equal(t, params.Preview, read.Preview)
+	assert.Equal(t, params.StepCount, read.StepCount)
+	assert.Equal(t, params.WorkspaceURIs, read.WorkspaceURIs)
+	assert.Equal(t, params.Status, read.Status)
+	assert.Equal(t, params.Source, read.Source)
+	assert.Equal(t, params.ProjectID, read.ProjectID)
+	assert.Equal(t, params.AgentName, read.AgentName)
+	assert.Equal(t, params.ParentConversationID, read.ParentConversationID)
+	assert.Equal(t, params.NestingDepth, read.NestingDepth)
+	assert.Equal(t, params.BattleID, read.BattleID)
+	assert.Equal(t, params.WinningConversationID, read.WinningConversationID)
+	assert.True(t, read.NotFullyIdle)
+	assert.False(t, read.Killed)
+	assert.Equal(t, params.LastUserInputStepIndex, read.LastUserInputStepIndex)
+	assert.Equal(t, params.AppDataDir, read.AppDataDir)
+	assert.Equal(t, params.RawSummary, read.RawSummary)
+	assert.Equal(t, params.GroupID, read.GroupID)
+
+	// Test ON CONFLICT DO UPDATE SET for secondary fields
+	updatedParams := params
+	updatedParams.StepCount = 50
+	updatedParams.Source = "ide"
+	updatedParams.AgentName = "gemini-developer"
+	updatedParams.ProjectID = "project-updated"
+	updatedParams.ParentConversationID = "parent-conv-updated"
+	updatedParams.NestingDepth = 3
+	updatedParams.BattleID = "battle-updated"
+	updatedParams.WinningConversationID = "winner-updated"
+	updatedParams.NotFullyIdle = false
+	updatedParams.Killed = true
+	updatedParams.AppDataDir = "/custom/app_data_dir"
+
+	err = rec.UpsertSummary(ctx, updatedParams)
+	require.NoError(t, err)
+
+	readUpdated, err := rec.ReadLocalSummary(ctx, convID)
+	require.NoError(t, err)
+	require.NotNil(t, readUpdated)
+
+	assert.Equal(t, 50, readUpdated.StepCount)
+	assert.Equal(t, "ide", readUpdated.Source)
+	assert.Equal(t, "gemini-developer", readUpdated.AgentName)
+	assert.Equal(t, "project-updated", readUpdated.ProjectID)
+	assert.Equal(t, "parent-conv-updated", readUpdated.ParentConversationID)
+	assert.Equal(t, 3, readUpdated.NestingDepth)
+	assert.Equal(t, "battle-updated", readUpdated.BattleID)
+	assert.Equal(t, "winner-updated", readUpdated.WinningConversationID)
+	assert.False(t, readUpdated.NotFullyIdle)
+	assert.True(t, readUpdated.Killed)
+	assert.Equal(t, "/custom/app_data_dir", readUpdated.AppDataDir)
+}
+
+func TestReadLocalSummary_StrictMirroringEmptyTitle(t *testing.T) {
+	tempDir := t.TempDir()
+	summariesDB := filepath.Join(tempDir, "conversation_summaries.db")
+	convsDir := filepath.Join(tempDir, "conversations")
+	rec := reconstructor.New(convsDir, summariesDB)
+	ctx := context.Background()
+
+	convID := "conv-strict-empty-title"
+	// Upsert with empty title and non-empty preview
+	params := reconstructor.SummaryParams{
+		ConversationID: convID,
+		Title:          "",
+		Preview:        "Preview message only",
+		StepCount:      1,
+	}
+	err := rec.UpsertSummary(ctx, params)
+	require.NoError(t, err)
+
+	read, err := rec.ReadLocalSummary(ctx, convID)
+	require.NoError(t, err)
+	require.NotNil(t, read)
+
+	// Strict mirroring: Title should be empty as stored, not overwritten by Preview
+	assert.Equal(t, "", read.Title)
+	assert.Equal(t, "Preview message only", read.Preview)
+}
+

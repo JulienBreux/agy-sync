@@ -171,8 +171,18 @@ func (r *Reconstructor) UpsertSummary(ctx context.Context, params SummaryParams)
 		last_modified_time = excluded.last_modified_time,
 		workspace_uris = CASE WHEN excluded.workspace_uris != '' AND excluded.workspace_uris != '[]' THEN excluded.workspace_uris ELSE conversation_summaries.workspace_uris END,
 		status = CASE WHEN excluded.status != '' THEN excluded.status ELSE conversation_summaries.status END,
+		source = CASE WHEN excluded.source != '' THEN excluded.source ELSE conversation_summaries.source END,
+		project_id = CASE WHEN excluded.project_id != '' THEN excluded.project_id ELSE conversation_summaries.project_id END,
+		agent_name = CASE WHEN excluded.agent_name != '' THEN excluded.agent_name ELSE conversation_summaries.agent_name END,
+		parent_conversation_id = CASE WHEN excluded.parent_conversation_id != '' THEN excluded.parent_conversation_id ELSE conversation_summaries.parent_conversation_id END,
+		nesting_depth = CASE WHEN excluded.nesting_depth > 0 THEN excluded.nesting_depth ELSE conversation_summaries.nesting_depth END,
+		battle_id = CASE WHEN excluded.battle_id != '' THEN excluded.battle_id ELSE conversation_summaries.battle_id END,
+		winning_conversation_id = CASE WHEN excluded.winning_conversation_id != '' THEN excluded.winning_conversation_id ELSE conversation_summaries.winning_conversation_id END,
+		not_fully_idle = excluded.not_fully_idle,
+		killed = excluded.killed,
 		last_user_input_time = CASE WHEN excluded.last_user_input_step_index >= 0 THEN excluded.last_user_input_time ELSE conversation_summaries.last_user_input_time END,
 		last_user_input_step_index = MAX(excluded.last_user_input_step_index, conversation_summaries.last_user_input_step_index),
+		app_data_dir = CASE WHEN excluded.app_data_dir != '' THEN excluded.app_data_dir ELSE conversation_summaries.app_data_dir END,
 		raw_summary = CASE WHEN excluded.raw_summary IS NOT NULL THEN excluded.raw_summary ELSE conversation_summaries.raw_summary END,
 		group_id = CASE WHEN excluded.group_id != '' THEN excluded.group_id ELSE conversation_summaries.group_id END;
 	`
@@ -278,10 +288,6 @@ func (r *Reconstructor) ReadLocalSummary(ctx context.Context, conversationID str
 	var uris []string
 	if workspaceURIsJSON != "" && workspaceURIsJSON != "[]" {
 		_ = json.Unmarshal([]byte(workspaceURIsJSON), &uris)
-	}
-
-	if title == "" && preview != "" {
-		title = preview
 	}
 
 	return &SummaryParams{
