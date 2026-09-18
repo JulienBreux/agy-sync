@@ -189,6 +189,35 @@ agy-sync pull 624296c6-d623-4c39-92d4-3906f8c07140 --no-db-sync
 
 ---
 
+### `agy-sync clear`
+Purges remote Firestore data stored by `agy-sync`, either for all conversations or for a targeted conversation. Designed for integration testing, QA environments, and development resets.
+
+> [!IMPORTANT]
+> **Safety Guarantee:** `agy-sync clear` only modifies remote Firestore collections. It **never** touches, deletes, or alters your local Antigravity brain directories, transcripts, artifacts, or SQLite databases.
+
+```bash
+# Clear all conversations from Firestore (with interactive confirmation)
+agy-sync clear
+
+# Bypass interactive confirmation (ideal for test automation and CI)
+agy-sync clear --force
+
+# Clear only a specific conversation
+agy-sync clear -c 624296c6-d623-4c39-92d4-3906f8c07140 --force
+
+# Clear with custom project ID and output JSON result
+agy-sync clear --project-id my-gcp-project --force --json
+```
+
+**Arguments / Flags:**
+- `<conversation-id>`: Optional positional argument specifying a single conversation to delete.
+- `-c, --conversation <string>`: Filter deletion to a specific conversation ID.
+- `-f, --force`: Bypass interactive confirmation prompt.
+- `--project-id <string>`: Google Cloud Project ID (overrides config).
+- `--database-id <string>`: Firestore Database ID (overrides config).
+
+---
+
 ### `agy-sync start`
 Launches the background synchronization daemon. By default, it spawns a detached daemon process monitoring the brain directory and synchronizing with Cloud Firestore.
 
