@@ -611,3 +611,74 @@ func TestE2E_Full21ColumnsAndTrajectoryTableRoundTripSync(t *testing.T) {
 	assert.Equal(t, "group-full-fidelity", betaSummary.GroupID)
 }
 
+func TestE2E_ClearDatabase(t *testing.T) {
+	ctx := t.Context()
+
+	// 1. Shared Firestore Repository
+	sharedRepo := firestore.NewMemoryRepository()
+	t.Cleanup(func() {
+		_ = sharedRepo.Close()
+	})
+
+	// 2. Setup Local Machine State
+	localBrain := t.TempDir()
+	convsDir := filepath.Join(t.TempDir(), "conversations")
+	summariesDB := filepath.Join(t.TempDir(), "conversation_summaries.db")
+	cfg := &config.Config{
+		ProjectID:        "e2e-clear-project",
+		BrainDir:         localBrain,
+		MachineID:        "machine-alpha",
+		ConversationsDir: convsDir,
+		SummariesDB:      summariesDB,
+	}
+
+	convID := "e2e-clear-test-conv"
+	convDir := filepath.Join(localBrain, convID)
+	logsDir := filepath.Join(convDir, ".system_generated", "logs")
+	require.NoError(t, os.MkdirAll(logsDir, 0o755))
+
+	transcriptPath := filepath.Join(logsDir, "transcript.jsonl")
+	step0 := `{"step_index":0,"source":"USER_EXPLICIT","type":"USER_INPUT","status":"DONE","created_at":"2026-09-18T10:00:00Z","content":"Clear test"}` + "\n"
+	require.NoError(t, os.WriteFile(transcriptPath, []byte(step0), 0o644))
+
+	artPath := filepath.Join(convDir, "doc.md")
+	artContent := []byte("# Local Document to Preserve")
+	require.NoError(t, os.WriteFile(artPath, artContent, 0o644))
+
+	// Push local data to remote
+	engine := syncer.NewEngine(cfg, sharedRepo)
+	pushResult, err := engine.Push(ctx, syncer.PushOptions{})
+	require.NoError(t, err)
+	assert.Equal(t, 1, pushResult.ConversationsSynced)
+
+	// Verify remote has conversation and artifacts
+	remoteConvs, err := sharedRepo.ListConversations(ctx)
+	require.NoError(t, err)
+	assert.Len(t, remoteConvs, 1)
+
+	// Perform Clear
+	clearResult, err := engine.Clear(ctx, syncer.ClearOptions{})
+	require.NoError(t, err)
+	assert.Equal(t, 1, clearResult.ConversationsDeleted)
+	assert.Equal(t, "success", clearResult.Status)
+
+	// 1. Remote Firestore should now be empty
+	remoteConvsAfter, err := sharedRepo.ListConversations(ctx)
+	require.NoError(t, err)
+	assert.Empty(t, remoteConvsAfter)
+
+	remoteStepsAfter, err := sharedRepo.GetStepsSince(ctx, convID, -1)
+	require.NoError(t, err)
+	assert.Empty(t, remoteStepsAfter)
+
+	// 2. Local files must remain COMPLETELY intact!
+	readTranscript, err := os.ReadFile(transcriptPath)
+	require.NoError(t, err)
+	assert.Equal(t, step0, string(readTranscript))
+
+	readArt, err := os.ReadFile(artPath)
+	require.NoError(t, err)
+	assert.Equal(t, artContent, readArt)
+}
+
+
