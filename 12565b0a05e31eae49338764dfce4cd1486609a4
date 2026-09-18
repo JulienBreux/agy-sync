@@ -1,0 +1,4 @@
+Task: Documentation Update
+
+Summary:
+- Documented agy-sync clear command in README.md, covering command syntax, interactive confirmation behavior, available flags (--force, --conversation, --project-id, --database-id, --json), and remote-only safety guarantee.
