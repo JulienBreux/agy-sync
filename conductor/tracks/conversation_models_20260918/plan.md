@@ -1,9 +1,9 @@
 # Implementation Plan: Complete Conversation & Trajectory SQLite Models and Synchronization
 
 ## Phase 1: Extended Models & Database Table Structs
-- [ ] Task: Complete `models.Conversation` Summary Fields
-    - [ ] Write failing unit tests in `pkg/models/models_test.go` for all 21 columns serialization (JSON & Firestore tags)
-    - [ ] Implement extended fields (`WorkspaceURIs`, `Status`, `Source`, `ProjectID`, `AgentName`, `ParentConversationID`, `NestingDepth`, `BattleID`, `WinningConversationID`, `NotFullyIdle`, `Killed`, `AppDataDir`, `GroupID`) in `pkg/models/models.go`
+- [x] Task: Complete `models.Conversation` Summary Fields [3b7c1ed]
+    - [x] Write failing unit tests in `pkg/models/models_test.go` for all 21 columns serialization (JSON & Firestore tags)
+    - [x] Implement extended fields (`WorkspaceURIs`, `Status`, `Source`, `ProjectID`, `AgentName`, `ParentConversationID`, `NestingDepth`, `BattleID`, `WinningConversationID`, `NotFullyIdle`, `Killed`, `AppDataDir`, `GroupID`) in `pkg/models/models.go`
 - [ ] Task: Implement Trajectory Database Table Models
     - [ ] Write failing unit tests in `pkg/models/trajectory_test.go` for `TrajectoryMeta`, `ConversationDBStep`, `GenMetadata`, `ExecutorMetadata`, `ParentReference`, `TrajectoryMetadataBlob`, and `BattleModeInfo`
     - [ ] Implement trajectory database model structs in `pkg/models/trajectory.go`
