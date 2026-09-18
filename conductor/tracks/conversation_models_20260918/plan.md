@@ -31,7 +31,7 @@
 - [x] Task: Integrate Full Summary Upsert & URI Adaptation in Pull Engine [5747a97]
     - [x] Write failing unit tests in `internal/syncer/pull_test.go` testing that pulling restores all 21 columns in `conversation_summaries.db` with adapted `workspace_uris`
     - [x] Update `internal/syncer/pull.go` to adapt `workspace_uris` and pass all 21 parameters to `reconstructor.UpsertSummary`
-- [ ] Task: Conductor - User Manual Verification 'Phase 4: Pull Pipeline Workspace URI Adaptation & Restoration' (Protocol in workflow.md)
+- [x] Task: Conductor - User Manual Verification 'Phase 4: Pull Pipeline Workspace URI Adaptation & Restoration' (Protocol in workflow.md)
 
 ## Phase 5: End-to-End Testing, Linting & Documentation
 - [ ] Task: Multi-Machine Full Fidelity E2E Integration Test
