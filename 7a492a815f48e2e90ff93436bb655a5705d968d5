@@ -1,0 +1,6 @@
+Task: Update Documentation
+
+Summary:
+- Updated README.md with comprehensive documentation for all 21 columns of conversation_summaries.db.
+- Added explanation and examples for cross-machine workspace URI path adaptation.
+- Documented typed trajectory database modeling.
