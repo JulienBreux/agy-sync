@@ -277,7 +277,7 @@ func TestReadLocalSummary_StrictMirroringEmptyTitle(t *testing.T) {
 	require.NotNil(t, read)
 
 	// Strict mirroring: Title should be empty as stored, not overwritten by Preview
-	assert.Equal(t, "", read.Title)
+	assert.Empty(t, read.Title)
 	assert.Equal(t, "Preview message only", read.Preview)
 }
 

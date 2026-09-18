@@ -9,6 +9,7 @@ import (
 	"path/filepath"
 	"slices"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -439,3 +440,174 @@ func TestE2E_ChunkedDBSyncAndSummaryPreservation(t *testing.T) {
 	assert.Equal(t, 2, betaSummary.StepCount)
 	assert.Equal(t, []byte{0xDE, 0xAD, 0xBE, 0xEF}, betaSummary.RawSummary)
 }
+
+func TestE2E_Full21ColumnsAndTrajectoryTableRoundTripSync(t *testing.T) {
+	ctx := t.Context()
+
+	// 1. Shared Firestore Repository (simulates cloud firestore instance)
+	sharedRepo := firestore.NewMemoryRepository()
+	t.Cleanup(func() {
+		_ = sharedRepo.Close()
+	})
+
+	// 2. Setup Machine Alpha (Machine A - source)
+	alphaTemp := t.TempDir()
+	alphaBrain := filepath.Join(alphaTemp, "brain")
+	alphaConvs := filepath.Join(alphaTemp, "conversations")
+	alphaSummaries := filepath.Join(alphaTemp, "conversation_summaries.db")
+
+	convID := "99999999-1111-2222-3333-444444444444"
+	alphaConvDir := filepath.Join(alphaBrain, convID)
+	alphaLogsDir := filepath.Join(alphaConvDir, ".system_generated", "logs")
+	require.NoError(t, os.MkdirAll(alphaLogsDir, 0o755))
+
+	// Write transcript
+	step0 := `{"step_index":0,"source":"USER_EXPLICIT","type":"USER_INPUT","status":"DONE","created_at":"2026-09-18T10:00:00Z","content":"Please implement full sync fidelity"}` + "\n"
+	step1 := `{"step_index":1,"source":"MODEL","type":"PLANNER_RESPONSE","status":"DONE","created_at":"2026-09-18T10:01:00Z","thinking":"Planning models","tool_calls":[{"id":"c1","name":"edit","arguments":{}}]}` + "\n"
+	require.NoError(t, os.WriteFile(filepath.Join(alphaLogsDir, "transcript.jsonl"), []byte(step0+step1), 0o644))
+
+	// Build SQLite conversation DB with trajectory tables
+	recAlpha := reconstructor.New(alphaConvs, alphaSummaries)
+	parsedSteps := []models.Step{
+		{StepIndex: 0, Source: "USER_EXPLICIT", Type: "USER_INPUT", Status: "DONE", Content: "Please implement full sync fidelity"},
+		{StepIndex: 1, Source: "MODEL", Type: "PLANNER_RESPONSE", Status: "DONE"},
+	}
+	require.NoError(t, recAlpha.ReconstructConversationDB(ctx, convID, parsedSteps))
+
+	// Populate summary with all 21 columns on Alpha
+	t1 := time.Date(2026, 9, 18, 10, 0, 0, 0, time.UTC)
+	t2 := time.Date(2026, 9, 18, 10, 5, 0, 0, time.UTC)
+	err := recAlpha.UpsertSummary(ctx, reconstructor.SummaryParams{
+		ConversationID:         convID,
+		Title:                  "Full Fidelity Sync Feature",
+		Preview:                "Please implement full sync fidelity",
+		StepCount:              2,
+		LastModifiedTime:       t2,
+		WorkspaceURIs:          []string{"file:///Users/alice/Projects/testapp"},
+		Status:                 "in_progress",
+		Source:                 "agy-cli",
+		ProjectID:              "alpha-project",
+		AgentName:              "conductor",
+		ParentConversationID:   "parent-conv-root",
+		NestingDepth:           3,
+		BattleID:               "battle-mode-77",
+		WinningConversationID:  "win-conv-88",
+		NotFullyIdle:           true,
+		Killed:                 false,
+		LastUserInputTime:      t1,
+		LastUserInputStepIndex: 0,
+		AppDataDir:             "/Users/alice/.gemini/antigravity-cli",
+		RawSummary:             []byte{0xDE, 0xAD, 0xBE, 0xEF},
+		GroupID:                "group-full-fidelity",
+	})
+	require.NoError(t, err)
+
+	cfgAlpha := &config.Config{
+		ProjectID:        "alpha-project",
+		BrainDir:         alphaBrain,
+		ConversationsDir: alphaConvs,
+		SummariesDB:      alphaSummaries,
+		MachineID:        "machine-alpha",
+	}
+	engineAlpha := syncer.NewEngine(cfgAlpha, sharedRepo)
+
+	// Push from Alpha
+	pushRes, err := engineAlpha.Push(ctx, syncer.PushOptions{})
+	require.NoError(t, err)
+	assert.Equal(t, 1, pushRes.ConversationsSynced)
+
+	// Verify remote Firestore conversation record has all 21 attributes
+	remoteConv, err := sharedRepo.GetConversation(ctx, convID)
+	require.NoError(t, err)
+	require.NotNil(t, remoteConv)
+	assert.Equal(t, "Full Fidelity Sync Feature", remoteConv.Title)
+	assert.Equal(t, "Please implement full sync fidelity", remoteConv.Preview)
+	assert.Equal(t, []string{"file:///Users/alice/Projects/testapp"}, remoteConv.WorkspaceURIs)
+	assert.Equal(t, "in_progress", remoteConv.Status)
+	assert.Equal(t, "agy-cli", remoteConv.Source)
+	assert.Equal(t, "alpha-project", remoteConv.ProjectID)
+	assert.Equal(t, "conductor", remoteConv.AgentName)
+	assert.Equal(t, "parent-conv-root", remoteConv.ParentConversationID)
+	assert.Equal(t, 3, remoteConv.NestingDepth)
+	assert.Equal(t, "battle-mode-77", remoteConv.BattleID)
+	assert.Equal(t, "win-conv-88", remoteConv.WinningConversationID)
+	assert.True(t, remoteConv.NotFullyIdle)
+	assert.False(t, remoteConv.Killed)
+	assert.Equal(t, 0, remoteConv.LastUserInputStepIndex)
+	assert.Equal(t, []byte{0xDE, 0xAD, 0xBE, 0xEF}, remoteConv.RawSummary)
+	assert.Equal(t, "group-full-fidelity", remoteConv.GroupID)
+	assert.Positive(t, remoteConv.DBChunksCount)
+	assert.NotEmpty(t, remoteConv.DBSHA256)
+
+	// 3. Setup Machine Beta (Machine B - destination)
+	betaTemp := t.TempDir()
+	betaBrain := filepath.Join(betaTemp, "brain")
+	betaConvs := filepath.Join(betaTemp, "conversations")
+	betaSummaries := filepath.Join(betaTemp, "conversation_summaries.db")
+
+	cfgBeta := &config.Config{
+		ProjectID:        "beta-project",
+		BrainDir:         betaBrain,
+		ConversationsDir: betaConvs,
+		SummariesDB:      betaSummaries,
+		MachineID:        "machine-beta",
+	}
+	engineBeta := syncer.NewEngine(cfgBeta, sharedRepo)
+
+	// Pull on Beta
+	pullRes, err := engineBeta.Pull(ctx, syncer.PullOptions{ConversationID: convID})
+	require.NoError(t, err)
+	assert.Equal(t, convID, pullRes.ConversationID)
+
+	// Verify local SQLite DB on Machine Beta
+	betaDBPath := filepath.Join(betaConvs, convID+".db")
+	require.FileExists(t, betaDBPath)
+
+	// Verify trajectory tables in <convID>.db
+	dbBeta, err := sql.Open("sqlite", betaDBPath)
+	require.NoError(t, err)
+	defer func() {
+		_ = dbBeta.Close()
+	}()
+
+	var stepCount int
+	err = dbBeta.QueryRowContext(ctx, "SELECT count(*) FROM steps").Scan(&stepCount)
+	require.NoError(t, err)
+	assert.Equal(t, 2, stepCount)
+
+	var trajectoryMetaCount int
+	err = dbBeta.QueryRowContext(ctx, "SELECT count(*) FROM trajectory_meta").Scan(&trajectoryMetaCount)
+	require.NoError(t, err)
+	assert.Equal(t, 1, trajectoryMetaCount)
+
+	// Verify conversation_summaries.db on Machine Beta has all 21 columns and adapted workspace URI
+	recBeta := reconstructor.New(betaConvs, betaSummaries)
+	betaSummary, err := recBeta.ReadLocalSummary(ctx, convID)
+	require.NoError(t, err)
+	require.NotNil(t, betaSummary)
+
+	assert.Equal(t, "Full Fidelity Sync Feature", betaSummary.Title)
+	assert.Equal(t, "Please implement full sync fidelity", betaSummary.Preview)
+	assert.Equal(t, 2, betaSummary.StepCount)
+
+	// Workspace URI should be adapted to the destination machine's user home
+	home, err := os.UserHomeDir()
+	require.NoError(t, err)
+	expectedAdaptedURI := "file://" + home + "/Projects/testapp"
+	assert.Equal(t, []string{expectedAdaptedURI}, betaSummary.WorkspaceURIs)
+
+	assert.Equal(t, "in_progress", betaSummary.Status)
+	assert.Equal(t, "agy-cli", betaSummary.Source)
+	assert.Equal(t, "alpha-project", betaSummary.ProjectID)
+	assert.Equal(t, "conductor", betaSummary.AgentName)
+	assert.Equal(t, "parent-conv-root", betaSummary.ParentConversationID)
+	assert.Equal(t, 3, betaSummary.NestingDepth)
+	assert.Equal(t, "battle-mode-77", betaSummary.BattleID)
+	assert.Equal(t, "win-conv-88", betaSummary.WinningConversationID)
+	assert.True(t, betaSummary.NotFullyIdle)
+	assert.False(t, betaSummary.Killed)
+	assert.Equal(t, 0, betaSummary.LastUserInputStepIndex)
+	assert.Equal(t, []byte{0xDE, 0xAD, 0xBE, 0xEF}, betaSummary.RawSummary)
+	assert.Equal(t, "group-full-fidelity", betaSummary.GroupID)
+}
+

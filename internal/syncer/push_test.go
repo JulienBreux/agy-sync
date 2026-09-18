@@ -281,7 +281,7 @@ func TestPush_FullSummaryExtractionAll21Columns(t *testing.T) {
 	require.NotNil(t, remoteConv)
 
 	// Verify all columns extracted and strictly mirrored
-	assert.Equal(t, "", remoteConv.Title) // strict mirroring: not overwritten by preview
+	assert.Empty(t, remoteConv.Title) // strict mirroring: not overwritten by preview
 	assert.Equal(t, "Initial prompt preview", remoteConv.Preview)
 	assert.Equal(t, []string{"file:///Users/julienbreux/workspace1"}, remoteConv.WorkspaceURIs)
 	assert.Equal(t, "active", remoteConv.Status)
