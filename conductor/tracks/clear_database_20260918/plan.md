@@ -5,9 +5,9 @@
     - [x] Add `DeleteConversation(ctx context.Context, convID string) error` and `ClearAll(ctx context.Context) error` to `firestore.Repository`
     - [x] Write failing unit tests in `internal/firestore/memory_test.go` for in-memory conversation and subcollection deletion
     - [x] Implement `DeleteConversation` and `ClearAll` on `MemoryRepository` in `internal/firestore/memory.go`
-- [ ] Task: Implement Production Firestore Client Deletion
-    - [ ] Write failing tests/mocks in `internal/firestore/client_test.go` verifying batch/recursive subcollection deletion
-    - [ ] Implement `DeleteConversation` and `ClearAll` in `internal/firestore/client.go` using Firestore batch deletes
+- [x] Task: Implement Production Firestore Client Deletion [399135e]
+    - [x] Write failing tests/mocks in `internal/firestore/client_test.go` verifying batch/recursive subcollection deletion
+    - [x] Implement `DeleteConversation` and `ClearAll` in `internal/firestore/client.go` using Firestore batch deletes
 - [ ] Task: Conductor - User Manual Verification 'Phase 1: Firestore Repository Deletion Capabilities' (Protocol in workflow.md)
 
 ## Phase 2: Syncer Engine Clear Operation
