@@ -4,9 +4,9 @@
 - [x] Task: Complete `models.Conversation` Summary Fields [3b7c1ed]
     - [x] Write failing unit tests in `pkg/models/models_test.go` for all 21 columns serialization (JSON & Firestore tags)
     - [x] Implement extended fields (`WorkspaceURIs`, `Status`, `Source`, `ProjectID`, `AgentName`, `ParentConversationID`, `NestingDepth`, `BattleID`, `WinningConversationID`, `NotFullyIdle`, `Killed`, `AppDataDir`, `GroupID`) in `pkg/models/models.go`
-- [ ] Task: Implement Trajectory Database Table Models
-    - [ ] Write failing unit tests in `pkg/models/trajectory_test.go` for `TrajectoryMeta`, `ConversationDBStep`, `GenMetadata`, `ExecutorMetadata`, `ParentReference`, `TrajectoryMetadataBlob`, and `BattleModeInfo`
-    - [ ] Implement trajectory database model structs in `pkg/models/trajectory.go`
+- [x] Task: Implement Trajectory Database Table Models [f7f9e1c]
+    - [x] Write failing unit tests in `pkg/models/trajectory_test.go` for `TrajectoryMeta`, `ConversationDBStep`, `GenMetadata`, `ExecutorMetadata`, `ParentReference`, `TrajectoryMetadataBlob`, and `BattleModeInfo`
+    - [x] Implement trajectory database model structs in `pkg/models/trajectory.go`
 - [ ] Task: Conductor - User Manual Verification 'Phase 1: Extended Models & Database Table Structs' (Protocol in workflow.md)
 
 ## Phase 2: Reconstructor Integration & Summary Mapping
