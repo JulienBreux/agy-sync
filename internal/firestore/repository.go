@@ -19,4 +19,6 @@ type Repository interface {
 	ListArtifacts(ctx context.Context, convID string) ([]models.Artifact, error)
 	SaveDBChunks(ctx context.Context, convID string, chunks []models.DBChunk) error
 	GetDBChunks(ctx context.Context, convID string) ([]models.DBChunk, error)
+	DeleteConversation(ctx context.Context, convID string) error
+	ClearAll(ctx context.Context) error
 }

@@ -3,6 +3,7 @@ package firestore
 import (
 	"cmp"
 	"context"
+	"errors"
 	"maps"
 	"slices"
 	"sync"
@@ -204,3 +205,34 @@ func (m *MemoryRepository) GetDBChunks(_ context.Context, convID string) ([]mode
 
 	return results, nil
 }
+
+// DeleteConversation removes a conversation and all its associated steps, artifacts, and dbChunks.
+func (m *MemoryRepository) DeleteConversation(_ context.Context, convID string) error {
+	if convID == "" {
+		return errors.New("conversation_id cannot be empty")
+	}
+
+	m.mu.Lock()
+	defer m.mu.Unlock()
+
+	delete(m.conversations, convID)
+	delete(m.steps, convID)
+	delete(m.artifacts, convID)
+	delete(m.dbChunks, convID)
+
+	return nil
+}
+
+// ClearAll removes all conversations and all associated subcollections.
+func (m *MemoryRepository) ClearAll(_ context.Context) error {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+
+	clear(m.conversations)
+	clear(m.steps)
+	clear(m.artifacts)
+	clear(m.dbChunks)
+
+	return nil
+}
+

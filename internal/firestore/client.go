@@ -112,3 +112,14 @@ func (c *Client) ListConversations(ctx context.Context) ([]*models.Conversation,
 	}
 	return conversations, nil
 }
+
+// DeleteConversation removes a conversation and its subcollections.
+func (c *Client) DeleteConversation(_ context.Context, _ string) error {
+	return errors.New("not implemented")
+}
+
+// ClearAll removes all conversations and subcollections.
+func (c *Client) ClearAll(_ context.Context) error {
+	return errors.New("not implemented")
+}
+
