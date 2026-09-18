@@ -200,12 +200,8 @@ func (e *Engine) pushConversation(ctx context.Context, dConv *discovery.Discover
 	var summaryExtracted bool
 	if e.reconstructor != nil {
 		if summary, err := e.reconstructor.ReadLocalSummary(ctx, dConv.ID); err == nil && summary != nil {
-			if summary.Title != "" {
-				remoteConv.Title = summary.Title
-			}
-			if summary.Preview != "" {
-				remoteConv.Preview = summary.Preview
-			}
+			remoteConv.Title = summary.Title
+			remoteConv.Preview = summary.Preview
 			if summary.StepCount > 0 {
 				remoteConv.StepCount = summary.StepCount
 			}
@@ -218,6 +214,19 @@ func (e *Engine) pushConversation(ctx context.Context, dConv *discovery.Discover
 			if len(summary.RawSummary) > 0 {
 				remoteConv.RawSummary = summary.RawSummary
 			}
+			remoteConv.WorkspaceURIs = summary.WorkspaceURIs
+			remoteConv.Status = summary.Status
+			remoteConv.Source = summary.Source
+			remoteConv.ProjectID = summary.ProjectID
+			remoteConv.AgentName = summary.AgentName
+			remoteConv.ParentConversationID = summary.ParentConversationID
+			remoteConv.NestingDepth = summary.NestingDepth
+			remoteConv.BattleID = summary.BattleID
+			remoteConv.WinningConversationID = summary.WinningConversationID
+			remoteConv.NotFullyIdle = summary.NotFullyIdle
+			remoteConv.Killed = summary.Killed
+			remoteConv.AppDataDir = summary.AppDataDir
+			remoteConv.GroupID = summary.GroupID
 			summaryExtracted = true
 		}
 	}

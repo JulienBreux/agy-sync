@@ -5,6 +5,7 @@ import (
 	"os"
 	"path/filepath"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -216,3 +217,86 @@ func TestPush_DBChunkAndSummarySync(t *testing.T) {
 	assert.Equal(t, 0, chunks[0].ChunkIndex)
 	assert.Contains(t, string(chunks[0].Data), "SQLite format 3")
 }
+
+func TestPush_FullSummaryExtractionAll21Columns(t *testing.T) {
+	brainDir, convID := createTestBrain(t)
+	tempDir := t.TempDir()
+	convsDir := filepath.Join(tempDir, "conversations")
+	require.NoError(t, os.MkdirAll(convsDir, 0o755))
+	summariesDB := filepath.Join(tempDir, "conversation_summaries.db")
+
+	rec := reconstructor.New(convsDir, summariesDB)
+	ctx := t.Context()
+
+	t1 := time.Date(2026, 9, 18, 10, 0, 0, 0, time.UTC)
+	t2 := time.Date(2026, 9, 18, 10, 5, 0, 0, time.UTC)
+
+	// Upsert summary with all 21 columns and empty title for strict mirroring test
+	err := rec.UpsertSummary(ctx, reconstructor.SummaryParams{
+		ConversationID:         convID,
+		Title:                  "", // strict mirroring: empty title
+		Preview:                "Initial prompt preview",
+		StepCount:              2,
+		LastModifiedTime:       t2,
+		WorkspaceURIs:          []string{"file:///Users/julienbreux/workspace1"},
+		Status:                 "active",
+		Source:                 "cli",
+		ProjectID:              "my-project",
+		AgentName:              "conductor",
+		ParentConversationID:   "parent-abc",
+		NestingDepth:           2,
+		BattleID:               "battle-123",
+		WinningConversationID:  "win-456",
+		NotFullyIdle:           true,
+		Killed:                 false,
+		LastUserInputTime:      t1,
+		LastUserInputStepIndex: 5,
+		AppDataDir:             "/Users/julienbreux/.gemini/antigravity-cli",
+		RawSummary:             []byte{0xCA, 0xFE},
+		GroupID:                "grp-999",
+	})
+	require.NoError(t, err)
+
+	cfg := &config.Config{
+		ProjectID:        "test-proj",
+		BrainDir:         brainDir,
+		MachineID:        "laptop-1",
+		ConversationsDir: convsDir,
+		SummariesDB:      summariesDB,
+		NoDBSync:         false,
+	}
+
+	repo := firestore.NewMemoryRepository()
+	t.Cleanup(func() {
+		_ = repo.Close()
+	})
+
+	engine := syncer.NewEngine(cfg, repo)
+	res, err := engine.Push(ctx, syncer.PushOptions{})
+	require.NoError(t, err)
+	assert.Equal(t, 1, res.ConversationsSynced)
+
+	remoteConv, err := repo.GetConversation(ctx, convID)
+	require.NoError(t, err)
+	require.NotNil(t, remoteConv)
+
+	// Verify all columns extracted and strictly mirrored
+	assert.Equal(t, "", remoteConv.Title) // strict mirroring: not overwritten by preview
+	assert.Equal(t, "Initial prompt preview", remoteConv.Preview)
+	assert.Equal(t, []string{"file:///Users/julienbreux/workspace1"}, remoteConv.WorkspaceURIs)
+	assert.Equal(t, "active", remoteConv.Status)
+	assert.Equal(t, "cli", remoteConv.Source)
+	assert.Equal(t, "my-project", remoteConv.ProjectID)
+	assert.Equal(t, "conductor", remoteConv.AgentName)
+	assert.Equal(t, "parent-abc", remoteConv.ParentConversationID)
+	assert.Equal(t, 2, remoteConv.NestingDepth)
+	assert.Equal(t, "battle-123", remoteConv.BattleID)
+	assert.Equal(t, "win-456", remoteConv.WinningConversationID)
+	assert.True(t, remoteConv.NotFullyIdle)
+	assert.False(t, remoteConv.Killed)
+	assert.Equal(t, 5, remoteConv.LastUserInputStepIndex)
+	assert.Equal(t, "/Users/julienbreux/.gemini/antigravity-cli", remoteConv.AppDataDir)
+	assert.Equal(t, []byte{0xCA, 0xFE}, remoteConv.RawSummary)
+	assert.Equal(t, "grp-999", remoteConv.GroupID)
+}
+
