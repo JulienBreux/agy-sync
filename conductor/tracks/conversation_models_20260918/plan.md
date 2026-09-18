@@ -7,7 +7,7 @@
 - [x] Task: Implement Trajectory Database Table Models [f7f9e1c]
     - [x] Write failing unit tests in `pkg/models/trajectory_test.go` for `TrajectoryMeta`, `ConversationDBStep`, `GenMetadata`, `ExecutorMetadata`, `ParentReference`, `TrajectoryMetadataBlob`, and `BattleModeInfo`
     - [x] Implement trajectory database model structs in `pkg/models/trajectory.go`
-- [ ] Task: Conductor - User Manual Verification 'Phase 1: Extended Models & Database Table Structs' (Protocol in workflow.md)
+- [x] Task: Conductor - User Manual Verification 'Phase 1: Extended Models & Database Table Structs' (Protocol in workflow.md)
 
 ## Phase 2: Reconstructor Integration & Summary Mapping
 - [ ] Task: Update `internal/reconstructor` to Fully Map All 21 Columns
