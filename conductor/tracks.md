@@ -34,3 +34,8 @@
 - [x] **Track: Remote Conversation History, Steps & Title Synchronization**
   *Link: [./tracks/remote_history_sync_20260916/index.md](./tracks/remote_history_sync_20260916/index.md)*
 
+---
+
+- [ ] **Track: Complete all the Conversation model structure from the conversation_summaries.db file and conversation_summaries table**
+  *Link: [./tracks/conversation_models_20260918/index.md](./tracks/conversation_models_20260918/index.md)*
+

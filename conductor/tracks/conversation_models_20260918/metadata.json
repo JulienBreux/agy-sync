@@ -1,0 +1,8 @@
+{
+  "track_id": "conversation_models_20260918",
+  "type": "feature",
+  "status": "new",
+  "created_at": "2026-09-18T17:35:50Z",
+  "updated_at": "2026-09-18T17:35:50Z",
+  "description": "Complete all the Conversation model structure from the conversation_summaries.db file and conversation_summaries table"
+}

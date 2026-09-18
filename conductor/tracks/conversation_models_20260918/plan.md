@@ -1,0 +1,42 @@
+# Implementation Plan: Complete Conversation & Trajectory SQLite Models and Synchronization
+
+## Phase 1: Extended Models & Database Table Structs
+- [ ] Task: Complete `models.Conversation` Summary Fields
+    - [ ] Write failing unit tests in `pkg/models/models_test.go` for all 21 columns serialization (JSON & Firestore tags)
+    - [ ] Implement extended fields (`WorkspaceURIs`, `Status`, `Source`, `ProjectID`, `AgentName`, `ParentConversationID`, `NestingDepth`, `BattleID`, `WinningConversationID`, `NotFullyIdle`, `Killed`, `AppDataDir`, `GroupID`) in `pkg/models/models.go`
+- [ ] Task: Implement Trajectory Database Table Models
+    - [ ] Write failing unit tests in `pkg/models/trajectory_test.go` for `TrajectoryMeta`, `ConversationDBStep`, `GenMetadata`, `ExecutorMetadata`, `ParentReference`, `TrajectoryMetadataBlob`, and `BattleModeInfo`
+    - [ ] Implement trajectory database model structs in `pkg/models/trajectory.go`
+- [ ] Task: Conductor - User Manual Verification 'Phase 1: Extended Models & Database Table Structs' (Protocol in workflow.md)
+
+## Phase 2: Reconstructor Integration & Summary Mapping
+- [ ] Task: Update `internal/reconstructor` to Fully Map All 21 Columns
+    - [ ] Write failing unit tests in `internal/reconstructor/summary_test.go` verifying read/write roundtrip of all 21 columns with `SummaryParams`
+    - [ ] Implement full 21-column queries and assignments in `internal/reconstructor/summary.go`
+- [ ] Task: Integrate Trajectory DB Models in `internal/reconstructor/conversation.go`
+    - [ ] Write failing unit tests in `internal/reconstructor/conversation_test.go` validating typed table schema and step mapping using `models.ConversationDBStep` and `models.TrajectoryMeta`
+    - [ ] Refactor `internal/reconstructor/conversation.go` to utilize typed trajectory models
+- [ ] Task: Conductor - User Manual Verification 'Phase 2: Reconstructor Integration & Summary Mapping' (Protocol in workflow.md)
+
+## Phase 3: Push Pipeline Full Summary Extraction
+- [ ] Task: Extract and Push All Conversation Summary Attributes
+    - [ ] Write failing unit tests in `internal/syncer/push_test.go` validating that all 21 columns from local `conversation_summaries.db` are extracted and stored into `models.Conversation` before Firestore upsert
+    - [ ] Update `internal/syncer/push.go` to populate all fields on `remoteConv` from `ReadLocalSummary` with strict title mirroring
+- [ ] Task: Conductor - User Manual Verification 'Phase 3: Push Pipeline Full Summary Extraction' (Protocol in workflow.md)
+
+## Phase 4: Pull Pipeline Workspace URI Adaptation & Restoration
+- [ ] Task: Implement Workspace URI Path Adaptation Helper
+    - [ ] Write failing unit tests in `internal/syncer/workspace_test.go` testing detection and replacement of cross-machine user home directory prefixes in `file://` URIs
+    - [ ] Implement path adaptation logic in `internal/syncer/workspace.go`
+- [ ] Task: Integrate Full Summary Upsert & URI Adaptation in Pull Engine
+    - [ ] Write failing unit tests in `internal/syncer/pull_test.go` testing that pulling restores all 21 columns in `conversation_summaries.db` with adapted `workspace_uris`
+    - [ ] Update `internal/syncer/pull.go` to adapt `workspace_uris` and pass all 21 parameters to `reconstructor.UpsertSummary`
+- [ ] Task: Conductor - User Manual Verification 'Phase 4: Pull Pipeline Workspace URI Adaptation & Restoration' (Protocol in workflow.md)
+
+## Phase 5: End-to-End Testing, Linting & Documentation
+- [ ] Task: Multi-Machine Full Fidelity E2E Integration Test
+    - [ ] Add an end-to-end integration test in `test/e2e_test.go` simulating Machine A (pushing with full 21 summary columns & trajectory tables) and Machine B (pulling with different user home path), asserting exact table content and adapted `workspace_uris`
+    - [ ] Run `go test -race ./...`, `golangci-lint run`, and `go vet ./...` ensuring 0 warnings
+- [ ] Task: Update Documentation
+    - [ ] Update `README.md` and track documentation detailing full conversation summaries table synchronization and trajectory models
+- [ ] Task: Conductor - User Manual Verification 'Phase 5: End-to-End Testing, Linting & Documentation' (Protocol in workflow.md)
