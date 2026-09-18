@@ -1,0 +1,6 @@
+Task: Implement Production Firestore Client Deletion
+
+Summary:
+- Implemented DeleteConversation on Client with BulkWriter to recursively delete subcollections ('steps', 'artifacts', 'db_chunks') and parent document.
+- Implemented ClearAll on Client iterating all conversation documents and deleting each with its subcollections.
+- Added validation tests and emulator integration tests in client_test.go.
