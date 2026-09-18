@@ -1,0 +1,6 @@
+Task: Extract and Push All Conversation Summary Attributes
+
+Summary:
+- Updated pushConversation in internal/syncer/push.go to map all 21 columns from ReadLocalSummary into remoteConv.
+- Preserved strict title and preview mirroring from local SQLite.
+- Added comprehensive TestPush_FullSummaryExtractionAll21Columns test in push_test.go.
