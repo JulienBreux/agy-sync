@@ -170,3 +170,82 @@ func TestTypeAndStatusConversions(t *testing.T) {
 		assert.Equal(t, expectedCode, reconstructor.StepStatusToInt(statusStr))
 	}
 }
+
+func TestTrajectoryTableModelsMapping(t *testing.T) {
+	tempDir := t.TempDir()
+	convsDir := filepath.Join(tempDir, "conversations")
+	summariesDB := filepath.Join(tempDir, "conversation_summaries.db")
+
+	rec := reconstructor.New(convsDir, summariesDB)
+	convID := "conv-models-test"
+	ctx := context.Background()
+
+	step := models.Step{
+		StepIndex: 1,
+		Type:      "PLANNER_RESPONSE",
+		Status:    "DONE",
+		Content:   "Planning next step",
+	}
+
+	// Verify StepToConversationDBStep helper
+	dbStep, err := reconstructor.StepToConversationDBStep(step)
+	require.NoError(t, err)
+	assert.Equal(t, 1, dbStep.Idx)
+	assert.Equal(t, 15, dbStep.StepType)
+	assert.Equal(t, 3, dbStep.Status)
+	assert.NotEmpty(t, dbStep.StepPayload)
+
+	// Verify TrajectoryMetaFromConversation helper
+	meta := reconstructor.TrajectoryMetaFromConversation(convID)
+	assert.Equal(t, convID, meta.TrajectoryID)
+	assert.Equal(t, convID, meta.CascadeID)
+	assert.Equal(t, 4, meta.TrajectoryType)
+	assert.Equal(t, 17, meta.Source)
+
+	// Reconstruct DB and verify rows match typed models
+	err = rec.ReconstructConversationDB(ctx, convID, []models.Step{step})
+	require.NoError(t, err)
+
+	dbPath := filepath.Join(convsDir, convID+".db")
+	db, err := sql.Open("sqlite", dbPath)
+	require.NoError(t, err)
+	defer func() {
+		_ = db.Close()
+	}()
+
+	var readMeta models.TrajectoryMeta
+	err = db.QueryRowContext(ctx, "SELECT trajectory_id, cascade_id, trajectory_type, source FROM trajectory_meta WHERE trajectory_id = ?", convID).
+		Scan(&readMeta.TrajectoryID, &readMeta.CascadeID, &readMeta.TrajectoryType, &readMeta.Source)
+	require.NoError(t, err)
+	assert.Equal(t, meta, readMeta)
+
+	var readStep models.ConversationDBStep
+	err = db.QueryRowContext(ctx, "SELECT idx, step_type, status, has_subtrajectory, step_format FROM steps WHERE idx = 1").
+		Scan(&readStep.Idx, &readStep.StepType, &readStep.Status, &readStep.HasSubtrajectory, &readStep.StepFormat)
+	require.NoError(t, err)
+	assert.Equal(t, dbStep.Idx, readStep.Idx)
+	assert.Equal(t, dbStep.StepType, readStep.StepType)
+	assert.Equal(t, dbStep.Status, readStep.Status)
+
+	// Verify auxiliary tables can insert and select typed models
+	genMeta := models.GenMetadata{Idx: 1, Data: []byte("gen-bytes"), Size: 9}
+	_, err = db.ExecContext(ctx, "INSERT INTO gen_metadata (idx, data, size) VALUES (?, ?, ?)", genMeta.Idx, genMeta.Data, genMeta.Size)
+	require.NoError(t, err)
+
+	execMeta := models.ExecutorMetadata{Idx: 1, Data: []byte("exec-bytes")}
+	_, err = db.ExecContext(ctx, "INSERT INTO executor_metadata (idx, data) VALUES (?, ?)", execMeta.Idx, execMeta.Data)
+	require.NoError(t, err)
+
+	parentRef := models.ParentReference{Idx: 1, Data: []byte("parent-bytes")}
+	_, err = db.ExecContext(ctx, "INSERT INTO parent_references (idx, data) VALUES (?, ?)", parentRef.Idx, parentRef.Data)
+	require.NoError(t, err)
+
+	blob := models.TrajectoryMetadataBlob{ID: "main", Data: []byte("blob-bytes")}
+	_, err = db.ExecContext(ctx, "INSERT OR REPLACE INTO trajectory_metadata_blob (id, data) VALUES (?, ?)", blob.ID, blob.Data)
+	require.NoError(t, err)
+
+	battle := models.BattleModeInfo{Idx: 1, Data: []byte("battle-bytes")}
+	_, err = db.ExecContext(ctx, "INSERT INTO battle_mode_infos (idx, data) VALUES (?, ?)", battle.Idx, battle.Data)
+	require.NoError(t, err)
+}
+

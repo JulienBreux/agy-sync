@@ -80,6 +80,34 @@ func StepStatusToInt(s string) int {
 	}
 }
 
+// TrajectoryMetaFromConversation creates a TrajectoryMeta struct for a conversation.
+func TrajectoryMetaFromConversation(conversationID string) models.TrajectoryMeta {
+	return models.TrajectoryMeta{
+		TrajectoryID:   conversationID,
+		CascadeID:      conversationID,
+		TrajectoryType: 4,
+		Source:         17,
+	}
+}
+
+// StepToConversationDBStep converts a high-level models.Step into a models.ConversationDBStep.
+func StepToConversationDBStep(step models.Step) (models.ConversationDBStep, error) {
+	stepJSON, err := json.Marshal(step)
+	if err != nil {
+		return models.ConversationDBStep{}, fmt.Errorf("failed marshaling step %d payload: %w", step.StepIndex, err)
+	}
+
+	return models.ConversationDBStep{
+		Idx:              step.StepIndex,
+		StepType:         StepTypeToInt(step.Type),
+		Status:           StepStatusToInt(step.Status),
+		HasSubtrajectory: false,
+		Metadata:         stepJSON,
+		StepPayload:      stepJSON,
+		StepFormat:       0,
+	}, nil
+}
+
 // ReconstructConversationDB recreates or updates the SQLite database for an individual conversation.
 func (r *Reconstructor) ReconstructConversationDB(ctx context.Context, conversationID string, steps []models.Step) error {
 	if conversationID == "" {
@@ -111,19 +139,20 @@ func (r *Reconstructor) ReconstructConversationDB(ctx context.Context, conversat
 	}
 
 	// Ensure trajectory_meta entry exists
+	trajMeta := TrajectoryMetaFromConversation(conversationID)
 	const metaQuery = `
 	INSERT INTO trajectory_meta (trajectory_id, cascade_id, trajectory_type, source)
-	VALUES (?, ?, 4, 17)
+	VALUES (?, ?, ?, ?)
 	ON CONFLICT(trajectory_id) DO NOTHING;
 	`
-	if _, err := tx.ExecContext(ctx, metaQuery, conversationID, conversationID); err != nil {
+	if _, err := tx.ExecContext(ctx, metaQuery, trajMeta.TrajectoryID, trajMeta.CascadeID, trajMeta.TrajectoryType, trajMeta.Source); err != nil {
 		return fmt.Errorf("failed writing trajectory_meta: %w", err)
 	}
 
 	// Upsert steps
 	const stepQuery = `
 	INSERT INTO steps (idx, step_type, status, has_subtrajectory, metadata, step_payload, step_format)
-	VALUES (?, ?, ?, 0, ?, ?, 0)
+	VALUES (?, ?, ?, ?, ?, ?, ?)
 	ON CONFLICT(idx) DO UPDATE SET
 		step_type = excluded.step_type,
 		status = excluded.status,
@@ -141,16 +170,18 @@ func (r *Reconstructor) ReconstructConversationDB(ctx context.Context, conversat
 	}()
 
 	for _, step := range steps {
-		stepJSON, err := json.Marshal(step)
+		dbStep, err := StepToConversationDBStep(step)
 		if err != nil {
-			return fmt.Errorf("failed marshaling step %d payload: %w", step.StepIndex, err)
+			return err
 		}
 
-		typeCode := StepTypeToInt(step.Type)
-		statusCode := StepStatusToInt(step.Status)
+		var hasSub int
+		if dbStep.HasSubtrajectory {
+			hasSub = 1
+		}
 
-		if _, err := stmt.ExecContext(ctx, step.StepIndex, typeCode, statusCode, stepJSON, stepJSON); err != nil {
-			return fmt.Errorf("failed executing step upsert for index %d: %w", step.StepIndex, err)
+		if _, err := stmt.ExecContext(ctx, dbStep.Idx, dbStep.StepType, dbStep.Status, hasSub, dbStep.Metadata, dbStep.StepPayload, dbStep.StepFormat); err != nil {
+			return fmt.Errorf("failed executing step upsert for index %d: %w", dbStep.Idx, err)
 		}
 	}
 
