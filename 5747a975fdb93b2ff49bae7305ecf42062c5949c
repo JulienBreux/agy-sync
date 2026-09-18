@@ -1,0 +1,6 @@
+Task: Integrate Full Summary Upsert & URI Adaptation in Pull Engine
+
+Summary:
+- Updated pullConversation in internal/syncer/pull.go to adapt workspace URIs to destination home directory.
+- Restored all 21 summary fields in UpsertSummary in both snapshot DB reassembly and log fallback paths.
+- Added comprehensive tests in pull_test.go.
