@@ -1,10 +1,10 @@
 # Implementation Plan: Clear Firestore Database
 
 ## Phase 1: Firestore Repository Deletion Capabilities
-- [ ] Task: Implement In-Memory & Interface Deletion Methods
-    - [ ] Add `DeleteConversation(ctx context.Context, convID string) error` and `ClearAll(ctx context.Context) error` to `firestore.Repository`
-    - [ ] Write failing unit tests in `internal/firestore/memory_test.go` for in-memory conversation and subcollection deletion
-    - [ ] Implement `DeleteConversation` and `ClearAll` on `MemoryRepository` in `internal/firestore/memory.go`
+- [x] Task: Implement In-Memory & Interface Deletion Methods [72e4f1d]
+    - [x] Add `DeleteConversation(ctx context.Context, convID string) error` and `ClearAll(ctx context.Context) error` to `firestore.Repository`
+    - [x] Write failing unit tests in `internal/firestore/memory_test.go` for in-memory conversation and subcollection deletion
+    - [x] Implement `DeleteConversation` and `ClearAll` on `MemoryRepository` in `internal/firestore/memory.go`
 - [ ] Task: Implement Production Firestore Client Deletion
     - [ ] Write failing tests/mocks in `internal/firestore/client_test.go` verifying batch/recursive subcollection deletion
     - [ ] Implement `DeleteConversation` and `ClearAll` in `internal/firestore/client.go` using Firestore batch deletes
