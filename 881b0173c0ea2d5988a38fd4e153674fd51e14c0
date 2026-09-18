@@ -1,0 +1,6 @@
+Task: Multi-Machine Full Fidelity E2E Integration Test
+
+Summary:
+- Added TestE2E_Full21ColumnsAndTrajectoryTableRoundTripSync in test/e2e_test.go.
+- Verified full 21 columns sync, trajectory meta and step tables reconstruction, and cross-machine user home directory workspace URI adaptation.
+- Passed go test -race ./..., go vet ./..., and golangci-lint run (0 issues).
