@@ -13,9 +13,9 @@
 - [x] Task: Update `internal/reconstructor` to Fully Map All 21 Columns [d8a9680]
     - [x] Write failing unit tests in `internal/reconstructor/summary_test.go` verifying read/write roundtrip of all 21 columns with `SummaryParams`
     - [x] Implement full 21-column queries and assignments in `internal/reconstructor/summary.go`
-- [ ] Task: Integrate Trajectory DB Models in `internal/reconstructor/conversation.go`
-    - [ ] Write failing unit tests in `internal/reconstructor/conversation_test.go` validating typed table schema and step mapping using `models.ConversationDBStep` and `models.TrajectoryMeta`
-    - [ ] Refactor `internal/reconstructor/conversation.go` to utilize typed trajectory models
+- [x] Task: Integrate Trajectory DB Models in `internal/reconstructor/conversation.go` [1c41a5d]
+    - [x] Write failing unit tests in `internal/reconstructor/conversation_test.go` validating typed table schema and step mapping using `models.ConversationDBStep` and `models.TrajectoryMeta`
+    - [x] Refactor `internal/reconstructor/conversation.go` to utilize typed trajectory models
 - [ ] Task: Conductor - User Manual Verification 'Phase 2: Reconstructor Integration & Summary Mapping' (Protocol in workflow.md)
 
 ## Phase 3: Push Pipeline Full Summary Extraction
