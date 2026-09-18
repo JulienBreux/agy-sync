@@ -1,0 +1,7 @@
+Task: Add agy-sync clear Command
+
+Summary:
+- Added newClearCommand in cmd/clear.go with support for --force/-f, --conversation/-c, --project-id, --database-id, and --json.
+- Implemented interactive warning and confirmation prompt requiring explicit 'y'/'yes' input.
+- Registered clear command in cmd/root.go under sync group.
+- Added comprehensive unit test suite in cmd/clear_test.go covering interactive abort, approval, unexpected input, force flag, single conversation deletion, and JSON output.
