@@ -1,0 +1,8 @@
+{
+  "track_id": "clear_database_20260918",
+  "type": "feature",
+  "status": "new",
+  "created_at": "2026-09-18T21:49:00Z",
+  "updated_at": "2026-09-18T21:49:00Z",
+  "description": "Add a feature to clear Firestore database (useful for test), add confirmation mechanism"
+}

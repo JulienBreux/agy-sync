@@ -39,3 +39,9 @@
 - [x] **Track: Complete all the Conversation model structure from the conversation_summaries.db file and conversation_summaries table**
   *Link: [./tracks/conversation_models_20260918/index.md](./tracks/conversation_models_20260918/index.md)*
 
+---
+
+- [ ] **Track: Add a feature to clear Firestore database (useful for test), add confirmation mechanism**
+  *Link: [./tracks/clear_database_20260918/index.md](./tracks/clear_database_20260918/index.md)*
+
+
