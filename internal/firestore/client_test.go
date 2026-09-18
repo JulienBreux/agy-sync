@@ -151,6 +151,27 @@ func TestClient_Validation(t *testing.T) {
 		require.Error(t, err)
 		assert.Contains(t, err.Error(), "project_id is required")
 	})
+
+	t.Run("empty conversation_id in DeleteConversation", func(t *testing.T) {
+		c := firestore.NewTestClient(nil, nil)
+		err := c.DeleteConversation(ctx, "")
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "conversation_id cannot be empty")
+	})
+
+	t.Run("uninitialized client in DeleteConversation", func(t *testing.T) {
+		c := firestore.NewTestClient(nil, nil)
+		err := c.DeleteConversation(ctx, "conv-1")
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "firestore client is not initialized")
+	})
+
+	t.Run("uninitialized client in ClearAll", func(t *testing.T) {
+		c := firestore.NewTestClient(nil, nil)
+		err := c.ClearAll(ctx)
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "firestore client is not initialized")
+	})
 }
 
 func TestClient_EmulatorIntegration(t *testing.T) {
@@ -242,6 +263,29 @@ func TestClient_EmulatorIntegration(t *testing.T) {
 	arts, err := client.ListArtifacts(ctx, convID)
 	require.NoError(t, err)
 	assert.NotEmpty(t, arts)
+
+	// 4. Delete Conversation
+	err = client.DeleteConversation(ctx, convID)
+	require.NoError(t, err)
+
+	deletedConv, err := client.GetConversation(ctx, convID)
+	require.NoError(t, err)
+	assert.Nil(t, deletedConv)
+
+	deletedSteps, err := client.GetStepsSince(ctx, convID, -1)
+	require.NoError(t, err)
+	assert.Empty(t, deletedSteps)
+
+	// 5. Clear All
+	conv2 := &models.Conversation{ID: "emulator-conv-2", Title: "Conv 2"}
+	require.NoError(t, client.UpsertConversation(ctx, conv2))
+
+	err = client.ClearAll(ctx)
+	require.NoError(t, err)
+
+	allConvs, err := client.ListConversations(ctx)
+	require.NoError(t, err)
+	assert.Empty(t, allConvs)
 }
 
 func TestMemoryRepository_DBChunkOperations(t *testing.T) {

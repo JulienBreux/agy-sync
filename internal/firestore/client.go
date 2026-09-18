@@ -114,12 +114,71 @@ func (c *Client) ListConversations(ctx context.Context) ([]*models.Conversation,
 }
 
 // DeleteConversation removes a conversation and its subcollections.
-func (c *Client) DeleteConversation(_ context.Context, _ string) error {
-	return errors.New("not implemented")
+func (c *Client) DeleteConversation(ctx context.Context, convID string) error {
+	if strings.TrimSpace(convID) == "" {
+		return errors.New("conversation_id cannot be empty")
+	}
+	if c.client == nil {
+		return errors.New("firestore client is not initialized")
+	}
+
+	convRef := c.client.Collection("conversations").Doc(convID)
+	bw := c.client.BulkWriter(ctx)
+	defer bw.End()
+
+	// Subcollections known to agy-sync: steps, artifacts, db_chunks
+	subcollections := []string{"steps", "artifacts", "db_chunks"}
+	for _, subColName := range subcollections {
+		docRefs := convRef.Collection(subColName).DocumentRefs(ctx)
+		for {
+			docRef, err := docRefs.Next()
+			if errors.Is(err, iterator.Done) {
+				break
+			}
+			if err != nil {
+				return fmt.Errorf("failed listing %s documents: %w", subColName, err)
+			}
+			if _, err := bw.Delete(docRef); err != nil {
+				return fmt.Errorf("failed queuing deletion for %s: %w", docRef.Path, err)
+			}
+		}
+	}
+
+	// Queue deletion of parent conversation document
+	if _, err := bw.Delete(convRef); err != nil {
+		return fmt.Errorf("failed queuing conversation deletion: %w", err)
+	}
+
+	bw.Flush()
+	return nil
 }
 
 // ClearAll removes all conversations and subcollections.
-func (c *Client) ClearAll(_ context.Context) error {
-	return errors.New("not implemented")
+func (c *Client) ClearAll(ctx context.Context) error {
+	if c.client == nil {
+		return errors.New("firestore client is not initialized")
+	}
+
+	docRefs := c.client.Collection("conversations").DocumentRefs(ctx)
+	var convIDs []string
+	for {
+		docRef, err := docRefs.Next()
+		if errors.Is(err, iterator.Done) {
+			break
+		}
+		if err != nil {
+			return fmt.Errorf("failed listing conversations: %w", err)
+		}
+		convIDs = append(convIDs, docRef.ID)
+	}
+
+	for _, id := range convIDs {
+		if err := c.DeleteConversation(ctx, id); err != nil {
+			return fmt.Errorf("failed deleting conversation %s: %w", id, err)
+		}
+	}
+
+	return nil
 }
+
 
