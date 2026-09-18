@@ -24,9 +24,9 @@
 - [x] Task: Conductor - User Manual Verification 'Phase 3: CLI Command & Confirmation Mechanism' (Protocol in workflow.md)
 
 ## Phase 4: Integration Testing, Quality Gates & Documentation
-- [ ] Task: End-to-End Test and Verification
-    - [ ] Add an end-to-end test in `test/e2e_test.go` verifying full database clear followed by verification that local files are untouched and Firestore is empty
-    - [ ] Run `go test -race ./...`, `golangci-lint run`, and `go vet ./...` ensuring 0 warnings
+- [x] Task: End-to-End Test and Verification [1dec7e3]
+    - [x] Add end-to-end integration test in `test/e2e_test.go` verifying `agy-sync clear` with live Firestore emulator
+    - [x] Run full test suite with race detector (`go test -race ./...`) and `golangci-lint run`, and `go vet ./...` ensuring 0 warnings
 - [ ] Task: Documentation Update
     - [ ] Update `README.md` with documentation for `agy-sync clear`, available flags, and confirmation safety behavior
 - [ ] Task: Conductor - User Manual Verification 'Phase 4: Integration Testing, Quality Gates & Documentation' (Protocol in workflow.md)
