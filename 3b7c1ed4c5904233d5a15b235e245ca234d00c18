@@ -1,0 +1,6 @@
+Task: Complete models.Conversation Summary Fields
+
+Summary:
+- Added all 21 conversation_summaries columns to models.Conversation in pkg/models/models.go.
+- Added comprehensive serialization and validation tests in pkg/models/models_test.go.
+- Ensures full compatibility with Firestore document mapping and JSON output.
