@@ -14,7 +14,7 @@
 - [x] Task: Implement Syncer Clear Logic [60dfaf8]
     - [x] Write failing unit tests in `internal/syncer/clear_test.go` covering full clear and single-conversation clear
     - [x] Implement `Clear(ctx context.Context, opts ClearOptions) (*ClearResult, error)` on `syncer.Engine` in `internal/syncer/clear.go`
-- [ ] Task: Conductor - User Manual Verification 'Phase 2: Syncer Engine Clear Operation' (Protocol in workflow.md)
+- [x] Task: Conductor - User Manual Verification 'Phase 2: Syncer Engine Clear Operation' (Protocol in workflow.md)
 
 ## Phase 3: CLI Command & Confirmation Mechanism
 - [ ] Task: Add `agy-sync clear` Command
