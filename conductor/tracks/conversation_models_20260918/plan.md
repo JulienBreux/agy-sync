@@ -16,7 +16,7 @@
 - [x] Task: Integrate Trajectory DB Models in `internal/reconstructor/conversation.go` [1c41a5d]
     - [x] Write failing unit tests in `internal/reconstructor/conversation_test.go` validating typed table schema and step mapping using `models.ConversationDBStep` and `models.TrajectoryMeta`
     - [x] Refactor `internal/reconstructor/conversation.go` to utilize typed trajectory models
-- [ ] Task: Conductor - User Manual Verification 'Phase 2: Reconstructor Integration & Summary Mapping' (Protocol in workflow.md)
+- [x] Task: Conductor - User Manual Verification 'Phase 2: Reconstructor Integration & Summary Mapping' (Protocol in workflow.md)
 
 ## Phase 3: Push Pipeline Full Summary Extraction
 - [ ] Task: Extract and Push All Conversation Summary Attributes
