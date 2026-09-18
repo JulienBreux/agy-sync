@@ -25,9 +25,9 @@
 - [x] Task: Conductor - User Manual Verification 'Phase 3: Push Pipeline Full Summary Extraction' (Protocol in workflow.md)
 
 ## Phase 4: Pull Pipeline Workspace URI Adaptation & Restoration
-- [ ] Task: Implement Workspace URI Path Adaptation Helper
-    - [ ] Write failing unit tests in `internal/syncer/workspace_test.go` testing detection and replacement of cross-machine user home directory prefixes in `file://` URIs
-    - [ ] Implement path adaptation logic in `internal/syncer/workspace.go`
+- [x] Task: Implement Workspace URI Path Adaptation Helper [ee194a0]
+    - [x] Write failing unit tests in `internal/syncer/uri_adapter_test.go` verifying home prefix detection and replacement for `file:///Users/<user>/...` and `file:///home/<user>/...`
+    - [x] Implement `AdaptWorkspaceURIs(uris []string, destHome string)` in `internal/syncer/uri_adapter.go`
 - [ ] Task: Integrate Full Summary Upsert & URI Adaptation in Pull Engine
     - [ ] Write failing unit tests in `internal/syncer/pull_test.go` testing that pulling restores all 21 columns in `conversation_summaries.db` with adapted `workspace_uris`
     - [ ] Update `internal/syncer/pull.go` to adapt `workspace_uris` and pass all 21 parameters to `reconstructor.UpsertSummary`
