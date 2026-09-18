@@ -41,6 +41,19 @@ type Conversation struct {
 	LastUserInputTime      time.Time `json:"last_user_input_time,omitzero" firestore:"last_user_input_time,omitempty"`
 	LastUserInputStepIndex int       `json:"last_user_input_step_index,omitempty" firestore:"last_user_input_step_index,omitempty"`
 	RawSummary             []byte    `json:"raw_summary,omitempty" firestore:"raw_summary,omitempty"`
+	WorkspaceURIs          []string  `json:"workspace_uris,omitempty" firestore:"workspace_uris,omitempty"`
+	Status                 string    `json:"status,omitempty" firestore:"status,omitempty"`
+	Source                 string    `json:"source,omitempty" firestore:"source,omitempty"`
+	ProjectID              string    `json:"project_id,omitempty" firestore:"project_id,omitempty"`
+	AgentName              string    `json:"agent_name,omitempty" firestore:"agent_name,omitempty"`
+	ParentConversationID   string    `json:"parent_conversation_id,omitempty" firestore:"parent_conversation_id,omitempty"`
+	NestingDepth           int       `json:"nesting_depth,omitempty" firestore:"nesting_depth,omitempty"`
+	BattleID               string    `json:"battle_id,omitempty" firestore:"battle_id,omitempty"`
+	WinningConversationID  string    `json:"winning_conversation_id,omitempty" firestore:"winning_conversation_id,omitempty"`
+	NotFullyIdle           bool      `json:"not_fully_idle,omitempty" firestore:"not_fully_idle,omitempty"`
+	Killed                 bool      `json:"killed,omitempty" firestore:"killed,omitempty"`
+	AppDataDir             string    `json:"app_data_dir,omitempty" firestore:"app_data_dir,omitempty"`
+	GroupID                string    `json:"group_id,omitempty" firestore:"group_id,omitempty"`
 }
 
 // DBChunk represents a binary fragment of an Antigravity conversation SQLite database file.

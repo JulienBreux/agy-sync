@@ -102,3 +102,61 @@ func TestConversationDBMetadata(t *testing.T) {
 	assert.Equal(t, 3, decoded.LastUserInputStepIndex)
 	assert.Equal(t, []byte{0x01, 0x02, 0x03}, decoded.RawSummary)
 }
+
+func TestConversationAllSummaryFields(t *testing.T) {
+	now := time.Now().UTC().Truncate(time.Millisecond)
+	conv := &models.Conversation{
+		ID:                     "conv-full-summary",
+		Title:                  "Complete Summary Test",
+		Preview:                "Preview of complete summary",
+		StepCount:              10,
+		CreatedAt:              now,
+		UpdatedAt:              now,
+		LastSyncedStep:         9,
+		SourceMachine:          "macbook-pro",
+		DBSHA256:               "sha256-mock",
+		DBSizeBytes:            2048,
+		DBChunksCount:          1,
+		LastUserInputTime:      now,
+		LastUserInputStepIndex: 5,
+		RawSummary:             []byte("raw-protobuf-blob"),
+		WorkspaceURIs:          []string{"file:///Users/julienbreux/Projects/agy-sync"},
+		Status:                 "active",
+		Source:                 "cli",
+		ProjectID:              "default-cli-project",
+		AgentName:              "conductor",
+		ParentConversationID:   "parent-conv-1",
+		NestingDepth:           1,
+		BattleID:               "battle-123",
+		WinningConversationID:  "conv-full-summary",
+		NotFullyIdle:           true,
+		Killed:                 false,
+		AppDataDir:             "/Users/julienbreux/.gemini/antigravity-cli",
+		GroupID:                "group-abc",
+	}
+
+	data, err := json.Marshal(conv)
+	require.NoError(t, err)
+
+	var decoded models.Conversation
+	err = json.Unmarshal(data, &decoded)
+	require.NoError(t, err)
+
+	assert.Equal(t, conv.ID, decoded.ID)
+	assert.Equal(t, conv.Title, decoded.Title)
+	assert.Equal(t, conv.Preview, decoded.Preview)
+	assert.Equal(t, conv.StepCount, decoded.StepCount)
+	assert.Equal(t, conv.WorkspaceURIs, decoded.WorkspaceURIs)
+	assert.Equal(t, "active", decoded.Status)
+	assert.Equal(t, "cli", decoded.Source)
+	assert.Equal(t, "default-cli-project", decoded.ProjectID)
+	assert.Equal(t, "conductor", decoded.AgentName)
+	assert.Equal(t, "parent-conv-1", decoded.ParentConversationID)
+	assert.Equal(t, 1, decoded.NestingDepth)
+	assert.Equal(t, "battle-123", decoded.BattleID)
+	assert.Equal(t, "conv-full-summary", decoded.WinningConversationID)
+	assert.True(t, decoded.NotFullyIdle)
+	assert.False(t, decoded.Killed)
+	assert.Equal(t, "/Users/julienbreux/.gemini/antigravity-cli", decoded.AppDataDir)
+	assert.Equal(t, "group-abc", decoded.GroupID)
+}
