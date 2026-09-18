@@ -20,7 +20,9 @@ Antigravity stores session states, tool executions, and generated artifacts loca
 - **Bidirectional Multi-Machine Sync:** Keep *n* machines synchronized in real-time. Changes written on Machine Alpha stream to Firestore and are automatically pulled onto Machine Beta.
 - **Append-Only Step Log:** Monotonic step indices (`step_000001`, `step_000002`, ...) prevent merge conflicts, data loss, or out-of-order writes.
 - **Byte-for-Byte SQLite Database Sync:** Snapshots active Antigravity WAL databases via `VACUUM INTO` and transfers them chunked (512KB slices) to Firestore with SHA256 integrity validation, guaranteeing 100% authentic tool executions, protobuf payloads, and resumption history across devices (e.g. Google Cloud Shell).
-- **Summary & Title Fidelity:** Extracts and syncs human-readable titles, first-prompt previews, step counts, and protobuf summary blobs to `conversation_summaries.db`, eliminating raw UUID labels in the `agy` interactive picker.
+- **Full 21-Column Summary Fidelity:** Synchronizes and strictly mirrors all 21 columns of `conversation_summaries.db` (including `title`, `preview`, `workspace_uris`, `agent_name`, `project_id`, `status`, `battle_id`, `winning_conversation_id`, and protobuf summary blobs), ensuring seamless picker display and session resumption.
+- **Cross-Machine Workspace URI Adaptation:** Automatically adapts `workspace_uris` from macOS (`/Users/<user>/...`) or Linux (`/home/<user>/...`) paths to match the target machine's current user home directory, allowing instant history binding and project matching.
+- **Typed Trajectory Database Modeling:** Full structural schema support for all 7 Antigravity conversation database tables (`steps`, `trajectory_meta`, `gen_metadata`, `executor_metadata`, `parent_references`, `trajectory_metadata_blob`, `battle_mode_infos`).
 - **Automatic Fallback Reconstruction:** If chunked database snapshots are unavailable, the local SQLite database and summaries are reconstructed from transcript JSONL logs automatically.
 - **Loop Prevention:** Every sync payload is tagged with the origin machine's unique `MachineID`. Machines automatically ignore echoes of their own updates.
 - **Real-time Filesystem Watcher:** Non-blocking `fsnotify` watcher detects incremental transcript appends (`transcript.jsonl`) and new artifact files with sub-second latency and debouncing.
@@ -80,7 +82,13 @@ flowchart TD
 ```
 conversations/
 └── {conversation_id}
-    ├── metadata: { id, title, preview, step_count, last_user_input_time, created_at, updated_at, db_sha256, db_size_bytes, db_chunks_count, last_synced_step, source_machine }
+    ├── metadata: {
+    │     id, title, preview, step_count, last_user_input_time, created_at, updated_at,
+    │     workspace_uris, status, source, project_id, agent_name, parent_conversation_id,
+    │     nesting_depth, battle_id, winning_conversation_id, not_fully_idle, killed,
+    │     last_user_input_step_index, app_data_dir, raw_summary, group_id,
+    │     db_sha256, db_size_bytes, db_chunks_count, last_synced_step, source_machine
+    │   }
     ├── steps/
     │   ├── step_000001: { step_index, source, type, status, content, thinking, tool_calls, machine_id, timestamp }
     │   └── step_000002: { ... }
@@ -94,12 +102,21 @@ conversations/
 
 ### Collections & Documents
 
-| Path                                     | Purpose                                   | Key Attributes                                                     |
-| :--------------------------------------- | :---------------------------------------- | :----------------------------------------------------------------- |
-| `/conversations/{id}`                    | Conversation parent document              | `title`, `preview`, `step_count`, `db_sha256`, `last_synced_step`  |
-| `/conversations/{id}/steps/{stepIndex}`  | Immutable transcript turn                 | `step_index`, `type`, `source`, `content`, `machine_id`            |
-| `/conversations/{id}/artifacts/{id}`     | User/planner generated artifacts          | `path`, `sha256`, `size_bytes`, `content`                          |
-| `/conversations/{id}/db_chunks/{index}`  | Chunked raw SQLite database slices (512K) | `chunk_index`, `total_chunks`, `size_bytes`, `sha256`, `data`      |
+| Path                                     | Purpose                                   | Key Attributes                                                                 |
+| :--------------------------------------- | :---------------------------------------- | :----------------------------------------------------------------------------- |
+| `/conversations/{id}`                    | Conversation parent document              | Full 21-column summary metadata, `workspace_uris`, `db_sha256`, `last_synced_step` |
+| `/conversations/{id}/steps/{stepIndex}`  | Immutable transcript turn                 | `step_index`, `type`, `source`, `content`, `machine_id`                        |
+| `/conversations/{id}/artifacts/{id}`     | User/planner generated artifacts          | `path`, `sha256`, `size_bytes`, `content`                                      |
+| `/conversations/{id}/db_chunks/{index}`  | Chunked raw SQLite database slices (512K) | `chunk_index`, `total_chunks`, `size_bytes`, `sha256`, `data`                  |
+
+### Cross-Machine Workspace URI Adaptation
+
+Antigravity stores local project workspaces as absolute file URIs (e.g. `file:///Users/alice/Projects/my-app` on macOS or `file:///home/alice/Projects/my-app` on Linux). When pulling sessions onto a different workstation (e.g. machine user `bob`), `agy-sync` dynamically adapts the workspace URI prefix:
+```
+file:///Users/alice/Projects/my-app  -->  file:///Users/bob/Projects/my-app
+file:///home/alice/Projects/my-app   -->  file:///home/bob/Projects/my-app
+```
+This guarantees that Antigravity's session selector instantly discovers and links conversations to the active workspace on the current device.
 
 ---
 
