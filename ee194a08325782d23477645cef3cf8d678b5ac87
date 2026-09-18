@@ -1,0 +1,5 @@
+Task: Implement Workspace URI Path Adaptation Helper
+
+Summary:
+- Added AdaptWorkspaceURIs in internal/syncer/uri_adapter.go to map macOS/Linux home prefixes to local user home path.
+- Added comprehensive tests in uri_adapter_test.go for macOS, Linux, bare home paths, trailing slashes, and non-file URIs.
