@@ -1,0 +1,6 @@
+Task: Implement Syncer Clear Logic
+
+Summary:
+- Added Clear method to syncer.Engine supporting both whole-database purge and single-conversation deletion.
+- Introduced ClearOptions and ClearResult types.
+- Added comprehensive unit tests in clear_test.go covering full clear, single conversation clear, and context cancellation.
