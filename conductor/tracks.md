@@ -41,7 +41,7 @@
 
 ---
 
-- [ ] **Track: Add a feature to clear Firestore database (useful for test), add confirmation mechanism**
+- [~] **Track: Add a feature to clear Firestore database (useful for test), add confirmation mechanism**
   *Link: [./tracks/clear_database_20260918/index.md](./tracks/clear_database_20260918/index.md)*
 
 
