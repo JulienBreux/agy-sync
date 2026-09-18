@@ -37,6 +37,6 @@
 - [x] Task: Multi-Machine Full Fidelity E2E Integration Test [881b017]
     - [x] Add an end-to-end integration test in `test/e2e_test.go` simulating Machine A (pushing with full 21 summary columns & trajectory tables) and Machine B (pulling with different user home path), asserting exact table content and adapted `workspace_uris`
     - [x] Run `go test -race ./...`, `golangci-lint run`, and `go vet ./...` ensuring 0 warnings
-- [ ] Task: Update Documentation
-    - [ ] Update `README.md` and track documentation detailing full conversation summaries table synchronization and trajectory models
+- [x] Task: Update Documentation [7a492a8]
+    - [x] Update `README.md` and track documentation detailing full conversation summaries table synchronization and trajectory models
 - [ ] Task: Conductor - User Manual Verification 'Phase 5: End-to-End Testing, Linting & Documentation' (Protocol in workflow.md)
