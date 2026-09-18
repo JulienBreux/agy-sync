@@ -22,7 +22,7 @@
 - [x] Task: Extract and Push All Conversation Summary Attributes [67217db]
     - [x] Write failing unit tests in `internal/syncer/push_test.go` validating that all 21 columns from local `conversation_summaries.db` are extracted and stored into `models.Conversation` before Firestore upsert
     - [x] Update `internal/syncer/push.go` to populate all fields on `remoteConv` from `ReadLocalSummary` with strict title mirroring
-- [ ] Task: Conductor - User Manual Verification 'Phase 3: Push Pipeline Full Summary Extraction' (Protocol in workflow.md)
+- [x] Task: Conductor - User Manual Verification 'Phase 3: Push Pipeline Full Summary Extraction' (Protocol in workflow.md)
 
 ## Phase 4: Pull Pipeline Workspace URI Adaptation & Restoration
 - [ ] Task: Implement Workspace URI Path Adaptation Helper
