@@ -250,7 +250,7 @@ artifact counts against remote Firestore metadata, and reports daemon process he
 				IsTTY:           isTTY,
 				In:              cmd.InOrStdin(),
 				Out:             cmd.OutOrStdout(),
-				Overhead:        17,
+				Overhead:        19,
 				AlternateScreen: true,
 			})
 
@@ -259,9 +259,14 @@ artifact counts against remote Firestore metadata, and reports daemon process he
 				renderStatusSummary(report, out)
 				out.WriteString("\n\n")
 
-				fmt.Fprintf(out, "%-38s %-12s %-12s %-10s %-10s %-8s\n",
-					"CONVERSATION ID", "LOCAL STEPS", "REMOTE STEPS", "ARTIFACTS", "LOCAL DB", "SYNCED")
-				out.WriteString(strings.Repeat("-", 94) + "\n")
+				headerPrefix := ""
+				if isTTY {
+					headerPrefix = "  "
+				}
+
+				fmt.Fprintf(out, "%s%-38s %-12s %-12s %-10s %-10s %-8s\n",
+					headerPrefix, "CONVERSATION ID", "LOCAL STEPS", "REMOTE STEPS", "ARTIFACTS", "LOCAL DB", "SYNCED")
+				out.WriteString(headerPrefix + strings.Repeat("-", 95) + "\n")
 
 				for i := start; i < end; i++ {
 					c := report.Conversations[i]
@@ -273,12 +278,20 @@ artifact counts against remote Firestore metadata, and reports daemon process he
 					if c.HasLocalDB {
 						dbStr = "Yes"
 					}
-					fmt.Fprintf(out, "%-38s %-12d %-12d %-10d %-10s %-8s\n",
-						c.ID, c.LocalSteps, c.RemoteSteps, c.ArtifactsCount, dbStr, syncedStr)
+					prefix := ""
+					if isTTY {
+						if i == selected {
+							prefix = "> "
+						} else {
+							prefix = "  "
+						}
+					}
+					fmt.Fprintf(out, "%s%-38s %-12d %-12d %-10d %-10s %-8s\n",
+						prefix, c.ID, c.LocalSteps, c.RemoteSteps, c.ArtifactsCount, dbStr, syncedStr)
 				}
 
 				if isTTY {
-					out.WriteString(strings.Repeat("-", 94) + "\n")
+					out.WriteString(headerPrefix + strings.Repeat("-", 95) + "\n")
 					pageSize := end - start
 					if pageSize <= 0 {
 						pageSize = 1

@@ -71,6 +71,22 @@ func (p *Paginator) SetPage(page int) {
 	p.currentPage = page
 }
 
+// PageSize returns the current page size.
+func (p *Paginator) PageSize() int {
+	return p.pageSize
+}
+
+// SetPageSize updates page size and adjusts current page.
+func (p *Paginator) SetPageSize(size int) {
+	if size < 1 {
+		size = 1
+	}
+	p.pageSize = size
+	if p.selectedRow >= 0 {
+		p.currentPage = p.selectedRow / p.pageSize
+	}
+}
+
 // SelectedRow returns the 0-indexed selected row across all items.
 func (p *Paginator) SelectedRow() int {
 	return p.selectedRow
@@ -223,6 +239,12 @@ func ParseKey(buf []byte) (KeyAction, int) {
 	return ActionNone, 1
 }
 
+// ToCRLF ensures all newlines are preceded by a carriage return to prevent staircasing in raw terminal mode.
+func ToCRLF(b []byte) []byte {
+	b = bytes.ReplaceAll(b, []byte("\r\n"), []byte("\n"))
+	return bytes.ReplaceAll(b, []byte("\n"), []byte("\r\n"))
+}
+
 // Options configures the Pager runner.
 type Options struct {
 	IsTTY           bool
@@ -301,22 +323,34 @@ func (p *Pager) Run(totalItems int, renderFn RenderFunc) error {
 	}
 
 	if p.opts.AlternateScreen {
-		_, _ = p.opts.Out.Write([]byte("\x1b[?1049h\x1b[H"))
+		_, _ = p.opts.Out.Write([]byte("\x1b[?1049h\x1b[H\x1b[?25l"))
 		defer func() {
-			_, _ = p.opts.Out.Write([]byte("\x1b[?1049l"))
+			_, _ = p.opts.Out.Write([]byte("\x1b[?25h\x1b[?1049l"))
 		}()
 	}
 
 	// Render loop
 	var pending []byte
 	for {
+		if p.opts.Height <= 0 {
+			if fd := int(os.Stdout.Fd()); term.IsTerminal(fd) {
+				if _, h, err := term.GetSize(fd); err == nil && h > 0 {
+					newPageSize := DerivePageSize(h, p.opts.Overhead, 15)
+					if newPageSize != paginator.PageSize() {
+						paginator.SetPageSize(newPageSize)
+					}
+				}
+			}
+		}
+
 		start, end := paginator.PageBounds()
 		var screen bytes.Buffer
 		// Clear screen and move cursor to top-left
 		screen.WriteString("\x1b[H\x1b[2J")
 		renderFn(start, end, paginator.SelectedRow(), &screen)
 
-		if _, err := p.opts.Out.Write(screen.Bytes()); err != nil {
+		outBytes := ToCRLF(screen.Bytes())
+		if _, err := p.opts.Out.Write(outBytes); err != nil {
 			return err
 		}
 

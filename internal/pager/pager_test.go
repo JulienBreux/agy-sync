@@ -228,3 +228,22 @@ func TestPager_InteractiveSimulation(t *testing.T) {
 	// After 'l' (Right arrow / next page), lastStart should be page 1 start index = 10
 	assert.Equal(t, 10, lastStart)
 }
+
+func TestToCRLF(t *testing.T) {
+	input := []byte("line1\nline2\r\nline3\n")
+	expected := []byte("line1\r\nline2\r\nline3\r\n")
+	assert.Equal(t, expected, pager.ToCRLF(input))
+}
+
+func TestPaginator_SetPageSize(t *testing.T) {
+	p := pager.NewPaginator(50, 10)
+	p.SetSelectedRow(25)
+	assert.Equal(t, 2, p.CurrentPage())
+
+	p.SetPageSize(20)
+	assert.Equal(t, 20, p.PageSize())
+	assert.Equal(t, 1, p.CurrentPage()) // 25 / 20 = 1
+
+	p.SetPageSize(0)
+	assert.Equal(t, 1, p.PageSize(), "min page size is 1")
+}
