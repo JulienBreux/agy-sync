@@ -1,0 +1,7 @@
+Task: Design and Implement Setup Checker Interfaces and GCP Diagnostics
+
+Summary:
+- Defined CheckResult, CheckStatus, SetupReport, and Checker interfaces in internal/setup/types.go.
+- Implemented GCPChecker in internal/setup/checker.go diagnosing ADC credentials, project accessibility, required GCP APIs, Firestore database state, Cloud Storage, and local directories/configs.
+- Added comprehensive unit tests in internal/setup/checker_test.go covering passing/failing auth, project validation, disabled APIs, dry-run mode, and local paths.
+- Tested with race detector and passed golangci-lint with 0 issues.
