@@ -27,7 +27,7 @@ Antigravity stores session states, tool executions, and generated artifacts loca
 - **Loop Prevention:** Every sync payload is tagged with the origin machine's unique `MachineID`. Machines automatically ignore echoes of their own updates.
 - **Real-time Filesystem Watcher:** Non-blocking `fsnotify` watcher detects incremental transcript appends (`transcript.jsonl`) and new artifact files with sub-second latency and debouncing.
 - **Byte-Offset Incremental Streaming:** Efficiently reads only newly appended JSONL bytes without re-parsing entire conversation histories.
-- **Artifact Hash Deduplication:** SHA256 checksum comparison avoids redundant network uploads for unchanged artifacts.
+- **Offline Transaction Audit Ledger:** High-performance local SQLite database (`~/.config/agy-sync/transactions.db`) recording all inbound (`IMPORT`) and outbound (`EXPORT`) synchronization operations across conversations, artifacts, and brain assets, with directional and entity filtering.
 - **Production-Grade Observability:** Leveled logging, structured error messages with user remediation hints, and full `--json` output support for scripting and automation.
 
 ---
@@ -311,6 +311,56 @@ CONVERSATION ID                        LOCAL STEPS  REMOTE STEPS ARTIFACTS  LOCA
 
 ---
 
+### `agy-sync transactions`
+Displays an audit log of synchronization transactions between the local Antigravity brain and Firestore. Transactions are persistently stored in a fast local SQLite database (`~/.config/agy-sync/transactions.db`) and capture all inbound (`IMPORT`) and outbound (`EXPORT`) operations for conversations, artifacts, and brain assets.
+
+```bash
+# Display recent synchronization transactions (tabular output)
+agy-sync transactions
+
+# Filter by direction: IMPORT or EXPORT
+agy-sync transactions --in
+agy-sync transactions --out
+agy-sync transactions --direction in
+
+# Filter by entity type: conversation, artifact, or brain asset
+agy-sync transactions --conv
+agy-sync transactions --artifact
+agy-sync transactions --brain
+agy-sync transactions --type artifact
+
+# Filter by conversation ID and limit results
+agy-sync transactions -c 624296c6-d623-4c39-92d4-3906f8c07140 --limit 20
+
+# Output machine-readable JSON
+agy-sync transactions --json
+```
+
+**Flags:**
+- `--direction <in|out>`: Filter by transaction direction (`in` for IMPORT, `out` for EXPORT).
+- `--in`: Convenience shorthand to filter inbound (`IMPORT`) transactions.
+- `--out`: Convenience shorthand to filter outbound (`EXPORT`) transactions.
+- `--type <conv|artifact|brain>`: Filter by entity type (`conv`, `artifact`, `brain`).
+- `--conv`: Convenience shorthand to filter conversation metadata transactions.
+- `--artifact`: Convenience shorthand to filter artifact file transactions.
+- `--brain`: Convenience shorthand to filter brain assets (steps & SQLite snapshots).
+- `-c, --conversation <string>`: Filter transactions by specific conversation ID.
+- `-n, --limit <int>`: Maximum number of transactions to display (default: `50`).
+- `--offset <int>`: Number of transactions to skip (default: `0`).
+- `--db <path>`: Override path to the local transactions SQLite database.
+
+**Sample Terminal Output:**
+```
+TIMESTAMP            ACTION    TYPE        CONVERSATION ID                       ENTITY                DETAILS
+--------------------------------------------------------------------------------------------------------------
+2026-09-19 08:35:10  EXPORT    conv        624296c6-d623-4c39-92d4-3906f8c07140  624296c6-...          steps: 42
+2026-09-19 08:35:10  EXPORT    artifact    624296c6-d623-4c39-92d4-3906f8c07140  design.md             size: 1024 bytes
+2026-09-19 08:35:10  EXPORT    brain       624296c6-d623-4c39-92d4-3906f8c07140  transcript.jsonl      +3 steps
+2026-09-19 08:36:22  IMPORT    brain       624296c6-d623-4c39-92d4-3906f8c07140  transcript.jsonl      +3 steps
+```
+
+---
+
 ### `agy-sync version`
 Displays binary version, git commit hash, build date, Go runtime environment, and target architecture.
 
@@ -342,6 +392,7 @@ machine_id: "macbook-pro-work"
 brain_dir: "/Users/alice/.gemini/antigravity-cli/brain"
 conversations_dir: "/Users/alice/.gemini/antigravity-cli/conversations"
 summaries_db: "/Users/alice/.gemini/antigravity-cli/conversation_summaries.db"
+transactions_db: "/Users/alice/.config/agy-sync/transactions.db"
 no_db_sync: false
 sync_interval_seconds: 2
 log_level: "INFO"
@@ -357,6 +408,7 @@ log_level: "INFO"
 | `AGY_SYNC_BRAIN_DIR`             | Antigravity brain path                       | `~/.gemini/antigravity-cli/brain`                     |
 | `AGY_SYNC_CONVERSATIONS_DIR`     | Antigravity conversations directory          | `~/.gemini/antigravity-cli/conversations`             |
 | `AGY_SYNC_SUMMARIES_DB`          | Path to conversation summaries SQLite DB     | `~/.gemini/antigravity-cli/conversation_summaries.db` |
+| `AGY_SYNC_TRANSACTIONS_DB`       | Path to transactions SQLite DB               | `~/.config/agy-sync/transactions.db`                  |
 | `AGY_SYNC_NO_DB_SYNC`            | Disable SQLite database reconstruction       | `false`                                               |
 | `AGY_SYNC_SYNC_INTERVAL_SECONDS` | Polling interval                             | `2`                                                   |
 | `AGY_SYNC_LOG_LEVEL`             | Log level (`DEBUG`, `INFO`, `WARN`, `ERROR`) | `INFO`                                                |
