@@ -44,4 +44,9 @@
 - [x] **Track: Add a feature to clear Firestore database (useful for test), add confirmation mechanism**
   *Link: [./tracks/clear_database_20260918/index.md](./tracks/clear_database_20260918/index.md)*
 
+---
+
+- [ ] **Track: Display clearing database progression instead of outputting the log, the user has to feel confident during the process**
+  *Link: [./tracks/clear_progress_20260919/index.md](./tracks/clear_progress_20260919/index.md)*
+
 

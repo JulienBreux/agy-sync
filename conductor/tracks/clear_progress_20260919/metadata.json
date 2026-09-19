@@ -1,0 +1,8 @@
+{
+  "track_id": "clear_progress_20260919",
+  "type": "feature",
+  "status": "new",
+  "created_at": "2026-09-19T08:21:15Z",
+  "updated_at": "2026-09-19T08:21:15Z",
+  "description": "Display clearing database progression instead of outputting the log, the user has to feel confident during the process"
+}
