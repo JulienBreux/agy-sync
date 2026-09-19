@@ -11,7 +11,7 @@
     - [x] Write unit tests in `cmd/status_test.go` verifying default output omits conversation table, `--full` flag includes conversations, `--json` omits/includes conversations array, and non-TTY streaming
     - [x] Update `cmd/status.go` adding `--full` flag, default compact overview with hint, JSON conditional field rendering, and interactive pager invocation
     - [x] Fix raw terminal staircasing by normalizing all newlines to CRLF (`\r\n`), add dynamic window resize support, and row selection indicator `>`
-- [ ] Task: Conductor - User Manual Verification 'Phase 2: Status Command Integration & Flag Handling' (Protocol in workflow.md)
+- [x] Task: Conductor - User Manual Verification 'Phase 2: Status Command Integration & Flag Handling' (Protocol in workflow.md)
 
 ## Phase 3: Integration Testing, Quality Gates & Documentation
 - [ ] Task: End-to-End Verification & Quality Gates
