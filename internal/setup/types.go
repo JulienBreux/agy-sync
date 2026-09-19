@@ -57,3 +57,37 @@ type Checker interface {
 	CheckStorage(ctx context.Context, projectID string) CheckItem
 	CheckLocal(ctx context.Context, opts CheckOptions) CheckItem
 }
+
+// ProvisionOptions defines parameters for creating Firestore databases and enabling APIs.
+type ProvisionOptions struct {
+	ProjectID     string
+	DatabaseID    string
+	Location      string
+	DryRun        bool
+	AutoApprove   bool
+	ConfirmPrompt func(prompt string) (bool, error)
+}
+
+// ProvisionResult encapsulates the outcome of a database provisioning request.
+type ProvisionResult struct {
+	Created    bool   `json:"created"`
+	DatabaseID string `json:"database_id"`
+	Location   string `json:"location"`
+	Type       string `json:"type"`
+	Message    string `json:"message"`
+}
+
+// EnableAPIsResult encapsulates the result of enabling project service APIs.
+type EnableAPIsResult struct {
+	Enabled        []string `json:"enabled"`
+	AlreadyEnabled []string `json:"already_enabled,omitempty"`
+	Skipped        []string `json:"skipped,omitempty"`
+	Message        string   `json:"message"`
+}
+
+// Provisioner defines the interface for creating databases and enabling service APIs.
+type Provisioner interface {
+	CreateDatabase(ctx context.Context, opts ProvisionOptions) (*ProvisionResult, error)
+	EnableAPIs(ctx context.Context, projectID string, apis []string, dryRun bool) (*EnableAPIsResult, error)
+}
+
