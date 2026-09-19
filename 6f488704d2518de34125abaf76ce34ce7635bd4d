@@ -1,0 +1,7 @@
+Task: Design and Implement SQLite Transaction Store
+
+Summary:
+- Defined Transaction, Direction, EntityType, Status, and Filter models in internal/transaction/transaction.go.
+- Implemented SQLiteStore with WAL mode, auto-migration, and indexed queries in internal/transaction/store.go.
+- Added comprehensive unit test suite in internal/transaction/store_test.go covering insertions, direction/type/conversation filters, pagination, and thread-safety.
+- Passed race detector and linter with 0 issues.
