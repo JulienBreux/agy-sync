@@ -5,7 +5,7 @@
     - [x] Define `CheckResult`, `CheckStatus`, `SetupReport`, and `Checker` interfaces in `internal/setup/types.go`
     - [x] Write failing unit tests in `internal/setup/checker_test.go` covering credential validation, project access, API enablement, database verification, and dry-run mode
     - [x] Implement `GCPChecker` in `internal/setup/checker.go` checking ADC credentials, Cloud Resource Manager project access, Service Usage API status, and Firestore database existence
-- [ ] Task: Conductor - User Manual Verification 'Phase 1: GCP Diagnostic and Management Core Client' (Protocol in workflow.md)
+- [x] Task: Conductor - User Manual Verification 'Phase 1: GCP Diagnostic and Management Core Client' (Protocol in workflow.md)
 
 ## Phase 2: Firestore Database Creation and Mutation Engine (`internal/setup/`)
 - [ ] Task: Implement Database Provisioning and Service Enablement
