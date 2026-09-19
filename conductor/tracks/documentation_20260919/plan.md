@@ -9,7 +9,7 @@
 - [x] Task: Create Cloud Setup, Diagnostics, and Database Operations Guides [dd84a85]
     - [x] Create `docs/setup-and-cloud.md` detailing Google Cloud authentication (ADC), `setup` command diagnostics, Firestore provisioning, and dry-run mode
     - [x] Create `docs/transactions-and-db.md` detailing SQLite transaction audit logs, filtering options, and database clearing operations (`clear` with interactive/force protection)
-- [ ] Task: Conductor - User Manual Verification 'Phase 1: Deep-Dive Feature Guides (`docs/`)' (Protocol in workflow.md)
+- [x] Task: Conductor - User Manual Verification 'Phase 1: Deep-Dive Feature Guides (`docs/`)' (Protocol in workflow.md)
 
 ## Phase 2: Modernized Top-Level README (`README.md`) & Quality Verification
 - [ ] Task: Overhaul Top-Level README
