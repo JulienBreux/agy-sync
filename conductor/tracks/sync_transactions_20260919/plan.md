@@ -8,11 +8,11 @@
 - [x] Task: Conductor - User Manual Verification 'Phase 1: Local Transaction Storage Engine' (Protocol in workflow.md)
 
 ## Phase 2: Transaction Recording Integration in Syncer Engine
-- [ ] Task: Wire Transaction Recorder into Syncer Engine
-    - [ ] Add `TransactionsDB` path to `config.Config` with default `~/.config/agy-sync/transactions.db`
-    - [ ] Inject `transaction.Store` into `syncer.Engine`
-    - [ ] Write failing unit tests in `internal/syncer/push_test.go` and `internal/syncer/pull_test.go` verifying transaction events are recorded
-    - [ ] Implement transaction emission during push (export conv, artifact, brain) and pull (import conv, artifact, brain)
+- [x] Task: Wire Transaction Recorder into Syncer Engine [5dcc7a3]
+    - [x] Add `TransactionsDB` path to `config.Config` with default `~/.config/agy-sync/transactions.db`
+    - [x] Inject `transaction.Store` into `syncer.Engine`
+    - [x] Write failing unit tests in `internal/syncer/push_test.go` and `internal/syncer/pull_test.go` verifying transaction events are recorded
+    - [x] Implement transaction emission during push (export conv, artifact, brain) and pull (import conv, artifact, brain)
 - [ ] Task: Conductor - User Manual Verification 'Phase 2: Transaction Recording Integration in Syncer Engine' (Protocol in workflow.md)
 
 ## Phase 3: CLI Command `agy-sync transactions`
