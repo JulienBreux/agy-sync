@@ -18,7 +18,7 @@
     - [x] Write failing unit tests in `cmd/setup_test.go` verifying flag handling (`--dry-run`, `--yes`, `--project-id`, `--database-id`, `--location`), interactive prompts, exit codes, and `--json` format
     - [x] Implement `cmd/setup.go` with Cobra command definition, interactive login trigger, and visual checklist ASCII renderer with status badges (`[✓]`, `[✗]`, `[!]`) and remediation hints
     - [x] Register `setupCmd` in `cmd/root.go` under `setup` group
-- [ ] Task: Conductor - User Manual Verification 'Phase 3: CLI Command agy-sync setup' (Protocol in workflow.md)
+- [x] Task: Conductor - User Manual Verification 'Phase 3: CLI Command agy-sync setup' (Protocol in workflow.md)
 
 ## Phase 4: Integration Testing, Quality Gates & Documentation
 - [ ] Task: End-to-End Verification & Quality Gates
