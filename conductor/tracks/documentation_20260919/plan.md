@@ -14,7 +14,7 @@
 ## Phase 2: Modernized Top-Level README (`README.md`) & Quality Verification
 - [x] Task: Overhaul Top-Level README [2d9b7f6]
     - [x] Rewrite `README.md` to feature a concise hero pitch, 3-step quickstart, high-level Mermaid architecture diagram, CLI subcommand matrix linking to `docs/`, and configuration table
-- [~] Task: Cross-Link & Markdown Quality Gates
-    - [ ] Validate all relative markdown links between `README.md` and `docs/*.md`
-    - [ ] Verify command syntax, flags, and outputs match the latest CLI implementation
+- [x] Task: Cross-Link & Markdown Quality Gates [ed7b417]
+    - [x] Validate all relative markdown links between `README.md` and `docs/*.md`
+    - [x] Verify command syntax, flags, and outputs match the latest CLI implementation
 - [ ] Task: Conductor - User Manual Verification 'Phase 2: Modernized Top-Level README (`README.md`) & Quality Verification' (Protocol in workflow.md)
