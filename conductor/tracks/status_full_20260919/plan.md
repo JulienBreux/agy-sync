@@ -7,9 +7,9 @@
 - [x] Task: Conductor - User Manual Verification 'Phase 1: Viewport Pager & Navigation Engine' (Protocol in workflow.md)
 
 ## Phase 2: Status Command Integration & Flag Handling (`cmd/status.go`)
-- [ ] Task: Implement `--full` Flag and Default Compact Status
-    - [ ] Write unit tests in `cmd/status_test.go` verifying default output omits conversation table, `--full` flag includes conversations, `--json` omits/includes conversations array, and non-TTY streaming
-    - [ ] Update `cmd/status.go` adding `--full` flag, default compact overview with hint, JSON conditional field rendering, and interactive pager invocation
+- [x] Task: Implement `--full` Flag and Default Compact Status [02ef9d8]
+    - [x] Write unit tests in `cmd/status_test.go` verifying default output omits conversation table, `--full` flag includes conversations, `--json` omits/includes conversations array, and non-TTY streaming
+    - [x] Update `cmd/status.go` adding `--full` flag, default compact overview with hint, JSON conditional field rendering, and interactive pager invocation
 - [ ] Task: Conductor - User Manual Verification 'Phase 2: Status Command Integration & Flag Handling' (Protocol in workflow.md)
 
 ## Phase 3: Integration Testing, Quality Gates & Documentation
