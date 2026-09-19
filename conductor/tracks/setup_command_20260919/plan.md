@@ -14,10 +14,10 @@
 - [x] Task: Conductor - User Manual Verification 'Phase 2: Firestore Database Creation and Mutation Engine' (Protocol in workflow.md)
 
 ## Phase 3: CLI Command `agy-sync setup` (`cmd/setup.go`)
-- [ ] Task: Implement `setup` Cobra Command and Visual Checklist Formatter
-    - [ ] Write failing unit tests in `cmd/setup_test.go` verifying flag handling (`--dry-run`, `--yes`, `--project-id`, `--database-id`, `--location`), interactive prompts, exit codes, and `--json` format
-    - [ ] Implement `cmd/setup.go` with Cobra command definition, interactive login trigger, and visual checklist ASCII renderer with status badges (`[✓]`, `[✗]`, `[!]`) and remediation hints
-    - [ ] Register `setupCmd` in `cmd/root.go` under `setup` group
+- [x] Task: Implement `setup` Cobra Command and Visual Checklist Formatter [9b252d3]
+    - [x] Write failing unit tests in `cmd/setup_test.go` verifying flag handling (`--dry-run`, `--yes`, `--project-id`, `--database-id`, `--location`), interactive prompts, exit codes, and `--json` format
+    - [x] Implement `cmd/setup.go` with Cobra command definition, interactive login trigger, and visual checklist ASCII renderer with status badges (`[✓]`, `[✗]`, `[!]`) and remediation hints
+    - [x] Register `setupCmd` in `cmd/root.go` under `setup` group
 - [ ] Task: Conductor - User Manual Verification 'Phase 3: CLI Command agy-sync setup' (Protocol in workflow.md)
 
 ## Phase 4: Integration Testing, Quality Gates & Documentation
