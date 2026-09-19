@@ -1,0 +1,7 @@
+Task: End-to-End Testing and Quality Assurance
+
+Summary:
+- Added TestE2E_TransactionsAuditLogging in test/e2e_test.go covering multi-machine roundtrip push (EXPORT) and pull (IMPORT).
+- Verified transactions recorded in transaction.Store on both Alpha and Beta machines for conversation steps, artifacts, and brain assets.
+- Verified CLI transactions command execution against both database instances with directional filters.
+- Ran project-wide go test -race ./..., go vet ./..., and golangci-lint run with 0 errors and 0 issues.
