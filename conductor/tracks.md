@@ -66,7 +66,7 @@
 
 ---
 
-- [~] **Track: Improve the documentation of the project with a simple great readme and a multiple feature documentation**
+- [x] **Track: Improve the documentation of the project with a simple great readme and a multiple feature documentation**
   *Link: [./tracks/documentation_20260919/index.md](./tracks/documentation_20260919/index.md)*
 
 

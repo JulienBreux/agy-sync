@@ -1,7 +1,7 @@
 {
   "track_id": "documentation_20260919",
   "type": "feature",
-  "status": "in_progress",
+  "status": "completed",
   "created_at": "2026-09-19T10:29:00Z",
   "updated_at": "2026-09-19T10:29:00Z",
   "description": "Improve the documentation of the project with a simple great readme and a multiple feature documentation"
