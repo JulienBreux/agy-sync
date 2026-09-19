@@ -26,6 +26,6 @@
 - [x] Task: End-to-End Testing and Quality Assurance [20d8ce3]
     - [x] Add end-to-end integration test in `test/e2e_test.go` verifying transactions recorded during full multi-machine push and pull roundtrip
     - [x] Run full test suite with race detector (`go test -race ./...`), `go vet ./...`, and `golangci-lint run`
-- [~] Task: Documentation Update
-    - [ ] Update `README.md` documenting `agy-sync transactions` command, filtering flags, and output formats
+- [x] Task: Documentation Update [dc83ef4]
+    - [x] Update `README.md` documenting `agy-sync transactions` command, filtering flags, and output formats
 - [ ] Task: Conductor - User Manual Verification 'Phase 4: Integration Testing, Quality Gates & Documentation' (Protocol in workflow.md)
