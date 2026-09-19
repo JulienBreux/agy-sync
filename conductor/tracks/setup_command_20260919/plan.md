@@ -11,7 +11,7 @@
 - [x] Task: Implement Database Provisioning and Service Enablement [a19aeae]
     - [x] Write failing unit tests in `internal/setup/provision_test.go` for database creation flow, interactive confirmation callbacks, `--dry-run` guardrails, and error handling
     - [x] Implement `Provisioner` in `internal/setup/provision.go` utilizing Firestore Admin API to create Native mode Firestore database and optional service API enablement
-- [ ] Task: Conductor - User Manual Verification 'Phase 2: Firestore Database Creation and Mutation Engine' (Protocol in workflow.md)
+- [x] Task: Conductor - User Manual Verification 'Phase 2: Firestore Database Creation and Mutation Engine' (Protocol in workflow.md)
 
 ## Phase 3: CLI Command `agy-sync setup` (`cmd/setup.go`)
 - [ ] Task: Implement `setup` Cobra Command and Visual Checklist Formatter
