@@ -2,6 +2,7 @@ package test_test
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"os"
 	"path/filepath"
@@ -13,9 +14,17 @@ import (
 
 	"github.com/julienbreux/agy-sync/cmd"
 	"github.com/julienbreux/agy-sync/internal/daemon"
+	"github.com/julienbreux/agy-sync/internal/firestore"
+	"github.com/julienbreux/agy-sync/pkg/config"
 )
 
 func TestE2E_StatusCommand_DefaultVsFull(t *testing.T) {
+	memRepo := firestore.NewMemoryRepository()
+	cmd.SetFirestoreClientFactory(func(_ context.Context, _ *config.Config) (firestore.Repository, error) {
+		return memRepo, nil
+	})
+	defer cmd.ResetFirestoreClientFactory()
+
 	tempBrain := t.TempDir()
 	configPath := filepath.Join(tempBrain, "config.yaml")
 	cfgContent := `brain_dir: ` + tempBrain + `
