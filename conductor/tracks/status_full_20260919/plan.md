@@ -4,7 +4,7 @@
 - [x] Task: Implement Viewport-Aware Terminal Paginator [2f181a6]
     - [x] Write unit tests in `internal/pager/pager_test.go` verifying terminal height calculations, page size derivation, page bounds clipping, row selection, and key event mapping
     - [x] Implement `Pager` in `internal/pager/pager.go` supporting dynamic viewport calculation, raw mode handling, keyboard navigation (arrows, j/k, h/l, q/Esc), and fallback for non-TTY
-- [ ] Task: Conductor - User Manual Verification 'Phase 1: Viewport Pager & Navigation Engine' (Protocol in workflow.md)
+- [x] Task: Conductor - User Manual Verification 'Phase 1: Viewport Pager & Navigation Engine' (Protocol in workflow.md)
 
 ## Phase 2: Status Command Integration & Flag Handling (`cmd/status.go`)
 - [ ] Task: Implement `--full` Flag and Default Compact Status
