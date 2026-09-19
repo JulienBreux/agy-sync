@@ -326,20 +326,27 @@ agy-sync stop --timeout 10s
 ---
 
 ### `agy-sync status`
-Displays side-by-side synchronization status between your local brain directory and remote Firestore collections, along with daemon process health, SQLite database sync status, and the timestamp of the last remote poll.
+Displays synchronization status between your local brain directory and remote Firestore collections, along with daemon process health, SQLite database sync status, and the timestamp of the last remote poll.
+
+By default, `agy-sync status` presents a compact summary with daemon health, cloud configuration, and the total count of conversation sessions found. Use `--full` to inspect individual conversation sessions with an interactive, viewport-paginated terminal pager.
 
 ```bash
-# Terminal formatted table
+# Default compact overview
 agy-sync status
+
+# Inspect conversation sessions with interactive viewport pager
+agy-sync status --full
 
 # Filter for a single conversation session
 agy-sync status 624296c6-d623-4c39-92d4-3906f8c07140
 
-# Machine-readable JSON
+# Machine-readable JSON (omits conversations list by default; include --full to embed conversations)
 agy-sync status --json
+agy-sync status --full --json
 ```
 
 **Flags:**
+- `--full`: Display detailed list of conversations with interactive viewport pagination in TTY, or streaming table in non-TTY/pipes.
 - `-c, --conversation <string>`: Filter status display to a specific conversation ID.
 - `--pid-file <path>`: Path to PID file (default: `~/.config/agy-sync/agy-sync.pid`).
 - `--log-file <path>`: Path to daemon log file (default: `~/.config/agy-sync/daemon.log`).
@@ -348,13 +355,26 @@ agy-sync status --json
 - `--conversations-dir <path>`: Path to local conversations directory.
 - `--summaries-db <path>`: Path to conversation summaries SQLite database.
 
-**Sample Terminal Output:**
+**Interactive Navigation Controls (in `--full` TTY mode):**
+| Key / Shortcut | Action |
+| :--- | :--- |
+| `↑` / `k` | Move cursor up one row |
+| `↓` / `j` | Move cursor down one row |
+| `←` / `h` | Previous page |
+| `→` / `l` / `Space` | Next page |
+| `PageUp` | Previous page |
+| `PageDown` | Next page |
+| `Home` / `g` | Jump to first page |
+| `End` / `G` | Jump to last page |
+| `q` / `Esc` / `Ctrl+C` | Exit pager |
+
+**Sample Default Terminal Output:**
 ```
 ==================================================
           Antigravity Sync Status
 ==================================================
 Daemon Status:   RUNNING (PID: 12345)
-Last Polling:    2026-09-15 14:49:34 UTC (15s ago)
+Last Polling:    2026-09-19 08:30:00 UTC (15s ago)
 Daemon Log:      /Users/username/.config/agy-sync/daemon.log
 GCP Project ID:  my-gcp-project
 Machine ID:      macbook-pro
@@ -362,11 +382,34 @@ Brain Directory: /Users/username/.gemini/antigravity-cli/brain
 Conversations:   /Users/username/.gemini/antigravity-cli/conversations
 Summaries DB:    /Users/username/.gemini/antigravity-cli/conversation_summaries.db
 SQLite DB Sync:  Enabled
-Sessions Found:  1
+Sessions Found:  85
 
-CONVERSATION ID                        LOCAL STEPS  REMOTE STEPS ARTIFACTS  LOCAL DB  SYNCED
-----------------------------------------------------------------------------------------------
-624296c6-d623-4c39-92d4-3906f8c07140   42           42           5          Yes       Yes
+Run 'agy-sync status --full' to inspect conversations.
+```
+
+**Sample Full (`--full`) Paged Terminal Output:**
+```
+==================================================
+          Antigravity Sync Status
+==================================================
+Daemon Status:   RUNNING (PID: 12345)
+Last Polling:    2026-09-19 08:30:00 UTC (15s ago)
+Daemon Log:      /Users/username/.config/agy-sync/daemon.log
+GCP Project ID:  my-gcp-project
+Machine ID:      macbook-pro
+Brain Directory: /Users/username/.gemini/antigravity-cli/brain
+Conversations:   /Users/username/.gemini/antigravity-cli/conversations
+Summaries DB:    /Users/username/.gemini/antigravity-cli/conversation_summaries.db
+SQLite DB Sync:  Enabled
+Sessions Found:  85
+
+
+  CONVERSATION ID                        LOCAL STEPS  REMOTE STEPS ARTIFACTS  LOCAL DB   SYNCED
+------------------------------------------------------------------------------------------------
+> 624296c6-d623-4c39-92d4-3906f8c07140   42           42           5          Yes        Yes
+  78910111-2222-3333-4444-555555555555   10           10           0          Yes        Yes
+------------------------------------------------------------------------------------------------
+Page 1 of 43 (1-2 of 85) | [↑/↓] Row  [←/→] Page  [q] Quit
 ```
 
 ---
