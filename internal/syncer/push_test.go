@@ -14,6 +14,7 @@ import (
 	"github.com/julienbreux/agy-sync/internal/firestore"
 	"github.com/julienbreux/agy-sync/internal/reconstructor"
 	"github.com/julienbreux/agy-sync/internal/syncer"
+	"github.com/julienbreux/agy-sync/internal/transaction"
 	"github.com/julienbreux/agy-sync/pkg/config"
 )
 
@@ -298,5 +299,55 @@ func TestPush_FullSummaryExtractionAll21Columns(t *testing.T) {
 	assert.Equal(t, "/Users/julienbreux/.gemini/antigravity-cli", remoteConv.AppDataDir)
 	assert.Equal(t, []byte{0xCA, 0xFE}, remoteConv.RawSummary)
 	assert.Equal(t, "grp-999", remoteConv.GroupID)
+}
+
+func TestPush_RecordsTransactions(t *testing.T) {
+	brainDir, convID := createTestBrain(t)
+	txDBPath := filepath.Join(t.TempDir(), "tx.db")
+	txStore, err := transaction.NewStore(txDBPath)
+	require.NoError(t, err)
+	defer func() { _ = txStore.Close() }()
+
+	cfg := &config.Config{
+		ProjectID:      "test-proj",
+		BrainDir:       brainDir,
+		MachineID:      "laptop-1",
+		TransactionsDB: txDBPath,
+	}
+
+	repo := firestore.NewMemoryRepository()
+	defer func() { _ = repo.Close() }()
+
+	engine := syncer.NewEngine(cfg, repo)
+	engine.SetTransactionStore(txStore)
+
+	ctx := t.Context()
+	result, err := engine.Push(ctx, syncer.PushOptions{})
+	require.NoError(t, err)
+	assert.Equal(t, 1, result.ConversationsSynced)
+
+	// Verify transactions recorded
+	txs, err := txStore.Query(ctx, transaction.Filter{Direction: transaction.DirectionOut})
+	require.NoError(t, err)
+	require.NotEmpty(t, txs)
+
+	// Check conv export
+	convTxs, err := txStore.Query(ctx, transaction.Filter{EntityType: transaction.EntityTypeConv})
+	require.NoError(t, err)
+	require.Len(t, convTxs, 1)
+	assert.Equal(t, convID, convTxs[0].ConversationID)
+	assert.Equal(t, transaction.DirectionOut, convTxs[0].Direction)
+
+	// Check artifact export
+	artTxs, err := txStore.Query(ctx, transaction.Filter{EntityType: transaction.EntityTypeArtifact})
+	require.NoError(t, err)
+	require.Len(t, artTxs, 1)
+	assert.Equal(t, "plan.md", artTxs[0].EntityID)
+
+	// Check brain export
+	brainTxs, err := txStore.Query(ctx, transaction.Filter{EntityType: transaction.EntityTypeBrain})
+	require.NoError(t, err)
+	require.Len(t, brainTxs, 1)
+	assert.Equal(t, "transcript.jsonl", brainTxs[0].EntityID)
 }
 

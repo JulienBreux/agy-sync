@@ -16,6 +16,7 @@ import (
 	"github.com/julienbreux/agy-sync/internal/logger"
 	"github.com/julienbreux/agy-sync/internal/parser"
 	"github.com/julienbreux/agy-sync/internal/reconstructor"
+	"github.com/julienbreux/agy-sync/internal/transaction"
 )
 
 // PullOptions specifies configuration for a pull synchronization operation.
@@ -87,6 +88,7 @@ func (e *Engine) Pull(ctx context.Context, opts PullOptions) (*PullResult, error
 		}
 		_ = f.Close()
 		log.DebugContext(ctx, "Pulled remote transcript steps", "conversation_id", opts.ConversationID, "count", len(newSteps))
+		e.recordTx(ctx, transaction.DirectionIn, transaction.EntityTypeBrain, opts.ConversationID, "transcript.jsonl", fmt.Sprintf("+%d steps", len(newSteps)))
 	}
 
 	// 2. Fetch and restore remote artifacts concurrently
@@ -125,6 +127,7 @@ func (e *Engine) Pull(ctx context.Context, opts PullOptions) (*PullResult, error
 				mu.Lock()
 				artifactsPulled++
 				mu.Unlock()
+				e.recordTx(ctx, transaction.DirectionIn, transaction.EntityTypeArtifact, opts.ConversationID, art.RelativePath, fmt.Sprintf("size: %d bytes", art.SizeBytes))
 				return nil
 			})
 		}
@@ -185,6 +188,7 @@ func (e *Engine) Pull(ctx context.Context, opts PullOptions) (*PullResult, error
 									"chunks", len(chunks),
 									"size_bytes", len(assembled),
 								)
+								e.recordTx(ctx, transaction.DirectionIn, transaction.EntityTypeBrain, opts.ConversationID, opts.ConversationID+".db", fmt.Sprintf("restored from %d chunks (%d bytes)", len(chunks), len(assembled)))
 							}
 						}
 					}
@@ -295,6 +299,8 @@ func (e *Engine) Pull(ctx context.Context, opts PullOptions) (*PullResult, error
 		"steps_pulled", len(newSteps),
 		"artifacts_pulled", artifactsPulled,
 	)
+
+	e.recordTx(ctx, transaction.DirectionIn, transaction.EntityTypeConv, opts.ConversationID, opts.ConversationID, fmt.Sprintf("steps: %d", remoteConv.StepCount))
 
 	return &PullResult{
 		ConversationID:  opts.ConversationID,

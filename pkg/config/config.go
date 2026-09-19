@@ -20,6 +20,7 @@ type Config struct {
 	BrainDir            string `mapstructure:"brain_dir" yaml:"brain_dir"`
 	ConversationsDir    string `mapstructure:"conversations_dir" yaml:"conversations_dir"`
 	SummariesDB         string `mapstructure:"summaries_db" yaml:"summaries_db"`
+	TransactionsDB      string `mapstructure:"transactions_db" yaml:"transactions_db"`
 	NoDBSync            bool   `mapstructure:"no_db_sync" yaml:"no_db_sync"`
 	SyncIntervalSeconds int    `mapstructure:"sync_interval_seconds" yaml:"sync_interval_seconds"`
 	LogLevel            string `mapstructure:"log_level" yaml:"log_level"`
@@ -52,6 +53,15 @@ func DefaultSummariesDB() string {
 	return filepath.Join(home, ".gemini", "antigravity-cli", "conversation_summaries.db")
 }
 
+// DefaultTransactionsDB returns the default path for the sync transactions database.
+func DefaultTransactionsDB() string {
+	home, err := os.UserHomeDir()
+	if err != nil {
+		return "transactions.db"
+	}
+	return filepath.Join(home, ".config", "agy-sync", "transactions.db")
+}
+
 // DefaultConfigPath returns the default path to the user's agy-sync config.yaml.
 func DefaultConfigPath() string {
 	home, err := os.UserHomeDir()
@@ -75,6 +85,7 @@ func DefaultConfig() *Config {
 		BrainDir:            DefaultBrainDir(),
 		ConversationsDir:    DefaultConversationsDir(),
 		SummariesDB:         DefaultSummariesDB(),
+		TransactionsDB:      DefaultTransactionsDB(),
 		NoDBSync:            false,
 		SyncIntervalSeconds: 2,
 		LogLevel:            "INFO",
@@ -112,6 +123,7 @@ func LoadConfig(path string) (*Config, error) {
 	v.SetDefault("brain_dir", DefaultBrainDir())
 	v.SetDefault("conversations_dir", DefaultConversationsDir())
 	v.SetDefault("summaries_db", DefaultSummariesDB())
+	v.SetDefault("transactions_db", DefaultTransactionsDB())
 	v.SetDefault("no_db_sync", false)
 	v.SetDefault("sync_interval_seconds", 2)
 	v.SetDefault("log_level", "INFO")

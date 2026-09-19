@@ -14,6 +14,7 @@ import (
 	"github.com/julienbreux/agy-sync/internal/firestore"
 	"github.com/julienbreux/agy-sync/internal/reconstructor"
 	"github.com/julienbreux/agy-sync/internal/syncer"
+	"github.com/julienbreux/agy-sync/internal/transaction"
 	"github.com/julienbreux/agy-sync/pkg/config"
 	"github.com/julienbreux/agy-sync/pkg/models"
 )
@@ -602,6 +603,92 @@ func TestPull_FallbackTranscript_RestoreAll21Columns(t *testing.T) {
 	assert.True(t, summary.Killed)
 	assert.Equal(t, []byte{0xBE, 0xEF}, summary.RawSummary)
 	assert.Equal(t, "grp-fb", summary.GroupID)
+}
+
+func TestPull_RecordsTransactions(t *testing.T) {
+	tempBrain := t.TempDir()
+	convID := "pull-tx-conv"
+	txDBPath := filepath.Join(t.TempDir(), "tx.db")
+	txStore, err := transaction.NewStore(txDBPath)
+	require.NoError(t, err)
+	defer func() { _ = txStore.Close() }()
+
+	cfg := &config.Config{
+		ProjectID:      "test-proj",
+		BrainDir:       tempBrain,
+		MachineID:      "pull-machine",
+		TransactionsDB: txDBPath,
+	}
+
+	repo := firestore.NewMemoryRepository()
+	defer func() { _ = repo.Close() }()
+
+	ctx := t.Context()
+	now := time.Now().UTC().Truncate(time.Second)
+
+	require.NoError(t, repo.UpsertConversation(ctx, &models.Conversation{
+		ID:             convID,
+		Title:          "Pulled Conv",
+		CreatedAt:      now,
+		UpdatedAt:      now,
+		LastSyncedStep: 0,
+		StepCount:      1,
+		SourceMachine:  "other-machine",
+	}))
+
+	require.NoError(t, repo.AppendSteps(ctx, convID, []models.Step{
+		{
+			StepIndex: 0,
+			Source:    "USER_EXPLICIT",
+			Type:      "USER_INPUT",
+			Status:    "DONE",
+			CreatedAt: now,
+			Content:   "Hello from remote",
+			MachineID: "other-machine",
+		},
+	}))
+
+	require.NoError(t, repo.SaveArtifact(ctx, &models.Artifact{
+		ID:             "result.txt",
+		ConversationID: convID,
+		RelativePath:   "result.txt",
+		SizeBytes:      11,
+		SHA256:         "dummy",
+		UpdatedAt:      now,
+		Content:        []byte("hello world"),
+	}))
+
+	engine := syncer.NewEngine(cfg, repo)
+	engine.SetTransactionStore(txStore)
+
+	result, err := engine.Pull(ctx, syncer.PullOptions{ConversationID: convID})
+	require.NoError(t, err)
+	assert.Equal(t, convID, result.ConversationID)
+	assert.Equal(t, 1, result.StepsPulled)
+	assert.Equal(t, 1, result.ArtifactsPulled)
+
+	// Verify transactions recorded
+	txs, err := txStore.Query(ctx, transaction.Filter{Direction: transaction.DirectionIn})
+	require.NoError(t, err)
+	require.NotEmpty(t, txs)
+
+	// Check conv import
+	convTxs, err := txStore.Query(ctx, transaction.Filter{Direction: transaction.DirectionIn, EntityType: transaction.EntityTypeConv})
+	require.NoError(t, err)
+	require.Len(t, convTxs, 1)
+	assert.Equal(t, convID, convTxs[0].ConversationID)
+
+	// Check artifact import
+	artTxs, err := txStore.Query(ctx, transaction.Filter{Direction: transaction.DirectionIn, EntityType: transaction.EntityTypeArtifact})
+	require.NoError(t, err)
+	require.Len(t, artTxs, 1)
+	assert.Equal(t, "result.txt", artTxs[0].EntityID)
+
+	// Check brain import
+	brainTxs, err := txStore.Query(ctx, transaction.Filter{Direction: transaction.DirectionIn, EntityType: transaction.EntityTypeBrain})
+	require.NoError(t, err)
+	require.Len(t, brainTxs, 1)
+	assert.Equal(t, "transcript.jsonl", brainTxs[0].EntityID)
 }
 
 

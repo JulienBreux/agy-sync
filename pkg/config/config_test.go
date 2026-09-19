@@ -18,6 +18,7 @@ func TestDefaultConfig(t *testing.T) {
 	assert.NotEmpty(t, cfg.BrainDir)
 	assert.NotEmpty(t, cfg.ConversationsDir)
 	assert.NotEmpty(t, cfg.SummariesDB)
+	assert.NotEmpty(t, cfg.TransactionsDB)
 	assert.False(t, cfg.NoDBSync)
 	assert.Equal(t, 2, cfg.SyncIntervalSeconds)
 	assert.Equal(t, "INFO", cfg.LogLevel)

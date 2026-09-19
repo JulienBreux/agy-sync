@@ -17,6 +17,7 @@ import (
 	"github.com/julienbreux/agy-sync/internal/logger"
 	"github.com/julienbreux/agy-sync/internal/parser"
 	"github.com/julienbreux/agy-sync/internal/reconstructor"
+	"github.com/julienbreux/agy-sync/internal/transaction"
 	"github.com/julienbreux/agy-sync/pkg/config"
 	"github.com/julienbreux/agy-sync/pkg/models"
 )
@@ -27,6 +28,7 @@ type Engine struct {
 	repo          firestore.Repository
 	parser        *parser.TranscriptParser
 	reconstructor *reconstructor.Reconstructor
+	txStore       transaction.Store
 }
 
 // NewEngine creates an initialized sync Engine.
@@ -36,12 +38,53 @@ func NewEngine(cfg *config.Config, repo firestore.Repository) *Engine {
 		rec = reconstructor.New(cfg.ConversationsDir, cfg.SummariesDB)
 	}
 
+	var txStore transaction.Store
+	if cfg != nil && cfg.TransactionsDB != "" {
+		if store, err := transaction.NewStore(cfg.TransactionsDB); err == nil {
+			txStore = store
+		}
+	}
+
 	return &Engine{
 		cfg:           cfg,
 		repo:          repo,
 		parser:        parser.NewTranscriptParser(),
 		reconstructor: rec,
+		txStore:       txStore,
 	}
+}
+
+// SetTransactionStore sets the transaction store for recording sync transactions.
+func (e *Engine) SetTransactionStore(store transaction.Store) {
+	e.txStore = store
+}
+
+// TransactionStore returns the configured transaction store, if any.
+func (e *Engine) TransactionStore() transaction.Store {
+	return e.txStore
+}
+
+// Close closes any resources owned by the Engine, including the transaction store.
+func (e *Engine) Close() error {
+	if e.txStore != nil {
+		return e.txStore.Close()
+	}
+	return nil
+}
+
+func (e *Engine) recordTx(ctx context.Context, dir transaction.Direction, typ transaction.EntityType, convID, entityID, details string) {
+	if e.txStore == nil {
+		return
+	}
+	_ = e.txStore.Record(ctx, transaction.Transaction{
+		Timestamp:      time.Now().UTC(),
+		Direction:      dir,
+		EntityType:     typ,
+		ConversationID: convID,
+		EntityID:       entityID,
+		Details:        details,
+		Status:         transaction.StatusSuccess,
+	})
 }
 
 // PushOptions configures execution parameters for a push operation.
@@ -149,6 +192,7 @@ func (e *Engine) pushConversation(ctx context.Context, dConv *discovery.Discover
 				return fmt.Errorf("failed updating conversation metadata: %w", err)
 			}
 			log.DebugContext(ctx, "Appended new conversation steps", "conversation_id", dConv.ID, "count", len(newSteps))
+			e.recordTx(ctx, transaction.DirectionOut, transaction.EntityTypeBrain, dConv.ID, "transcript.jsonl", fmt.Sprintf("+%d steps", len(newSteps)))
 		}
 	}
 
@@ -187,6 +231,7 @@ func (e *Engine) pushConversation(ctx context.Context, dConv *discovery.Discover
 				mu.Lock()
 				res.ArtifactsSynced++
 				mu.Unlock()
+				e.recordTx(gCtx, transaction.DirectionOut, transaction.EntityTypeArtifact, dConv.ID, art.RelativePath, fmt.Sprintf("size: %d bytes", art.SizeBytes))
 				return nil
 			})
 		}
@@ -292,6 +337,7 @@ func (e *Engine) pushConversation(ctx context.Context, dConv *discovery.Discover
 				remoteConv.DBSizeBytes = sizeBytes
 				remoteConv.DBChunksCount = len(chunks)
 				log.DebugContext(ctx, "Uploaded DB snapshot chunks", "conversation_id", dConv.ID, "chunks", len(chunks), "size_bytes", sizeBytes)
+				e.recordTx(ctx, transaction.DirectionOut, transaction.EntityTypeBrain, dConv.ID, dConv.ID+".db", fmt.Sprintf("%d chunks (%d bytes)", len(chunks), sizeBytes))
 			}
 		}
 	}
@@ -304,5 +350,6 @@ func (e *Engine) pushConversation(ctx context.Context, dConv *discovery.Discover
 	}
 
 	res.ConversationsSynced++
+	e.recordTx(ctx, transaction.DirectionOut, transaction.EntityTypeConv, dConv.ID, dConv.ID, fmt.Sprintf("steps: %d", remoteConv.StepCount))
 	return nil
 }
