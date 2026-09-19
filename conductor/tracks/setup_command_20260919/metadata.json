@@ -1,8 +1,8 @@
 {
   "track_id": "setup_command_20260919",
   "type": "feature",
-  "status": "new",
+  "status": "completed",
   "created_at": "2026-09-19T08:54:30+02:00",
-  "updated_at": "2026-09-19T08:54:30+02:00",
+  "updated_at": "2026-09-19T09:09:45+02:00",
   "description": "Add setup command to check APIs enabled / create database and checking access / checking project access / auth setup (with dry run to only check access)"
 }
