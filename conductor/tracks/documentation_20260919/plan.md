@@ -12,9 +12,9 @@
 - [x] Task: Conductor - User Manual Verification 'Phase 1: Deep-Dive Feature Guides (`docs/`)' (Protocol in workflow.md)
 
 ## Phase 2: Modernized Top-Level README (`README.md`) & Quality Verification
-- [ ] Task: Overhaul Top-Level README
-    - [ ] Rewrite `README.md` to feature a concise hero pitch, 3-step quickstart, high-level Mermaid architecture diagram, CLI subcommand matrix linking to `docs/`, and configuration table
-- [ ] Task: Cross-Link & Markdown Quality Gates
+- [x] Task: Overhaul Top-Level README [2d9b7f6]
+    - [x] Rewrite `README.md` to feature a concise hero pitch, 3-step quickstart, high-level Mermaid architecture diagram, CLI subcommand matrix linking to `docs/`, and configuration table
+- [~] Task: Cross-Link & Markdown Quality Gates
     - [ ] Validate all relative markdown links between `README.md` and `docs/*.md`
     - [ ] Verify command syntax, flags, and outputs match the latest CLI implementation
 - [ ] Task: Conductor - User Manual Verification 'Phase 2: Modernized Top-Level README (`README.md`) & Quality Verification' (Protocol in workflow.md)
