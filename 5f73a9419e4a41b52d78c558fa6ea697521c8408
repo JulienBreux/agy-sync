@@ -1,0 +1,8 @@
+Task: Implement transactions Cobra Command
+
+Summary:
+- Added cmd/transactions.go supporting tabular ASCII and JSON formatting.
+- Implemented filtering by direction (--direction, --in, --out), entity type (--type, --conv, --artifact, --brain), conversation ID (-c/--conversation), and limit (-n/--limit).
+- Registered transactionsCmd in cmd/root.go under 'sync' group.
+- Added comprehensive unit tests in cmd/transactions_test.go covering all flag permutations, error handling, and formatting modes.
+- All unit, race, and linting checks passed with 0 issues.
