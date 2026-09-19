@@ -64,4 +64,9 @@
 - [x] **Track: Add flag --full to status command. By default hide the conversations. Use the flag to display conversations. Use the arrows to navigate and add pagination relative to the viewport.**
   *Link: [./tracks/status_full_20260919/index.md](./tracks/status_full_20260919/index.md)*
 
+---
+
+- [ ] **Track: Improve the documentation of the project with a simple great readme and a multiple feature documentation**
+  *Link: [./tracks/documentation_20260919/index.md](./tracks/documentation_20260919/index.md)*
+
 
