@@ -1,0 +1,1 @@
+{"task": "Fix Raw Terminal Staircasing and Align Viewport", "phase": "Phase 2: Status Command Integration & Flag Handling", "details": "Added ToCRLF normalization for raw mode output, dynamic resize handling, overhead adjustment, and interactive cursor indicator."}
