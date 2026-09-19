@@ -20,10 +20,13 @@ import (
 
 func TestE2E_StatusCommand_DefaultVsFull(t *testing.T) {
 	memRepo := firestore.NewMemoryRepository()
+	t.Cleanup(func() {
+		_ = memRepo.Close()
+		cmd.ResetFirestoreClientFactory()
+	})
 	cmd.SetFirestoreClientFactory(func(_ context.Context, _ *config.Config) (firestore.Repository, error) {
 		return memRepo, nil
 	})
-	defer cmd.ResetFirestoreClientFactory()
 
 	tempBrain := t.TempDir()
 	configPath := filepath.Join(tempBrain, "config.yaml")

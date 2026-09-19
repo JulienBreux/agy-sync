@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"os"
 	"path/filepath"
+	"slices"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -15,7 +16,7 @@ import (
 )
 
 func TestE2E_SetupDiagnosticsAndProvisioning(t *testing.T) {
-	ctx := context.Background()
+	ctx := t.Context()
 	tmpDir := t.TempDir()
 
 	configPath := filepath.Join(tmpDir, "config.yaml")
@@ -83,14 +84,11 @@ func TestE2E_SetupDiagnosticsAndProvisioning(t *testing.T) {
 	require.NoError(t, err)
 	assert.True(t, report1.AllPassed, "Warnings in dry run do not fail AllPassed")
 
-	var dbItem *setup.CheckItem
-	for i := range report1.Items {
-		if report1.Items[i].Name == "Firestore Database Access" {
-			dbItem = &report1.Items[i]
-			break
-		}
-	}
-	require.NotNil(t, dbItem)
+	idx := slices.IndexFunc(report1.Items, func(it setup.CheckItem) bool {
+		return it.Name == "Firestore Database Access"
+	})
+	require.NotEqual(t, -1, idx)
+	dbItem := &report1.Items[idx]
 	assert.Equal(t, setup.StatusWarn, dbItem.Status)
 	assert.Contains(t, dbItem.Message, "dry-run")
 	assert.False(t, dbState, "Database should not have been created in dry-run")

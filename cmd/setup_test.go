@@ -30,13 +30,19 @@ func (m *mockChecker) Check(ctx context.Context, opts setup.CheckOptions) (*setu
 	return &r, nil
 }
 
-func (m *mockChecker) CheckAuth(ctx context.Context) setup.CheckItem                       { return setup.CheckItem{} }
-func (m *mockChecker) CheckProject(ctx context.Context, projectID string) setup.CheckItem { return setup.CheckItem{} }
-func (m *mockChecker) CheckAPIs(ctx context.Context, projectID string) setup.CheckItem    { return setup.CheckItem{} }
+func (m *mockChecker) CheckAuth(ctx context.Context) setup.CheckItem { return setup.CheckItem{} }
+func (m *mockChecker) CheckProject(ctx context.Context, projectID string) setup.CheckItem {
+	return setup.CheckItem{}
+}
+func (m *mockChecker) CheckAPIs(ctx context.Context, projectID string) setup.CheckItem {
+	return setup.CheckItem{}
+}
 func (m *mockChecker) CheckDatabase(ctx context.Context, projectID, databaseID string, dryRun bool) setup.CheckItem {
 	return setup.CheckItem{}
 }
-func (m *mockChecker) CheckStorage(ctx context.Context, projectID string) setup.CheckItem { return setup.CheckItem{} }
+func (m *mockChecker) CheckStorage(ctx context.Context, projectID string) setup.CheckItem {
+	return setup.CheckItem{}
+}
 func (m *mockChecker) CheckLocal(ctx context.Context, opts setup.CheckOptions) setup.CheckItem {
 	return setup.CheckItem{}
 }

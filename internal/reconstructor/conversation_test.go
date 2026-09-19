@@ -25,7 +25,7 @@ func TestReconstructConversationDB(t *testing.T) {
 	require.NotNil(t, rec)
 
 	convID := "test-conv-12345"
-	ctx := context.Background()
+	ctx := t.Context()
 
 	steps := []models.Step{
 		{
@@ -118,7 +118,7 @@ func TestReconstructConversationDB_ValidationAndErrors(t *testing.T) {
 	summariesDB := filepath.Join(tempDir, "conversation_summaries.db")
 
 	rec := reconstructor.New(convsDir, summariesDB)
-	ctx := context.Background()
+	ctx := t.Context()
 
 	t.Run("empty conversation ID", func(t *testing.T) {
 		err := rec.ReconstructConversationDB(ctx, "", []models.Step{})
@@ -127,7 +127,7 @@ func TestReconstructConversationDB_ValidationAndErrors(t *testing.T) {
 	})
 
 	t.Run("canceled context", func(t *testing.T) {
-		canceledCtx, cancel := context.WithCancel(context.Background())
+		canceledCtx, cancel := context.WithCancel(t.Context())
 		cancel()
 
 		err := rec.ReconstructConversationDB(canceledCtx, "canceled-conv", []models.Step{
@@ -138,36 +138,50 @@ func TestReconstructConversationDB_ValidationAndErrors(t *testing.T) {
 }
 
 func TestTypeAndStatusConversions(t *testing.T) {
-	types := map[string]int{
-		"USER_INPUT":       14,
-		"PLANNER_RESPONSE": 15,
-		"GENERIC":          132,
-		"INIT":             21,
-		"SYSTEM":           21,
-		"TOOL_CALL":        23,
-		"SUBAGENT":         101,
-		"THINKING":         17,
-		"UNKNOWN":          0,
+	t.Parallel()
+
+	typeTests := []struct {
+		typeStr string
+		code    int
+	}{
+		{"USER_INPUT", 14},
+		{"PLANNER_RESPONSE", 15},
+		{"GENERIC", 132},
+		{"INIT", 21},
+		{"SYSTEM", 21},
+		{"TOOL_CALL", 23},
+		{"SUBAGENT", 101},
+		{"THINKING", 17},
+		{"UNKNOWN", 0},
 	}
 
-	for typeStr, expectedCode := range types {
-		assert.Equal(t, expectedCode, reconstructor.StepTypeToInt(typeStr))
+	for _, tt := range typeTests {
+		t.Run("Type_"+tt.typeStr, func(t *testing.T) {
+			t.Parallel()
+			assert.Equal(t, tt.code, reconstructor.StepTypeToInt(tt.typeStr))
+		})
 	}
 
-	statuses := map[string]int{
-		"DONE":      3,
-		"SUCCESS":   3,
-		"RUNNING":   2,
-		"PENDING":   2,
-		"ERROR":     7,
-		"FAILED":    7,
-		"CANCELED":  4,
-		"CANCELLED": 4,
-		"UNKNOWN":   0,
+	statusTests := []struct {
+		statusStr string
+		code      int
+	}{
+		{"DONE", 3},
+		{"SUCCESS", 3},
+		{"RUNNING", 2},
+		{"PENDING", 2},
+		{"ERROR", 7},
+		{"FAILED", 7},
+		{"CANCELED", 4},
+		{"CANCELLED", 4},
+		{"UNKNOWN", 0},
 	}
 
-	for statusStr, expectedCode := range statuses {
-		assert.Equal(t, expectedCode, reconstructor.StepStatusToInt(statusStr))
+	for _, tt := range statusTests {
+		t.Run("Status_"+tt.statusStr, func(t *testing.T) {
+			t.Parallel()
+			assert.Equal(t, tt.code, reconstructor.StepStatusToInt(tt.statusStr))
+		})
 	}
 }
 
@@ -178,7 +192,7 @@ func TestTrajectoryTableModelsMapping(t *testing.T) {
 
 	rec := reconstructor.New(convsDir, summariesDB)
 	convID := "conv-models-test"
-	ctx := context.Background()
+	ctx := t.Context()
 
 	step := models.Step{
 		StepIndex: 1,
@@ -248,4 +262,3 @@ func TestTrajectoryTableModelsMapping(t *testing.T) {
 	_, err = db.ExecContext(ctx, "INSERT INTO battle_mode_infos (idx, data) VALUES (?, ?)", battle.Idx, battle.Data)
 	require.NoError(t, err)
 }
-

@@ -1,7 +1,6 @@
 package firestore_test
 
 import (
-	"context"
 	"testing"
 	"time"
 
@@ -13,7 +12,7 @@ import (
 )
 
 func TestMemoryRepository_DeleteConversation(t *testing.T) {
-	ctx := context.Background()
+	ctx := t.Context()
 	repo := firestore.NewMemoryRepository()
 	t.Cleanup(func() { _ = repo.Close() })
 
@@ -96,7 +95,7 @@ func TestMemoryRepository_DeleteConversation(t *testing.T) {
 }
 
 func TestMemoryRepository_ClearAll(t *testing.T) {
-	ctx := context.Background()
+	ctx := t.Context()
 	repo := firestore.NewMemoryRepository()
 	t.Cleanup(func() { _ = repo.Close() })
 

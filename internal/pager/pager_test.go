@@ -13,13 +13,13 @@ import (
 
 func TestPaginator_PageCalculations(t *testing.T) {
 	tests := []struct {
-		name       string
-		total      int
-		pageSize   int
-		wantPages  int
-		page       int
-		wantStart  int
-		wantEnd    int
+		name      string
+		total     int
+		pageSize  int
+		wantPages int
+		page      int
+		wantStart int
+		wantEnd   int
 	}{
 		{
 			name:      "empty list",

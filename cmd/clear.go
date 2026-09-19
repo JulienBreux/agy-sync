@@ -7,6 +7,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"slices"
 	"strings"
 
 	"github.com/spf13/cobra"
@@ -60,10 +61,7 @@ or for a single conversation. Local files and SQLite databases are never touched
 					targetDesc = fmt.Sprintf("conversation '%s' and its subcollections", targetConvID)
 				}
 
-				dbDesc := cfg.DatabaseID
-				if dbDesc == "" {
-					dbDesc = "(default)"
-				}
+				dbDesc := cmp.Or(cfg.DatabaseID, "(default)")
 
 				cmd.Printf("WARNING: This will permanently delete %s in Firestore!\n", targetDesc)
 				cmd.Printf("Project:  %s\n", cfg.ProjectID)
@@ -77,7 +75,7 @@ or for a single conversation. Local files and SQLite databases are never touched
 				}
 
 				answer := strings.TrimSpace(strings.ToLower(input))
-				if answer != "y" && answer != "yes" {
+				if !slices.Contains([]string{"y", "yes"}, answer) {
 					cmd.Println("Operation cancelled.")
 					return nil
 				}

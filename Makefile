@@ -14,8 +14,17 @@ LDFLAGS := -trimpath -ldflags "-s -w -X github.com/julienbreux/agy-sync/cmd.Vers
 generate: ## Run go generate
 	go generate ./...
 
+fmt: ## Format Go source code
+	go fmt ./...
+
+tidy: ## Tidy and verify Go modules
+	go mod tidy
+
 lint: ## Lint code
 	golangci-lint run
+
+lint-fix: ## Lint and automatically fix code issues
+	golangci-lint run --fix
 
 test: ## Test packages
 	go test -count=1 -failfast -cover -coverprofile=coverage.txt -v ./...
@@ -25,6 +34,8 @@ test-race: ## Test packages with data race detector
 
 vulncheck: ## Scan dependencies for known vulnerabilities
 	go tool govulncheck ./...
+
+check: fmt tidy lint test-race vulncheck ## Run all quality, style, security, and test checks
 
 coverage: test ## Test coverage with default output
 	go tool cover -func=coverage.txt
@@ -55,4 +66,4 @@ run-container: ## Run prepared local container
 help: ## Display this help
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-30s\033[0m %s\n", $$1, $$2}'
 
-.PHONY: generate lint test test-race vulncheck coverage coverage-total coverage-html clean build build-image run run-container help
+.PHONY: generate fmt tidy lint lint-fix test test-race vulncheck check coverage coverage-total coverage-html clean build build-image run run-container help

@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"bytes"
+	"cmp"
 	"context"
 	"encoding/json"
 	"fmt"
@@ -103,12 +104,8 @@ artifact counts against remote Firestore metadata, and reports daemon process he
 			if cmd.Flags().Changed("no-db-sync") {
 				cfg.NoDBSync = opts.noDBSync
 			}
-			if opts.conversationsDir != "" {
-				cfg.ConversationsDir = opts.conversationsDir
-			}
-			if opts.summariesDB != "" {
-				cfg.SummariesDB = opts.summariesDB
-			}
+			cfg.ConversationsDir = cmp.Or(opts.conversationsDir, cfg.ConversationsDir)
+			cfg.SummariesDB = cmp.Or(opts.summariesDB, cfg.SummariesDB)
 
 			if err := cfg.Validate(); err != nil {
 				return fmt.Errorf("invalid configuration: %w (remediation: check ~/.config/agy-sync/config.yaml)", err)
@@ -292,18 +289,13 @@ artifact counts against remote Firestore metadata, and reports daemon process he
 
 				if isTTY {
 					out.WriteString(headerPrefix + strings.Repeat("-", 95) + "\n")
-					pageSize := end - start
-					if pageSize <= 0 {
-						pageSize = 1
-					}
+					pageSize := max(1, end-start)
 					currentPage := (start / pageSize) + 1
 					totalPages := totalConvs / pageSize
 					if totalConvs%pageSize != 0 {
 						totalPages++
 					}
-					if totalPages < 1 {
-						totalPages = 1
-					}
+					totalPages = max(1, totalPages)
 					fmt.Fprintf(out, "Page %d of %d (%d-%d of %d) | [↑/↓] Row  [←/→] Page  [q] Quit\n",
 						currentPage, totalPages, start+1, end, totalConvs)
 				}

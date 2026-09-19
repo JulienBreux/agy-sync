@@ -1,6 +1,7 @@
 package cmd
 
 import (
+	"cmp"
 	"encoding/json"
 	"fmt"
 	"os"
@@ -107,12 +108,8 @@ Use -f / --foreground to run directly in the current terminal session.`,
 			if cmd.Flags().Changed("no-db-sync") {
 				cfg.NoDBSync = opts.noDBSync
 			}
-			if opts.conversationsDir != "" {
-				cfg.ConversationsDir = opts.conversationsDir
-			}
-			if opts.summariesDB != "" {
-				cfg.SummariesDB = opts.summariesDB
-			}
+			cfg.ConversationsDir = cmp.Or(opts.conversationsDir, cfg.ConversationsDir)
+			cfg.SummariesDB = cmp.Or(opts.summariesDB, cfg.SummariesDB)
 
 			if err := cfg.Validate(); err != nil {
 				return err

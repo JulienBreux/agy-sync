@@ -690,5 +690,3 @@ func TestPull_RecordsTransactions(t *testing.T) {
 	require.Len(t, brainTxs, 1)
 	assert.Equal(t, "transcript.jsonl", brainTxs[0].EntityID)
 }
-
-

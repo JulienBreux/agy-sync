@@ -1,6 +1,7 @@
 package transaction
 
 import (
+	"cmp"
 	"context"
 	"database/sql"
 	"fmt"
@@ -70,10 +71,7 @@ func (s *SQLiteStore) Record(ctx context.Context, tx Transaction) error {
 		ts = time.Now().UTC()
 	}
 
-	status := tx.Status
-	if status == "" {
-		status = StatusSuccess
-	}
+	status := cmp.Or(tx.Status, StatusSuccess)
 
 	query := `
 		INSERT INTO transactions (timestamp, direction, entity_type, conversation_id, entity_id, details, status)
@@ -163,12 +161,11 @@ func (s *SQLiteStore) Query(ctx context.Context, filter Filter) ([]Transaction, 
 			return nil, fmt.Errorf("failed scanning transaction row: %w", err)
 		}
 
-		if parsedTime, err := time.Parse(time.RFC3339Nano, tsStr); err == nil {
-			tx.Timestamp = parsedTime
-		} else if parsedTime, err := time.Parse(time.RFC3339, tsStr); err == nil {
-			tx.Timestamp = parsedTime
-		} else if parsedTime, err := time.Parse("2006-01-02 15:04:05", tsStr); err == nil {
-			tx.Timestamp = parsedTime
+		for _, layout := range []string{time.RFC3339Nano, time.RFC3339, "2006-01-02 15:04:05"} {
+			if parsedTime, err := time.Parse(layout, tsStr); err == nil {
+				tx.Timestamp = parsedTime
+				break
+			}
 		}
 
 		tx.Direction = Direction(dirStr)

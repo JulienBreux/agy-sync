@@ -22,3 +22,15 @@ linters:
     - usestdlibvars
     - intrange
     - exptostd
+    - copyloopvar
+    - gocheckcompilerdirectives
+    - mirror
+    - canonicalheader
+    - usetesting
+    - nolintlint
+    - reassign
+    - recvcheck
+    - bodyclose
+    - dupword
+    - misspell
+    - whitespace

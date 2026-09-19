@@ -1,12 +1,14 @@
 package syncer
 
 import (
+	"cmp"
 	"context"
 	"crypto/sha256"
 	"encoding/hex"
 	"fmt"
 	"os"
 	"path/filepath"
+	"slices"
 	"sync"
 	"time"
 
@@ -279,17 +281,11 @@ func (e *Engine) pushConversation(ctx context.Context, dConv *discovery.Discover
 	// Ensure StepCount and summary metadata are up-to-date with transcript
 	if dConv.HasTranscript {
 		if parseRes, err := e.parser.ParseFile(dConv.TranscriptPath); err == nil && len(parseRes.Steps) > 0 {
-			if len(parseRes.Steps) > remoteConv.StepCount {
-				remoteConv.StepCount = len(parseRes.Steps)
-			}
+			remoteConv.StepCount = max(remoteConv.StepCount, len(parseRes.Steps))
 			if !summaryExtracted {
 				summary := reconstructor.BuildSummaryFromSteps(dConv.ID, remoteConv.Title, parseRes.Steps)
-				if remoteConv.Title == "" {
-					remoteConv.Title = summary.Title
-				}
-				if remoteConv.Preview == "" {
-					remoteConv.Preview = summary.Preview
-				}
+				remoteConv.Title = cmp.Or(remoteConv.Title, summary.Title)
+				remoteConv.Preview = cmp.Or(remoteConv.Preview, summary.Preview)
 				remoteConv.LastUserInputTime = summary.LastUserInputTime
 				remoteConv.LastUserInputStepIndex = summary.LastUserInputStepIndex
 			}
@@ -313,14 +309,9 @@ func (e *Engine) pushConversation(ctx context.Context, dConv *discovery.Discover
 				log.WarnContext(ctx, "Failed creating SQLite snapshot for push", "conversation_id", dConv.ID, "error", err)
 			} else if sha256Hex != remoteConv.DBSHA256 {
 				const chunkSize = 512 * 1024
-				totalChunks := (len(data) + chunkSize - 1) / chunkSize
-				if totalChunks == 0 {
-					totalChunks = 1
-				}
+				totalChunks := max(1, (len(data)+chunkSize-1)/chunkSize)
 				chunks := make([]models.DBChunk, 0, totalChunks)
-				for i := 0; i < len(data); i += chunkSize {
-					end := min(i+chunkSize, len(data))
-					chunkData := data[i:end]
+				for chunkData := range slices.Chunk(data, chunkSize) {
 					chunkHash := sha256.Sum256(chunkData)
 					chunks = append(chunks, models.DBChunk{
 						ChunkIndex:  len(chunks),

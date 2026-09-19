@@ -15,7 +15,7 @@ import (
 )
 
 func TestEngine_Clear_All(t *testing.T) {
-	ctx := context.Background()
+	ctx := t.Context()
 	repo := firestore.NewMemoryRepository()
 	t.Cleanup(func() { _ = repo.Close() })
 
@@ -47,7 +47,7 @@ func TestEngine_Clear_All(t *testing.T) {
 }
 
 func TestEngine_Clear_SingleConversation(t *testing.T) {
-	ctx := context.Background()
+	ctx := t.Context()
 	repo := firestore.NewMemoryRepository()
 	t.Cleanup(func() { _ = repo.Close() })
 
@@ -79,7 +79,7 @@ func TestEngine_Clear_SingleConversation(t *testing.T) {
 }
 
 func TestEngine_Clear_ContextCanceled(t *testing.T) {
-	ctx, cancel := context.WithCancel(context.Background())
+	ctx, cancel := context.WithCancel(t.Context())
 	cancel()
 
 	repo := firestore.NewMemoryRepository()

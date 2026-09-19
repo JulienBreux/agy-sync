@@ -2,6 +2,7 @@ package pager
 
 import (
 	"bytes"
+	"cmp"
 	"errors"
 	"io"
 	"os"
@@ -61,14 +62,7 @@ func (p *Paginator) CurrentPage() int {
 
 // SetPage sets the current page within valid bounds.
 func (p *Paginator) SetPage(page int) {
-	if page < 0 {
-		page = 0
-	}
-	maxPage := p.TotalPages() - 1
-	if page > maxPage {
-		page = maxPage
-	}
-	p.currentPage = page
+	p.currentPage = min(max(0, page), max(0, p.TotalPages()-1))
 }
 
 // PageSize returns the current page size.
@@ -78,10 +72,7 @@ func (p *Paginator) PageSize() int {
 
 // SetPageSize updates page size and adjusts current page.
 func (p *Paginator) SetPageSize(size int) {
-	if size < 1 {
-		size = 1
-	}
-	p.pageSize = size
+	p.pageSize = max(1, size)
 	if p.selectedRow >= 0 {
 		p.currentPage = p.selectedRow / p.pageSize
 	}
@@ -94,16 +85,9 @@ func (p *Paginator) SelectedRow() int {
 
 // SetSelectedRow sets the selected row and synchronizes the current page.
 func (p *Paginator) SetSelectedRow(row int) {
-	if row < 0 {
-		row = 0
-	}
-	maxRow := max(0, p.totalItems-1)
-	if row > maxRow {
-		row = maxRow
-	}
-	p.selectedRow = row
+	p.selectedRow = min(max(0, row), max(0, p.totalItems-1))
 	if p.pageSize > 0 {
-		p.currentPage = row / p.pageSize
+		p.currentPage = p.selectedRow / p.pageSize
 	}
 }
 
@@ -172,11 +156,7 @@ func DerivePageSize(terminalHeight, overhead, fallback int) int {
 	if terminalHeight <= 0 {
 		return fallback
 	}
-	available := terminalHeight - overhead
-	if available < 1 {
-		return 1
-	}
-	return available
+	return max(1, terminalHeight-overhead)
 }
 
 // ParseKey maps raw bytes from stdin to a KeyAction and returns number of bytes consumed.
@@ -267,15 +247,9 @@ type Pager struct {
 
 // New creates a new Pager instance.
 func New(opts Options) *Pager {
-	if opts.In == nil {
-		opts.In = os.Stdin
-	}
-	if opts.Out == nil {
-		opts.Out = os.Stdout
-	}
-	if opts.Overhead == 0 {
-		opts.Overhead = 6
-	}
+	opts.In = cmp.Or[io.Reader](opts.In, os.Stdin)
+	opts.Out = cmp.Or[io.Writer](opts.Out, os.Stdout)
+	opts.Overhead = cmp.Or(opts.Overhead, 6)
 	return &Pager{opts: opts}
 }
 

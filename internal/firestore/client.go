@@ -180,5 +180,3 @@ func (c *Client) ClearAll(ctx context.Context) error {
 
 	return nil
 }
-
-

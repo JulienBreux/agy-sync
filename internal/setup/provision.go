@@ -1,6 +1,7 @@
 package setup
 
 import (
+	"cmp"
 	"context"
 	"fmt"
 
@@ -34,14 +35,8 @@ func (p *GCPProvisioner) SetAPIEnabler(fn func(ctx context.Context, projectID st
 
 // CreateDatabase provisions a Google Cloud Firestore database in Native mode.
 func (p *GCPProvisioner) CreateDatabase(ctx context.Context, opts ProvisionOptions) (*ProvisionResult, error) {
-	dbID := opts.DatabaseID
-	if dbID == "" {
-		dbID = "(default)"
-	}
-	loc := opts.Location
-	if loc == "" {
-		loc = "nam5"
-	}
+	dbID := cmp.Or(opts.DatabaseID, "(default)")
+	loc := cmp.Or(opts.Location, "nam5")
 
 	if opts.DryRun {
 		return &ProvisionResult{

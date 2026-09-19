@@ -22,8 +22,9 @@ jobs:
       - name: Set up Go
         uses: actions/setup-go@v6
         with:
-          go-version: '1.27'
+          go-version-file: 'go.mod'
           check-latest: true
+          cache: true
 
       - name: Install dependencies
         run: go mod download
@@ -35,6 +36,9 @@ jobs:
 
       - name: Run tests with coverage
         run: make test
+
+      - name: Vulnerability check
+        run: make vulncheck
 
       - name: Upload results to Codecov
         uses: codecov/codecov-action@v5

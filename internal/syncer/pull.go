@@ -1,6 +1,7 @@
 package syncer
 
 import (
+	"cmp"
 	"context"
 	"crypto/sha256"
 	"encoding/hex"
@@ -8,7 +9,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
-	"sort"
+	"slices"
 	"sync"
 
 	"golang.org/x/sync/errgroup"
@@ -17,6 +18,7 @@ import (
 	"github.com/julienbreux/agy-sync/internal/parser"
 	"github.com/julienbreux/agy-sync/internal/reconstructor"
 	"github.com/julienbreux/agy-sync/internal/transaction"
+	"github.com/julienbreux/agy-sync/pkg/models"
 )
 
 // PullOptions specifies configuration for a pull synchronization operation.
@@ -147,8 +149,8 @@ func (e *Engine) Pull(ctx context.Context, opts PullOptions) (*PullResult, error
 			if err != nil {
 				log.WarnContext(ctx, "Failed fetching remote DB chunks", "conversation_id", opts.ConversationID, "error", err)
 			} else if len(chunks) > 0 {
-				sort.Slice(chunks, func(i, j int) bool {
-					return chunks[i].ChunkIndex < chunks[j].ChunkIndex
+				slices.SortFunc(chunks, func(a, b models.DBChunk) int {
+					return cmp.Compare(a.ChunkIndex, b.ChunkIndex)
 				})
 
 				totalSize := 0
@@ -245,31 +247,17 @@ func (e *Engine) Pull(ctx context.Context, opts PullOptions) (*PullResult, error
 				} else {
 					summaryParams := reconstructor.BuildSummaryFromSteps(opts.ConversationID, remoteConv.Title, parseRes.Steps)
 					summaryParams.WorkspaceURIs = adaptedWorkspaceURIs
-					if remoteConv.Status != "" {
-						summaryParams.Status = remoteConv.Status
-					}
-					if remoteConv.Source != "" {
-						summaryParams.Source = remoteConv.Source
-					}
+					summaryParams.Status = cmp.Or(remoteConv.Status, summaryParams.Status)
+					summaryParams.Source = cmp.Or(remoteConv.Source, summaryParams.Source)
 					summaryParams.ProjectID = projectID
-					if remoteConv.AgentName != "" {
-						summaryParams.AgentName = remoteConv.AgentName
-					}
-					if remoteConv.ParentConversationID != "" {
-						summaryParams.ParentConversationID = remoteConv.ParentConversationID
-					}
+					summaryParams.AgentName = cmp.Or(remoteConv.AgentName, summaryParams.AgentName)
+					summaryParams.ParentConversationID = cmp.Or(remoteConv.ParentConversationID, summaryParams.ParentConversationID)
 					summaryParams.NestingDepth = remoteConv.NestingDepth
-					if remoteConv.BattleID != "" {
-						summaryParams.BattleID = remoteConv.BattleID
-					}
-					if remoteConv.WinningConversationID != "" {
-						summaryParams.WinningConversationID = remoteConv.WinningConversationID
-					}
+					summaryParams.BattleID = cmp.Or(remoteConv.BattleID, summaryParams.BattleID)
+					summaryParams.WinningConversationID = cmp.Or(remoteConv.WinningConversationID, summaryParams.WinningConversationID)
 					summaryParams.NotFullyIdle = remoteConv.NotFullyIdle
 					summaryParams.Killed = remoteConv.Killed
-					if remoteConv.Preview != "" {
-						summaryParams.Preview = remoteConv.Preview
-					}
+					summaryParams.Preview = cmp.Or(remoteConv.Preview, summaryParams.Preview)
 					if !remoteConv.LastUserInputTime.IsZero() {
 						summaryParams.LastUserInputTime = remoteConv.LastUserInputTime
 					}

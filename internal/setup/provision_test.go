@@ -19,7 +19,7 @@ func TestCreateDatabase_DryRun(t *testing.T) {
 		return nil
 	})
 
-	res, err := provisioner.CreateDatabase(context.Background(), setup.ProvisionOptions{
+	res, err := provisioner.CreateDatabase(t.Context(), setup.ProvisionOptions{
 		ProjectID:   "test-proj",
 		DatabaseID:  "(default)",
 		Location:    "nam5",
@@ -41,7 +41,7 @@ func TestCreateDatabase_InteractiveDeclined(t *testing.T) {
 		return nil
 	})
 
-	res, err := provisioner.CreateDatabase(context.Background(), setup.ProvisionOptions{
+	res, err := provisioner.CreateDatabase(t.Context(), setup.ProvisionOptions{
 		ProjectID:   "test-proj",
 		DatabaseID:  "(default)",
 		Location:    "nam5",
@@ -69,7 +69,7 @@ func TestCreateDatabase_InteractiveAccepted(t *testing.T) {
 		return nil
 	})
 
-	res, err := provisioner.CreateDatabase(context.Background(), setup.ProvisionOptions{
+	res, err := provisioner.CreateDatabase(t.Context(), setup.ProvisionOptions{
 		ProjectID:   "test-proj",
 		DatabaseID:  "(default)",
 		Location:    "eur3",
@@ -95,7 +95,7 @@ func TestCreateDatabase_AutoApprove(t *testing.T) {
 		return nil
 	})
 
-	res, err := provisioner.CreateDatabase(context.Background(), setup.ProvisionOptions{
+	res, err := provisioner.CreateDatabase(t.Context(), setup.ProvisionOptions{
 		ProjectID:   "test-proj",
 		DatabaseID:  "custom-db",
 		Location:    "nam5",
@@ -120,7 +120,7 @@ func TestCreateDatabase_ErrorHandling(t *testing.T) {
 		return errors.New("permission denied")
 	})
 
-	_, err := provisioner.CreateDatabase(context.Background(), setup.ProvisionOptions{
+	_, err := provisioner.CreateDatabase(t.Context(), setup.ProvisionOptions{
 		ProjectID:   "test-proj",
 		DatabaseID:  "(default)",
 		Location:    "nam5",
@@ -140,7 +140,7 @@ func TestEnableAPIs_DryRun(t *testing.T) {
 		return nil
 	})
 
-	res, err := provisioner.EnableAPIs(context.Background(), "test-proj", []string{"firestore.googleapis.com"}, true)
+	res, err := provisioner.EnableAPIs(t.Context(), "test-proj", []string{"firestore.googleapis.com"}, true)
 	require.NoError(t, err)
 	assert.False(t, called)
 	assert.NotEmpty(t, res.Skipped)
@@ -157,7 +157,7 @@ func TestEnableAPIs_Success(t *testing.T) {
 		return nil
 	})
 
-	res, err := provisioner.EnableAPIs(context.Background(), "test-proj", []string{"firestore.googleapis.com"}, false)
+	res, err := provisioner.EnableAPIs(t.Context(), "test-proj", []string{"firestore.googleapis.com"}, false)
 	require.NoError(t, err)
 	assert.True(t, called)
 	assert.Equal(t, []string{"firestore.googleapis.com"}, res.Enabled)

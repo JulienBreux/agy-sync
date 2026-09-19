@@ -1,11 +1,13 @@
 package setup
 
 import (
+	"cmp"
 	"context"
 	"encoding/json"
 	"fmt"
 	"os"
 	"path/filepath"
+	"slices"
 	"strings"
 	"time"
 
@@ -69,12 +71,9 @@ func (c *GCPChecker) SetStorageChecker(fn func(ctx context.Context, projectID st
 
 // CalculateAllPassed returns true if none of the check items have a StatusFail.
 func (c *GCPChecker) CalculateAllPassed(items []CheckItem) bool {
-	for _, item := range items {
-		if item.Status == StatusFail {
-			return false
-		}
-	}
-	return true
+	return !slices.ContainsFunc(items, func(item CheckItem) bool {
+		return item.Status == StatusFail
+	})
 }
 
 // Check runs all diagnostics and aggregates the results into a SetupReport.
@@ -216,9 +215,7 @@ func (c *GCPChecker) CheckAPIs(ctx context.Context, projectID string) CheckItem 
 // CheckDatabase checks whether the target Firestore database exists and is ready.
 func (c *GCPChecker) CheckDatabase(ctx context.Context, projectID, databaseID string, dryRun bool) CheckItem {
 	start := time.Now()
-	if databaseID == "" {
-		databaseID = "(default)"
-	}
+	databaseID = cmp.Or(databaseID, "(default)")
 
 	exists, state, err := c.dbChecker(ctx, projectID, databaseID)
 	dur := time.Since(start)

@@ -1,7 +1,6 @@
 package reconstructor_test
 
 import (
-	"context"
 	"database/sql"
 	"path/filepath"
 	"testing"
@@ -21,7 +20,7 @@ func TestUpsertSummary(t *testing.T) {
 	summariesDB := filepath.Join(tempDir, "conversation_summaries.db")
 
 	rec := reconstructor.New(convsDir, summariesDB)
-	ctx := context.Background()
+	ctx := t.Context()
 
 	convID := "summary-conv-test-1"
 	t1 := time.Date(2026, 9, 16, 10, 0, 0, 0, time.UTC)
@@ -122,7 +121,7 @@ func TestReadLocalSummary(t *testing.T) {
 	summariesDB := filepath.Join(tempDir, "conversation_summaries.db")
 	convsDir := filepath.Join(tempDir, "conversations")
 	rec := reconstructor.New(convsDir, summariesDB)
-	ctx := context.Background()
+	ctx := t.Context()
 
 	convID := "conv-read-summary-1"
 	t1 := time.Date(2026, 9, 16, 12, 0, 0, 0, time.UTC)
@@ -163,7 +162,7 @@ func TestUpsertAndReadLocalSummary_All21Columns(t *testing.T) {
 	summariesDB := filepath.Join(tempDir, "conversation_summaries.db")
 	convsDir := filepath.Join(tempDir, "conversations")
 	rec := reconstructor.New(convsDir, summariesDB)
-	ctx := context.Background()
+	ctx := t.Context()
 
 	convID := "conv-all-21-columns"
 	t1 := time.Date(2026, 9, 18, 14, 30, 0, 0, time.UTC)
@@ -259,7 +258,7 @@ func TestReadLocalSummary_StrictMirroringEmptyTitle(t *testing.T) {
 	summariesDB := filepath.Join(tempDir, "conversation_summaries.db")
 	convsDir := filepath.Join(tempDir, "conversations")
 	rec := reconstructor.New(convsDir, summariesDB)
-	ctx := context.Background()
+	ctx := t.Context()
 
 	convID := "conv-strict-empty-title"
 	// Upsert with empty title and non-empty preview
@@ -280,4 +279,3 @@ func TestReadLocalSummary_StrictMirroringEmptyTitle(t *testing.T) {
 	assert.Empty(t, read.Title)
 	assert.Equal(t, "Preview message only", read.Preview)
 }
-

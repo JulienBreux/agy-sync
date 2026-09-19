@@ -778,5 +778,3 @@ func TestE2E_TransactionsAuditLogging(t *testing.T) {
 	assert.Contains(t, bufBeta.String(), convID)
 	assert.Contains(t, bufBeta.String(), "report.pdf")
 }
-
-

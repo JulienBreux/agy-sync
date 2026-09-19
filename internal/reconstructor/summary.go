@@ -1,6 +1,7 @@
 package reconstructor
 
 import (
+	"cmp"
 	"context"
 	"database/sql"
 	"encoding/json"
@@ -101,18 +102,11 @@ func BuildSummaryFromSteps(conversationID, title string, steps []models.Step) Su
 
 	if params.Preview == "" && firstUserInputContent != "" {
 		cleaned := strings.TrimSpace(firstUserInputContent)
-		if idx := strings.IndexByte(cleaned, '\n'); idx != -1 {
-			cleaned = cleaned[:idx]
-		}
-		if len(cleaned) > 80 {
-			cleaned = cleaned[:80]
-		}
-		params.Preview = cleaned
+		cleaned, _, _ = strings.Cut(cleaned, "\n")
+		params.Preview = cleaned[:min(len(cleaned), 80)]
 	}
 
-	if params.Title == "" && params.Preview != "" {
-		params.Title = params.Preview
-	}
+	params.Title = cmp.Or(params.Title, params.Preview)
 
 	return params
 }

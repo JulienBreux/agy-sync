@@ -57,7 +57,7 @@ func TestCheckLocal_ValidPaths(t *testing.T) {
 	require.NoError(t, os.MkdirAll(convsDir, 0o755))
 
 	checker := setup.NewGCPChecker()
-	item := checker.CheckLocal(context.Background(), setup.CheckOptions{
+	item := checker.CheckLocal(t.Context(), setup.CheckOptions{
 		ConfigPath:       configPath,
 		BrainDir:         brainDir,
 		ConversationsDir: convsDir,
@@ -74,7 +74,7 @@ func TestCheckLocal_MissingConfig(t *testing.T) {
 	configPath := filepath.Join(tmpDir, "nonexistent.yaml")
 
 	checker := setup.NewGCPChecker()
-	item := checker.CheckLocal(context.Background(), setup.CheckOptions{
+	item := checker.CheckLocal(t.Context(), setup.CheckOptions{
 		ConfigPath: configPath,
 		BrainDir:   filepath.Join(tmpDir, "brain"),
 	})
@@ -91,7 +91,7 @@ func TestCheckAuth_CustomValidator(t *testing.T) {
 			return "developer@example.com", nil
 		})
 
-		item := checker.CheckAuth(context.Background())
+		item := checker.CheckAuth(t.Context())
 		assert.Equal(t, setup.StatusPass, item.Status)
 		assert.Contains(t, item.Message, "developer@example.com")
 	})
@@ -102,7 +102,7 @@ func TestCheckAuth_CustomValidator(t *testing.T) {
 			return "", errors.New("could not find default credentials")
 		})
 
-		item := checker.CheckAuth(context.Background())
+		item := checker.CheckAuth(t.Context())
 		assert.Equal(t, setup.StatusFail, item.Status)
 		assert.NotEmpty(t, item.Remediation)
 		assert.Contains(t, item.Remediation, "gcloud auth application-default login")
@@ -116,7 +116,7 @@ func TestCheckProject_CustomChecker(t *testing.T) {
 			return "My Test Project", nil
 		})
 
-		item := checker.CheckProject(context.Background(), "my-test-proj")
+		item := checker.CheckProject(t.Context(), "my-test-proj")
 		assert.Equal(t, setup.StatusPass, item.Status)
 		assert.Contains(t, item.Message, "my-test-proj")
 	})
@@ -127,7 +127,7 @@ func TestCheckProject_CustomChecker(t *testing.T) {
 			return "", errors.New("permission denied on project")
 		})
 
-		item := checker.CheckProject(context.Background(), "forbidden-proj")
+		item := checker.CheckProject(t.Context(), "forbidden-proj")
 		assert.Equal(t, setup.StatusFail, item.Status)
 		assert.Contains(t, item.Message, "permission denied")
 		assert.NotEmpty(t, item.Remediation)
@@ -145,7 +145,7 @@ func TestCheckAPIs_CustomChecker(t *testing.T) {
 			return res, nil
 		})
 
-		item := checker.CheckAPIs(context.Background(), "my-proj")
+		item := checker.CheckAPIs(t.Context(), "my-proj")
 		assert.Equal(t, setup.StatusPass, item.Status)
 		assert.Len(t, item.Details, 3)
 	})
@@ -154,13 +154,13 @@ func TestCheckAPIs_CustomChecker(t *testing.T) {
 		checker := setup.NewGCPChecker()
 		checker.SetAPIChecker(func(ctx context.Context, projectID string, services []string) (map[string]bool, error) {
 			return map[string]bool{
-				"firestore.googleapis.com":           true,
+				"firestore.googleapis.com":            true,
 				"cloudresourcemanager.googleapis.com": false,
 				"storage.googleapis.com":              true,
 			}, nil
 		})
 
-		item := checker.CheckAPIs(context.Background(), "my-proj")
+		item := checker.CheckAPIs(t.Context(), "my-proj")
 		assert.Equal(t, setup.StatusFail, item.Status)
 		assert.Contains(t, item.Message, "cloudresourcemanager.googleapis.com")
 		assert.Contains(t, item.Remediation, "gcloud services enable")
@@ -174,7 +174,7 @@ func TestCheckDatabase_CustomChecker(t *testing.T) {
 			return true, "READY", nil
 		})
 
-		item := checker.CheckDatabase(context.Background(), "my-proj", "(default)", false)
+		item := checker.CheckDatabase(t.Context(), "my-proj", "(default)", false)
 		assert.Equal(t, setup.StatusPass, item.Status)
 		assert.Contains(t, item.Message, "READY")
 	})
@@ -185,7 +185,7 @@ func TestCheckDatabase_CustomChecker(t *testing.T) {
 			return false, "", nil
 		})
 
-		item := checker.CheckDatabase(context.Background(), "my-proj", "(default)", true)
+		item := checker.CheckDatabase(t.Context(), "my-proj", "(default)", true)
 		assert.Equal(t, setup.StatusWarn, item.Status)
 		assert.Contains(t, item.Message, "dry-run")
 	})
@@ -196,7 +196,7 @@ func TestCheckDatabase_CustomChecker(t *testing.T) {
 			return false, "", nil
 		})
 
-		item := checker.CheckDatabase(context.Background(), "my-proj", "(default)", false)
+		item := checker.CheckDatabase(t.Context(), "my-proj", "(default)", false)
 		assert.Equal(t, setup.StatusWarn, item.Status)
 		assert.Contains(t, item.Remediation, "agy-sync setup")
 	})
@@ -220,7 +220,7 @@ func TestCheckFullFlow(t *testing.T) {
 		return true, nil
 	})
 
-	report, err := checker.Check(context.Background(), setup.CheckOptions{
+	report, err := checker.Check(t.Context(), setup.CheckOptions{
 		ProjectID:  "test-proj",
 		DatabaseID: "(default)",
 		DryRun:     true,

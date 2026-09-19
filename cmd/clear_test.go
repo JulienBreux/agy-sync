@@ -45,7 +45,7 @@ database_id: "(default)"
 
 func seedTestConversations(t *testing.T, repo firestore.Repository) {
 	t.Helper()
-	ctx := context.Background()
+	ctx := t.Context()
 	c1 := &models.Conversation{ID: "conv-1", Title: "Conv 1", CreatedAt: time.Now()}
 	c2 := &models.Conversation{ID: "conv-2", Title: "Conv 2", CreatedAt: time.Now()}
 	require.NoError(t, repo.UpsertConversation(ctx, c1))
@@ -71,7 +71,7 @@ func TestClearCommand_InteractiveAbort(t *testing.T) {
 	assert.Contains(t, out, "Operation cancelled")
 
 	// Verify data is untouched
-	convs, err := repo.ListConversations(context.Background())
+	convs, err := repo.ListConversations(t.Context())
 	require.NoError(t, err)
 	assert.Len(t, convs, 2)
 }
@@ -94,7 +94,7 @@ func TestClearCommand_InteractiveUnexpectedInput(t *testing.T) {
 	assert.Contains(t, out, "Operation cancelled")
 
 	// Verify data is untouched
-	convs, err := repo.ListConversations(context.Background())
+	convs, err := repo.ListConversations(t.Context())
 	require.NoError(t, err)
 	assert.Len(t, convs, 2)
 }
@@ -118,7 +118,7 @@ func TestClearCommand_InteractiveConfirm_Yes(t *testing.T) {
 	assert.Contains(t, out, "Successfully cleared 2 conversation(s)")
 
 	// Verify data is cleared
-	convs, err := repo.ListConversations(context.Background())
+	convs, err := repo.ListConversations(t.Context())
 	require.NoError(t, err)
 	assert.Empty(t, convs)
 }
@@ -140,7 +140,7 @@ func TestClearCommand_Force_All(t *testing.T) {
 	assert.NotContains(t, out, "Are you sure")
 	assert.Contains(t, out, "Successfully cleared 2 conversation(s)")
 
-	convs, err := repo.ListConversations(context.Background())
+	convs, err := repo.ListConversations(t.Context())
 	require.NoError(t, err)
 	assert.Empty(t, convs)
 }
@@ -161,11 +161,11 @@ func TestClearCommand_Force_SingleConversation(t *testing.T) {
 	out := buf.String()
 	assert.Contains(t, out, "Successfully cleared conversation conv-1")
 
-	c1, err := repo.GetConversation(context.Background(), "conv-1")
+	c1, err := repo.GetConversation(t.Context(), "conv-1")
 	require.NoError(t, err)
 	assert.Nil(t, c1)
 
-	c2, err := repo.GetConversation(context.Background(), "conv-2")
+	c2, err := repo.GetConversation(t.Context(), "conv-2")
 	require.NoError(t, err)
 	assert.NotNil(t, c2)
 }

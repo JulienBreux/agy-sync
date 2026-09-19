@@ -7,6 +7,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"slices"
 	"strings"
 
 	"github.com/spf13/cobra"
@@ -40,13 +41,7 @@ checks or provisions the Firestore database, and verifies Cloud Storage access.
 Includes --dry-run mode for non-mutating inspection.`,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			// Resolve config path
-			cfgFile := configPath
-			if cfgFile == "" {
-				cfgFile = globalOpts.ConfigFile
-			}
-			if cfgFile == "" {
-				cfgFile = config.DefaultConfigPath()
-			}
+			cfgFile := cmp.Or(configPath, globalOpts.ConfigFile, config.DefaultConfigPath())
 
 			// Attempt loading existing configuration
 			cfg, err := config.LoadConfig(cfgFile)
@@ -94,7 +89,7 @@ Includes --dry-run mode for non-mutating inspection.`,
 								return false, rErr
 							}
 							ans := strings.TrimSpace(strings.ToLower(input))
-							return ans == "y" || ans == "yes", nil
+							return slices.Contains([]string{"y", "yes"}, ans), nil
 						},
 					}
 
@@ -111,14 +106,9 @@ Includes --dry-run mode for non-mutating inspection.`,
 			}
 
 			// Recalculate overall status
-			hasFailure := false
-			for _, item := range report.Items {
-				if item.Status == setup.StatusFail {
-					hasFailure = true
-					break
-				}
-			}
-			report.AllPassed = !hasFailure
+			report.AllPassed = !slices.ContainsFunc(report.Items, func(item setup.CheckItem) bool {
+				return item.Status == setup.StatusFail
+			})
 
 			if isJSON {
 				data, mErr := json.MarshalIndent(report, "", "  ")

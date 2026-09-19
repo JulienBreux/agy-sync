@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"cmp"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"strings"
@@ -46,8 +47,12 @@ func newInitCommand() *cobra.Command {
 			}
 
 			if globalOpts.JSON {
-				fmt.Printf(`{"status":"success","config_file":"%s","project_id":"%s","machine_id":"%s"}`+"\n",
-					configTarget, cfg.ProjectID, cfg.MachineID)
+				return json.NewEncoder(cmd.OutOrStdout()).Encode(map[string]any{
+					"status":      "success",
+					"config_file": configTarget,
+					"project_id":  cfg.ProjectID,
+					"machine_id":  cfg.MachineID,
+				})
 			} else {
 				cmd.Printf("Configuration successfully written to %s\n", configTarget)
 				cmd.Printf("  Project ID: %s\n", cfg.ProjectID)

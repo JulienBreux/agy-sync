@@ -194,10 +194,7 @@ func (m *MemoryRepository) GetDBChunks(_ context.Context, convID string) ([]mode
 		return []models.DBChunk{}, nil
 	}
 
-	results := make([]models.DBChunk, 0, len(chunkMap))
-	for _, chunk := range chunkMap {
-		results = append(results, chunk)
-	}
+	results := slices.Collect(maps.Values(chunkMap))
 
 	slices.SortFunc(results, func(a, b models.DBChunk) int {
 		return cmp.Compare(a.ChunkIndex, b.ChunkIndex)
@@ -235,4 +232,3 @@ func (m *MemoryRepository) ClearAll(_ context.Context) error {
 
 	return nil
 }
-
