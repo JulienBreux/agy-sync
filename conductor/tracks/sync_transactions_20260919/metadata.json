@@ -1,0 +1,8 @@
+{
+  "track_id": "sync_transactions_20260919",
+  "type": "feature",
+  "status": "new",
+  "created_at": "2026-09-19T08:25:20Z",
+  "updated_at": "2026-09-19T08:25:20Z",
+  "description": "Add transactions command to display sync transactions with Import/Export filters for conversation, artifacts, and brain"
+}

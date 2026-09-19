@@ -49,4 +49,9 @@
 - [ ] **Track: Display clearing database progression instead of outputting the log, the user has to feel confident during the process**
   *Link: [./tracks/clear_progress_20260919/index.md](./tracks/clear_progress_20260919/index.md)*
 
+---
+
+- [ ] **Track: Add transactions command to display sync transactions with Import/Export filters for conversation, artifacts, and brain**
+  *Link: [./tracks/sync_transactions_20260919/index.md](./tracks/sync_transactions_20260919/index.md)*
+
 
