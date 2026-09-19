@@ -20,7 +20,7 @@
     - [x] Write failing unit tests in `cmd/transactions_test.go` verifying flag filtering (`--direction`, `--in`, `--out`, `--type`, `--conv`, `--artifact`, `--brain`, `-c/--conversation`, `--limit`) and `--json`
     - [x] Implement `cmd/transactions.go` with Cobra command definition, tabular ASCII formatter, and JSON serializer
     - [x] Register `transactionsCmd` in `cmd/root.go`
-- [ ] Task: Conductor - User Manual Verification 'Phase 3: CLI Command agy-sync transactions' (Protocol in workflow.md)
+- [x] Task: Conductor - User Manual Verification 'Phase 3: CLI Command agy-sync transactions' (Protocol in workflow.md)
 
 ## Phase 4: Integration Testing, Quality Gates & Documentation
 - [ ] Task: End-to-End Testing and Quality Assurance
