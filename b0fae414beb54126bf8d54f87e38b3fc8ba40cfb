@@ -1,0 +1,6 @@
+Task: End-to-End Verification & Quality Gates
+
+Summary:
+- Added TestE2E_SetupDiagnosticsAndProvisioning in test/setup_test.go verifying end-to-end setup flow: initial dry run warning, Firestore database provisioning, re-verification pass, and JSON payload round-trip.
+- Verified full repository with race detector (go test -race ./...).
+- Ran go vet ./... and golangci-lint run ./... with 0 issues reported.
