@@ -1,10 +1,10 @@
 # Implementation Plan: Sync Transactions Command and Audit Logging
 
 ## Phase 1: Local Transaction Storage Engine
-- [ ] Task: Design and Implement SQLite Transaction Store
-    - [ ] Define `Transaction`, `Direction`, `EntityType`, and `Filter` models in `internal/transaction/transaction.go`
-    - [ ] Write failing unit tests in `internal/transaction/store_test.go` for initialization, insertion, and query filtering
-    - [ ] Implement SQLite store in `internal/transaction/store.go` with auto-migration, indexes, and thread-safe read/write operations
+- [x] Task: Design and Implement SQLite Transaction Store [6f48870]
+    - [x] Define `Transaction`, `Direction`, `EntityType`, and `Filter` models in `internal/transaction/transaction.go`
+    - [x] Write failing unit tests in `internal/transaction/store_test.go` for initialization, insertion, and query filtering
+    - [x] Implement SQLite store in `internal/transaction/store.go` with auto-migration, indexes, and thread-safe read/write operations
 - [ ] Task: Conductor - User Manual Verification 'Phase 1: Local Transaction Storage Engine' (Protocol in workflow.md)
 
 ## Phase 2: Transaction Recording Integration in Syncer Engine
