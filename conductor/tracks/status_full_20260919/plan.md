@@ -14,9 +14,9 @@
 - [x] Task: Conductor - User Manual Verification 'Phase 2: Status Command Integration & Flag Handling' (Protocol in workflow.md)
 
 ## Phase 3: Integration Testing, Quality Gates & Documentation
-- [ ] Task: End-to-End Verification & Quality Gates
-    - [ ] Add integration tests in `test/status_test.go` verifying full status execution, `--full` piped output, and JSON validation
-    - [ ] Run full project test suite with `-race`, `go vet ./...`, and `golangci-lint run ./...`
-- [ ] Task: Documentation Update
-    - [ ] Update `README.md` with `--full` flag, default summary behavior, navigation key bindings, and sample outputs
+- [x] Task: End-to-End Verification & Quality Gates [235eadc]
+    - [x] Add integration tests in `test/status_test.go` verifying full status execution, `--full` piped output, and JSON validation
+    - [x] Run full project test suite with `-race`, `go vet ./...`, and `golangci-lint run ./...`
+- [x] Task: Documentation Update [268d4a6]
+    - [x] Update `README.md` with `--full` flag, default summary behavior, navigation key bindings, and sample outputs
 - [ ] Task: Conductor - User Manual Verification 'Phase 3: Integration Testing, Quality Gates & Documentation' (Protocol in workflow.md)
