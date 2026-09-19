@@ -16,10 +16,10 @@
 - [x] Task: Conductor - User Manual Verification 'Phase 2: Transaction Recording Integration in Syncer Engine' (Protocol in workflow.md)
 
 ## Phase 3: CLI Command `agy-sync transactions`
-- [ ] Task: Implement `transactions` Cobra Command
-    - [ ] Write failing unit tests in `cmd/transactions_test.go` verifying flag filtering (`--direction`, `--in`, `--out`, `--type`, `--conv`, `--artifact`, `--brain`, `-c/--conversation`, `--limit`) and `--json`
-    - [ ] Implement `cmd/transactions.go` with Cobra command definition, tabular ASCII formatter, and JSON serializer
-    - [ ] Register `transactionsCmd` in `cmd/root.go`
+- [x] Task: Implement `transactions` Cobra Command [5f73a94]
+    - [x] Write failing unit tests in `cmd/transactions_test.go` verifying flag filtering (`--direction`, `--in`, `--out`, `--type`, `--conv`, `--artifact`, `--brain`, `-c/--conversation`, `--limit`) and `--json`
+    - [x] Implement `cmd/transactions.go` with Cobra command definition, tabular ASCII formatter, and JSON serializer
+    - [x] Register `transactionsCmd` in `cmd/root.go`
 - [ ] Task: Conductor - User Manual Verification 'Phase 3: CLI Command agy-sync transactions' (Protocol in workflow.md)
 
 ## Phase 4: Integration Testing, Quality Gates & Documentation
