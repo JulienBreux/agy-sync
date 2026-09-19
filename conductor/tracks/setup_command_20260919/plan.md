@@ -1,10 +1,10 @@
 # Implementation Plan: Cloud Setup and Environment Verification Command (`agy-sync setup`)
 
 ## Phase 1: GCP Diagnostic and Management Core Client (`internal/setup/`)
-- [ ] Task: Design and Implement Setup Checker Interfaces and GCP Diagnostics
-    - [ ] Define `CheckResult`, `CheckStatus`, `SetupReport`, and `Checker` interfaces in `internal/setup/types.go`
-    - [ ] Write failing unit tests in `internal/setup/checker_test.go` covering credential validation, project access, API enablement, database verification, and dry-run mode
-    - [ ] Implement `GCPChecker` in `internal/setup/checker.go` checking ADC credentials, Cloud Resource Manager project access, Service Usage API status, and Firestore database existence
+- [x] Task: Design and Implement Setup Checker Interfaces and GCP Diagnostics [e0d5b5a]
+    - [x] Define `CheckResult`, `CheckStatus`, `SetupReport`, and `Checker` interfaces in `internal/setup/types.go`
+    - [x] Write failing unit tests in `internal/setup/checker_test.go` covering credential validation, project access, API enablement, database verification, and dry-run mode
+    - [x] Implement `GCPChecker` in `internal/setup/checker.go` checking ADC credentials, Cloud Resource Manager project access, Service Usage API status, and Firestore database existence
 - [ ] Task: Conductor - User Manual Verification 'Phase 1: GCP Diagnostic and Management Core Client' (Protocol in workflow.md)
 
 ## Phase 2: Firestore Database Creation and Mutation Engine (`internal/setup/`)
