@@ -1,6 +1,7 @@
 package test_test
 
 import (
+	"bytes"
 	"crypto/sha256"
 	"database/sql"
 	"encoding/hex"
@@ -15,11 +16,13 @@ import (
 	"github.com/stretchr/testify/require"
 	_ "modernc.org/sqlite"
 
+	"github.com/julienbreux/agy-sync/cmd"
 	"github.com/julienbreux/agy-sync/internal/discovery"
 	"github.com/julienbreux/agy-sync/internal/firestore"
 	"github.com/julienbreux/agy-sync/internal/parser"
 	"github.com/julienbreux/agy-sync/internal/reconstructor"
 	"github.com/julienbreux/agy-sync/internal/syncer"
+	"github.com/julienbreux/agy-sync/internal/transaction"
 	"github.com/julienbreux/agy-sync/pkg/config"
 	"github.com/julienbreux/agy-sync/pkg/models"
 )
@@ -679,6 +682,101 @@ func TestE2E_ClearDatabase(t *testing.T) {
 	readArt, err := os.ReadFile(artPath)
 	require.NoError(t, err)
 	assert.Equal(t, artContent, readArt)
+}
+
+func TestE2E_TransactionsAuditLogging(t *testing.T) {
+	ctx := t.Context()
+
+	sharedRepo := firestore.NewMemoryRepository()
+	t.Cleanup(func() {
+		_ = sharedRepo.Close()
+	})
+
+	// Machine Alpha (source)
+	alphaBrain := t.TempDir()
+	alphaTxDB := filepath.Join(t.TempDir(), "alpha_tx.db")
+	cfgAlpha := &config.Config{
+		ProjectID:      "e2e-project",
+		BrainDir:       alphaBrain,
+		MachineID:      "machine-alpha",
+		TransactionsDB: alphaTxDB,
+	}
+
+	convID := "tx-e2e-conversation"
+	alphaConvDir := filepath.Join(alphaBrain, convID)
+	alphaLogsDir := filepath.Join(alphaConvDir, ".system_generated", "logs")
+	require.NoError(t, os.MkdirAll(alphaLogsDir, 0o755))
+
+	alphaTranscriptPath := filepath.Join(alphaLogsDir, "transcript.jsonl")
+	step0 := `{"step_index":0,"source":"USER_EXPLICIT","type":"USER_INPUT","status":"DONE","created_at":"2026-09-19T10:00:00Z","content":"Audit logging test"}` + "\n"
+	require.NoError(t, os.WriteFile(alphaTranscriptPath, []byte(step0), 0o644))
+
+	artPath := filepath.Join(alphaConvDir, "report.pdf")
+	require.NoError(t, os.WriteFile(artPath, []byte("%PDF-1.4 test content"), 0o644))
+
+	// Push from Alpha
+	engineAlpha := syncer.NewEngine(cfgAlpha, sharedRepo)
+	t.Cleanup(func() { _ = engineAlpha.Close() })
+
+	pushRes, err := engineAlpha.Push(ctx, syncer.PushOptions{})
+	require.NoError(t, err)
+	assert.Equal(t, 1, pushRes.ConversationsSynced)
+	assert.Equal(t, 1, pushRes.StepsSynced)
+	assert.Equal(t, 1, pushRes.ArtifactsSynced)
+
+	// Machine Beta (destination)
+	betaBrain := t.TempDir()
+	betaTxDB := filepath.Join(t.TempDir(), "beta_tx.db")
+	cfgBeta := &config.Config{
+		ProjectID:      "e2e-project",
+		BrainDir:       betaBrain,
+		MachineID:      "machine-beta",
+		TransactionsDB: betaTxDB,
+	}
+
+	engineBeta := syncer.NewEngine(cfgBeta, sharedRepo)
+	t.Cleanup(func() { _ = engineBeta.Close() })
+
+	pullRes, err := engineBeta.Pull(ctx, syncer.PullOptions{ConversationID: convID})
+	require.NoError(t, err)
+	assert.Equal(t, 1, pullRes.StepsPulled)
+	assert.Equal(t, 1, pullRes.ArtifactsPulled)
+
+	// Verify Alpha transactions via store
+	alphaStore := engineAlpha.TransactionStore()
+	require.NotNil(t, alphaStore)
+	alphaOutTxs, err := alphaStore.Query(ctx, transaction.Filter{Direction: transaction.DirectionOut})
+	require.NoError(t, err)
+	assert.NotEmpty(t, alphaOutTxs)
+
+	// Verify Beta transactions via store
+	betaStore := engineBeta.TransactionStore()
+	require.NotNil(t, betaStore)
+	betaInTxs, err := betaStore.Query(ctx, transaction.Filter{Direction: transaction.DirectionIn})
+	require.NoError(t, err)
+	assert.NotEmpty(t, betaInTxs)
+
+	// Verify CLI transactions command on Alpha (Outbound / EXPORT)
+	rootAlpha := cmd.NewRootCommand()
+	bufAlpha := new(bytes.Buffer)
+	rootAlpha.SetOut(bufAlpha)
+	rootAlpha.SetErr(bufAlpha)
+	rootAlpha.SetArgs([]string{"transactions", "--db", alphaTxDB, "--out"})
+	require.NoError(t, rootAlpha.Execute())
+	assert.Contains(t, bufAlpha.String(), "EXPORT")
+	assert.Contains(t, bufAlpha.String(), convID)
+	assert.Contains(t, bufAlpha.String(), "report.pdf")
+
+	// Verify CLI transactions command on Beta (Inbound / IMPORT)
+	rootBeta := cmd.NewRootCommand()
+	bufBeta := new(bytes.Buffer)
+	rootBeta.SetOut(bufBeta)
+	rootBeta.SetErr(bufBeta)
+	rootBeta.SetArgs([]string{"transactions", "--db", betaTxDB, "--in"})
+	require.NoError(t, rootBeta.Execute())
+	assert.Contains(t, bufBeta.String(), "IMPORT")
+	assert.Contains(t, bufBeta.String(), convID)
+	assert.Contains(t, bufBeta.String(), "report.pdf")
 }
 
 
