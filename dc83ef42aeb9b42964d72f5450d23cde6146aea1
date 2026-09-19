@@ -1,0 +1,7 @@
+Task: Documentation Update
+
+Summary:
+- Documented agy-sync transactions command and options in README.md.
+- Documented filtering flags (--direction, --in, --out, --type, --conv, --artifact, --brain, -c/--conversation, -n/--limit, --offset, --db, --json).
+- Added sample terminal tabular output.
+- Documented transactions_db in YAML config and AGY_SYNC_TRANSACTIONS_DB in environment variables table.
