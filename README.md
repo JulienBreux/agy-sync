@@ -150,6 +150,66 @@ agy-sync init --project-id my-gcp-project [flags]
 
 ---
 
+### `agy-sync setup`
+Inspects local credentials, verifies Google Cloud APIs and permissions, checks or provisions the Firestore database in Native mode, and verifies Cloud Storage access. Supports `--dry-run` for safe non-mutating inspections and interactive or automated `--yes` provisioning.
+
+Aliases: `check`, `doctor`
+
+```bash
+# Run full diagnostic verification and interactively provision database if missing
+agy-sync setup
+
+# Safe non-mutating dry-run to inspect environment without making changes
+agy-sync setup --dry-run
+
+# Run non-interactively in CI/CD or automation with auto-approval
+agy-sync setup --project-id my-gcp-project --yes
+
+# Output structured diagnostics in JSON
+agy-sync setup --json
+```
+
+**Flags:**
+- `--dry-run`: Inspect environment and cloud resources without creating database or enabling APIs.
+- `-y, --yes`: Automatically confirm database creation without interactive prompting.
+- `--project-id <string>`: Google Cloud Project ID (overrides config).
+- `--database-id <string>`: Firestore Database ID (default: `(default)`).
+- `--location <string>`: Firestore database region/location for creation (default: `nam5`).
+- `--config <path>`: Path to YAML configuration file.
+- `--json`: Output full diagnostic checklist and results formatted as JSON.
+
+#### Sample Output:
+```text
+AGY-SYNC ENVIRONMENT & CLOUD SETUP
+==================================
+Target Project:  my-gcp-project
+Target Database: (default)
+Execution Mode:  Live Mode
+
+DIAGNOSTIC CHECKS:
+  [✓] Google Cloud Authentication (ADC) (14ms)
+      Active credentials found (developer@example.com)
+  [✓] Google Cloud Project Access (42ms)
+      Project "my-gcp-project" accessible
+  [✓] Required Cloud APIs (112ms)
+      All required service APIs are enabled
+      • firestore.googleapis.com: enabled
+      • cloudresourcemanager.googleapis.com: enabled
+      • storage.googleapis.com: enabled
+  [✓] Firestore Database Access (78ms)
+      Database "(default)" ready
+  [✓] Google Cloud Storage Access (31ms)
+      Cloud Storage API and permissions verified
+  [✓] Local Environment & Configuration (2ms)
+      Local directories and configuration accessible
+
+==================================
+STATUS: ALL CHECKS PASSED
+Ready to run 'agy-sync start' or 'agy-sync push'.
+```
+
+---
+
 ### `agy-sync push`
 Scans local conversations, parses new lines from `transcript.jsonl`, and uploads new steps and artifacts to Firestore.
 
