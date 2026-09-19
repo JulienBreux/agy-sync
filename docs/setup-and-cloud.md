@@ -25,10 +25,13 @@ The `setup` command runs an end-to-end diagnostic and provisioning suite against
 
 ```bash
 # Run interactive setup and provisioning
-agy-sync setup --project my-gcp-project
+agy-sync setup --project-id my-gcp-project
 
 # Run safe non-mutating check (dry-run mode)
-agy-sync setup --project my-gcp-project --dry-run
+agy-sync setup --project-id my-gcp-project --dry-run
+
+# Run non-interactively with auto-approval (CI/CD)
+agy-sync setup --project-id my-gcp-project --yes
 ```
 
 ```mermaid
@@ -51,53 +54,85 @@ flowchart TD
    - If missing and `--dry-run` is not active, prompts or automatically enables the service via the Google Service Usage API.
 4. **Database Provisioning**:
    - Inspects the project for a Firestore database in Native mode (default: `(default)`).
-   - If the database does not exist and `--dry-run` is false, provisions the database in your preferred GCP region (e.g., `us-central1` or `europe-west1`).
+   - If the database does not exist and `--dry-run` is false, provisions the database in your preferred GCP region (default: `nam5`).
 5. **Configuration Generation**: Generates or updates your local configuration file (`config.yaml`), recording the project ID, database ID, and a uniquely generated `machine_id`.
 
 ---
 
 ## Setup Flags
 
-| Flag | Description | Default |
-| :--- | :--- | :--- |
-| `--project` | Target Google Cloud Project ID | (Prompted or from config) |
-| `--database` | Firestore database ID to verify or provision | `(default)` |
-| `--region` | Cloud region for new Firestore database | `us-central1` |
-| `--dry-run` | Run all checks without enabling APIs or creating databases | `false` |
-| `--config` | Custom destination path for `config.yaml` | `~/.gemini/antigravity-cli/config.yaml` |
+| Flag | Short | Description | Default |
+| :--- | :--- | :--- | :--- |
+| `--project-id` | | Target Google Cloud Project ID | (From config or prompt) |
+| `--database-id` | | Firestore database ID to verify or provision | `(default)` |
+| `--location` | | Cloud region for new Firestore database | `nam5` |
+| `--dry-run` | | Inspect environment and cloud resources without making changes | `false` |
+| `--yes` | `-y` | Automatically confirm database creation without interactive prompting | `false` |
+| `--config` | | Custom destination path for `config.yaml` | `~/.config/agy-sync/config.yaml` |
+| `--json` | | Output full diagnostic report formatted as JSON | `false` |
 
 ---
 
 ## Sample Diagnostic Outputs
 
 ### Standard Diagnostic Run
-```
-[1/5] Checking Google Cloud authentication...
-      ✓ Application Default Credentials found (developer@example.com)
-[2/5] Checking project access for 'my-gcp-project'...
-      ✓ Project is active and accessible
-[3/5] Verifying required Google Cloud APIs...
-      ✓ firestore.googleapis.com is enabled
-      ✓ serviceusage.googleapis.com is enabled
-[4/5] Checking Firestore database '(default)'...
-      ✓ Database exists in region 'us-central1' (type: FIRESTORE_NATIVE)
-[5/5] Updating local configuration...
-      ✓ Configuration written to /Users/dev/.gemini/antigravity-cli/config.yaml
+```text
+AGY-SYNC ENVIRONMENT & CLOUD SETUP
+==================================
+Target Project:  my-gcp-project
+Target Database: (default)
+Execution Mode:  Live Mode
 
-Setup complete! You can now start syncing with 'agy-sync start'.
+DIAGNOSTIC CHECKS:
+  [✓] Google Cloud Authentication (ADC) (14ms)
+      Active credentials found (developer@example.com)
+  [✓] Google Cloud Project Access (42ms)
+      Project "my-gcp-project" accessible
+  [✓] Required Cloud APIs (112ms)
+      All required service APIs are enabled
+      • firestore.googleapis.com: enabled
+      • cloudresourcemanager.googleapis.com: enabled
+      • storage.googleapis.com: enabled
+  [✓] Firestore Database Access (78ms)
+      Database "(default)" ready
+  [✓] Google Cloud Storage Access (31ms)
+      Cloud Storage API and permissions verified
+  [✓] Local Environment & Configuration (2ms)
+      Local directories and configuration accessible
+
+==================================
+STATUS: ALL CHECKS PASSED
+Ready to run 'agy-sync start' or 'agy-sync push'.
 ```
 
 ### Dry-Run Diagnostics
 ```bash
-agy-sync setup --project my-gcp-project --dry-run
+agy-sync setup --project-id my-gcp-project --dry-run
 ```
-```
-[DRY RUN] Verifying Google Cloud prerequisites without applying changes...
-[1/4] Auth: ✓ Valid credentials
-[2/4] Project: ✓ 'my-gcp-project' accessible
-[3/4] APIs: ✓ Required services enabled
-[4/4] Database: ✓ Firestore '(default)' is ready
-All checks passed! No modifications were made.
+```text
+AGY-SYNC ENVIRONMENT & CLOUD SETUP
+==================================
+Target Project:  my-gcp-project
+Target Database: (default)
+Execution Mode:  Dry Run (Inspection Only)
+
+DIAGNOSTIC CHECKS:
+  [✓] Google Cloud Authentication (ADC) (12ms)
+      Active credentials found (developer@example.com)
+  [✓] Google Cloud Project Access (38ms)
+      Project "my-gcp-project" accessible
+  [✓] Required Cloud APIs (95ms)
+      All required service APIs are enabled
+  [✓] Firestore Database Access (65ms)
+      Database "(default)" ready
+  [✓] Google Cloud Storage Access (28ms)
+      Cloud Storage API and permissions verified
+  [✓] Local Environment & Configuration (2ms)
+      Local directories and configuration accessible
+
+==================================
+STATUS: ALL CHECKS PASSED
+Ready to run 'agy-sync start' or 'agy-sync push'.
 ```
 
 ---

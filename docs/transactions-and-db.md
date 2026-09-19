@@ -11,25 +11,27 @@ Every synchronization event (push or pull of a conversation, transcript step, or
 ### Command Usage
 
 ```bash
-# View recent sync transactions in tabular format
+# Display recent synchronization transactions (tabular output)
 agy-sync transactions
 
-# Filter by direction: incoming (pulled from cloud)
+# Filter by direction: IMPORT or EXPORT
+agy-sync transactions --in
+agy-sync transactions --out
 agy-sync transactions --direction in
 
-# Filter by direction: outgoing (pushed to cloud)
-agy-sync transactions --direction out
+# Filter by entity type: conversation, artifact, or brain asset
+agy-sync transactions --conv
+agy-sync transactions --artifact
+agy-sync transactions --brain
+agy-sync transactions --type artifact
 
-# Filter by entity type (conversation, artifact, or brain)
-agy-sync transactions --entity-type artifact
-
-# Trace all events for a specific conversation
-agy-sync transactions --conversation-id 624296c6-d623-4c39-92d4-3906f8c07140
+# Filter by conversation ID and limit results
+agy-sync transactions -c 624296c6-d623-4c39-92d4-3906f8c07140 --limit 20
 
 # Paginate audit log
 agy-sync transactions --limit 10 --offset 20
 
-# Output structured JSON for log collectors or scripts
+# Output machine-readable JSON
 agy-sync transactions --json
 ```
 
@@ -37,25 +39,28 @@ agy-sync transactions --json
 
 | Flag | Short | Description | Default |
 | :--- | :--- | :--- | :--- |
-| `--direction` | `-d` | Filter by sync direction (`in` or `out`) | (all) |
-| `--entity-type` | `-e` | Filter by entity type (`conversation`, `artifact`, `brain`) | (all) |
-| `--conversation-id` | `-c` | Filter transactions for a single conversation UUID | (all) |
-| `--limit` | `-l` | Maximum number of transactions to display | `50` |
-| `--offset` | `-o` | Number of transactions to skip for pagination | `0` |
-| `--db` | | Path to SQLite transactions database file | `~/.gemini/antigravity-cli/transactions.db` |
+| `--direction` | | Filter by direction: `'in'` (IMPORT) or `'out'` (EXPORT) | (all) |
+| `--in` | | Convenience flag to filter to inbound (IMPORT) transactions | `false` |
+| `--out` | | Convenience flag to filter to outbound (EXPORT) transactions | `false` |
+| `--type` | | Filter by entity type: `'conv'`, `'artifact'`, or `'brain'` | (all) |
+| `--conv` | | Convenience flag to filter to conversation transactions | `false` |
+| `--artifact` | | Convenience flag to filter to artifact transactions | `false` |
+| `--brain` | | Convenience flag to filter to brain transactions | `false` |
+| `--conversation` | `-c` | Filter by specific conversation ID | (all) |
+| `--limit` | `-n` | Maximum number of transactions to display | `50` |
+| `--offset` | | Number of transactions to skip for pagination | `0` |
+| `--db` | | Override path to transactions SQLite database | `~/.config/agy-sync/transactions.db` |
 | `--json` | | Output transactions array in JSON format | `false` |
 
 ### Sample Terminal Output
 
-```
-+----+---------------------+-----------+--------------+--------------------------------------+------------------------------+
-| ID | TIMESTAMP (UTC)     | DIRECTION | ENTITY TYPE  | CONVERSATION ID                      | DETAILS                      |
-+----+---------------------+-----------+--------------+--------------------------------------+------------------------------+
-| 42 | 2026-09-19 10:14:02 | OUT       | conversation | 624296c6-d623-4c39-92d4-3906f8c07140 | Pushed 3 steps               |
-| 41 | 2026-09-19 10:14:03 | OUT       | artifact     | 624296c6-d623-4c39-92d4-3906f8c07140 | Pushed plan.md (14.2 KB)     |
-| 40 | 2026-09-19 10:12:11 | IN        | conversation | a1b2c3d4-e5f6-7890-1234-567890abcdef | Pulled 1 step from macbook-2 |
-+----+---------------------+-----------+--------------+--------------------------------------+------------------------------+
-Showing 3 of 42 transactions.
+```text
+TIMESTAMP            ACTION    TYPE        CONVERSATION ID                       ENTITY                DETAILS
+--------------------------------------------------------------------------------------------------------------
+2026-09-19 08:35:10  EXPORT    conv        624296c6-d623-4c39-92d4-3906f8c07140  624296c6-...          steps: 42
+2026-09-19 08:35:10  EXPORT    artifact    624296c6-d623-4c39-92d4-3906f8c07140  design.md             size: 1024 bytes
+2026-09-19 08:35:10  EXPORT    brain       624296c6-d623-4c39-92d4-3906f8c07140  transcript.jsonl      +3 steps
+2026-09-19 08:36:22  IMPORT    brain       624296c6-d623-4c39-92d4-3906f8c07140  transcript.jsonl      +3 steps
 ```
 
 ---
