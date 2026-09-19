@@ -24,6 +24,6 @@
 - [x] Task: End-to-End Verification & Quality Gates [b0fae41]
     - [x] Add integration tests in `test/setup_test.go` verifying full setup workflow with dry-run, mock/emulator, and JSON validation
     - [x] Run full project test suite with `-race`, `go vet ./...`, and `golangci-lint run ./...`
-- [ ] Task: Documentation Update
-    - [ ] Update `README.md` documenting `agy-sync setup` command, `--dry-run`, prerequisites, and sample output
+- [x] Task: Documentation Update [89fda1a]
+    - [x] Update `README.md` documenting `agy-sync setup` command, `--dry-run`, prerequisites, and sample output
 - [ ] Task: Conductor - User Manual Verification 'Phase 4: Integration Testing, Quality Gates & Documentation' (Protocol in workflow.md)
