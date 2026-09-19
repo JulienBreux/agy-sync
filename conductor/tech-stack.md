@@ -10,6 +10,7 @@
 
 ## 3. Cloud & Data Layer
 - **Database:** Google Cloud Firestore (`cloud.google.com/go/firestore`) for conversation documents, steps, metadata, and real-time snapshot listeners.
+- **Management & Diagnostics:** Google Cloud APIs (`google.golang.org/api/cloudresourcemanager/v1`, `serviceusage/v1`, `firestore/v1`) for project verification, service enablement checks, and automated database provisioning.
 - **Object Storage:** Google Cloud Storage (`cloud.google.com/go/storage`) for large artifacts and binary blobs (>1MB).
 - **Auth:** Standard Google Cloud Application Default Credentials (ADC).
 

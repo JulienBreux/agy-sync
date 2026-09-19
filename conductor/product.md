@@ -31,4 +31,4 @@ Antigravity stores session states, tool executions, and artifacts locally within
    - Immutable step sequences tagged with machine IDs, logical timestamps, and step indices, merging cleanly without data loss.
 
 5. **CLI & Core Library:**
-   - Ergonomic CLI (`agy-sync start`, `stop`, `push`, `pull`, `status`) + clean modular library.
+   - Ergonomic CLI (`agy-sync init`, `setup`, `start`, `stop`, `push`, `pull`, `clear`, `transactions`, `status`) + clean modular library.
