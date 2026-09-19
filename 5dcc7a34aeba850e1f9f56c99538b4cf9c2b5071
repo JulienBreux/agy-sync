@@ -1,0 +1,8 @@
+Task: Wire Transaction Recorder into Syncer Engine
+
+Summary:
+- Added TransactionsDB configuration with default ~/.config/agy-sync/transactions.db in pkg/config/config.go.
+- Wired transaction.Store into syncer.Engine with SetTransactionStore, TransactionStore, and Close.
+- Implemented transaction emission during push (export conv, artifact, brain) and pull (import conv, artifact, brain).
+- Added unit tests in internal/syncer/push_test.go and internal/syncer/pull_test.go verifying transactions are recorded.
+- All unit and race tests pass with 0 linter issues.
