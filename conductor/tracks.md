@@ -61,7 +61,7 @@
 
 ---
 
-- [~] **Track: Add flag --full to status command. By default hide the conversations. Use the flag to display conversations. Use the arrows to navigate and add pagination relative to the viewport.**
+- [x] **Track: Add flag --full to status command. By default hide the conversations. Use the flag to display conversations. Use the arrows to navigate and add pagination relative to the viewport.**
   *Link: [./tracks/status_full_20260919/index.md](./tracks/status_full_20260919/index.md)*
 
 
