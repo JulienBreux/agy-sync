@@ -1,0 +1,8 @@
+{
+  "track_id": "status_full_20260919",
+  "type": "feature",
+  "status": "new",
+  "created_at": "2026-09-19T09:16:00+02:00",
+  "updated_at": "2026-09-19T09:16:00+02:00",
+  "description": "Add flag --full to status command. By default hide the conversations. Use the flag to display conversations. Use the arrows to navigate and add pagination relative to the viewport."
+}

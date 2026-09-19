@@ -59,4 +59,9 @@
 - [x] **Track: Add setup command to check APIs enabled / create database and checking access / checking project access / auth setup (with dry run to only check access)**
   *Link: [./tracks/setup_command_20260919/index.md](./tracks/setup_command_20260919/index.md)*
 
+---
+
+- [ ] **Track: Add flag --full to status command. By default hide the conversations. Use the flag to display conversations. Use the arrows to navigate and add pagination relative to the viewport.**
+  *Link: [./tracks/status_full_20260919/index.md](./tracks/status_full_20260919/index.md)*
+
 
