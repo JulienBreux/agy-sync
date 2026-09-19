@@ -51,6 +51,7 @@ machine_id: "status-machine-1"
 	t.Cleanup(cmd.ResetFirestoreClientFactory)
 
 	stateFile := filepath.Join(tempBrain, "test-none.state.json")
+	pidFile := filepath.Join(tempBrain, "test-none.pid")
 
 	// Text mode
 	root := cmd.NewRootCommand()
@@ -58,7 +59,7 @@ machine_id: "status-machine-1"
 	root.SetOut(buf)
 	root.SetErr(buf)
 
-	root.SetArgs([]string{"status", "--config", configPath, "--state-file", stateFile})
+	root.SetArgs([]string{"status", "--config", configPath, "--state-file", stateFile, "--pid-file", pidFile})
 	err := root.Execute()
 	require.NoError(t, err)
 	assert.Contains(t, buf.String(), "Antigravity Sync Status")
@@ -75,7 +76,7 @@ machine_id: "status-machine-1"
 	rootJSON.SetOut(bufJSON)
 	rootJSON.SetErr(bufJSON)
 
-	rootJSON.SetArgs([]string{"status", "--config", configPath, "--state-file", stateFile, "--json"})
+	rootJSON.SetArgs([]string{"status", "--config", configPath, "--state-file", stateFile, "--pid-file", pidFile, "--json"})
 	err = rootJSON.Execute()
 	require.NoError(t, err)
 	assert.Contains(t, bufJSON.String(), `"project_id": "test-status-proj"`)

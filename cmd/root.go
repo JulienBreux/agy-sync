@@ -75,6 +75,7 @@ and allows multi-machine conversation history synchronization.`,
 	rootCmd.AddCommand(newStartCommand())
 	rootCmd.AddCommand(newStopCommand())
 	rootCmd.AddCommand(newStatusCommand())
+	rootCmd.AddCommand(newTransactionsCommand())
 	rootCmd.AddCommand(newVersionCommand())
 
 	return rootCmd
