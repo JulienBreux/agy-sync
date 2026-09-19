@@ -56,7 +56,7 @@
 
 ---
 
-- [ ] **Track: Add setup command to check APIs enabled / create database and checking access / checking project access / auth setup (with dry run to only check access)**
+- [~] **Track: Add setup command to check APIs enabled / create database and checking access / checking project access / auth setup (with dry run to only check access)**
   *Link: [./tracks/setup_command_20260919/index.md](./tracks/setup_command_20260919/index.md)*
 
 
