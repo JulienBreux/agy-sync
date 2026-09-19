@@ -1,0 +1,5 @@
+Task: Documentation Update
+
+Summary:
+- Updated README.md documenting agy-sync setup command, its aliases (check, doctor), and all flags (--dry-run, --yes, --project-id, --database-id, --location, --config, --json).
+- Added usage examples for interactive verification, dry run inspections, CI/CD automated setup, and sample visual checklist ASCII output.
