@@ -1,6 +1,7 @@
 package cmd
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 	"fmt"
@@ -10,13 +11,31 @@ import (
 	"time"
 
 	"github.com/spf13/cobra"
+	"golang.org/x/term"
 
 	"github.com/julienbreux/agy-sync/internal/daemon"
 	"github.com/julienbreux/agy-sync/internal/discovery"
+	"github.com/julienbreux/agy-sync/internal/pager"
 	"github.com/julienbreux/agy-sync/internal/parser"
 	"github.com/julienbreux/agy-sync/pkg/config"
 	"github.com/julienbreux/agy-sync/pkg/models"
 )
+
+var isTerminalFunc = func() bool {
+	return term.IsTerminal(int(os.Stdout.Fd())) && term.IsTerminal(int(os.Stdin.Fd()))
+}
+
+// SetIsTerminalFunc allows overriding terminal detection in tests.
+func SetIsTerminalFunc(fn func() bool) {
+	isTerminalFunc = fn
+}
+
+// ResetIsTerminalFunc restores standard terminal detection.
+func ResetIsTerminalFunc() {
+	isTerminalFunc = func() bool {
+		return term.IsTerminal(int(os.Stdout.Fd())) && term.IsTerminal(int(os.Stdin.Fd()))
+	}
+}
 
 // DaemonStatus represents the runtime status of the background synchronization daemon.
 type DaemonStatus struct {
@@ -47,11 +66,12 @@ type StatusReport struct {
 	SummariesDB        string               `json:"summaries_db"`
 	DBSyncEnabled      bool                 `json:"db_sync_enabled"`
 	ConversationsCount int                  `json:"conversations_count"`
-	Conversations      []ConversationStatus `json:"conversations"`
+	Conversations      []ConversationStatus `json:"conversations,omitempty"`
 }
 
 type statusOptions struct {
 	conversationID   string
+	full             bool
 	pidFile          string
 	logFile          string
 	stateFile        string
@@ -199,65 +219,86 @@ artifact counts against remote Firestore metadata, and reports daemon process he
 			}
 
 			if globalOpts.JSON {
+				if !opts.full {
+					report.Conversations = nil
+				}
 				enc := json.NewEncoder(cmd.OutOrStdout())
 				enc.SetIndent("", "  ")
 				return enc.Encode(report)
 			}
 
-			cmd.Println("==================================================")
-			cmd.Println("          Antigravity Sync Status                ")
-			cmd.Println("==================================================")
-			if report.Daemon.State == string(daemon.StateRunning) {
-				cmd.Printf("Daemon Status:   RUNNING (PID: %d)\n", report.Daemon.PID)
-			} else {
-				cmd.Println("Daemon Status:   STOPPED")
+			if !opts.full {
+				var buf bytes.Buffer
+				renderStatusSummary(report, &buf)
+				if report.ConversationsCount > 0 {
+					buf.WriteString("\nRun 'agy-sync status --full' to inspect conversations.\n")
+				}
+				_, err := cmd.OutOrStdout().Write(buf.Bytes())
+				return err
 			}
-			if report.Daemon.LastPolledAt != nil {
-				cmd.Printf("Last Polling:    %s (%s ago)\n",
-					report.Daemon.LastPolledAt.Format("2006-01-02 15:04:05 UTC"),
-					time.Since(*report.Daemon.LastPolledAt).Truncate(time.Second),
-				)
-			} else {
-				cmd.Println("Last Polling:    Never / Inactive")
-			}
-			cmd.Printf("Daemon Log:      %s\n", report.Daemon.LogFile)
-			cmd.Printf("GCP Project ID:  %s\n", report.ProjectID)
-			cmd.Printf("Machine ID:      %s\n", report.MachineID)
-			cmd.Printf("Brain Directory: %s\n", report.BrainDir)
-			cmd.Printf("Conversations:   %s\n", report.ConversationsDir)
-			cmd.Printf("Summaries DB:    %s\n", report.SummariesDB)
-			dbSyncStr := "Enabled"
-			if !report.DBSyncEnabled {
-				dbSyncStr = "Disabled"
-			}
-			cmd.Printf("SQLite DB Sync:  %s\n", dbSyncStr)
-			cmd.Printf("Sessions Found:  %d\n\n", report.ConversationsCount)
 
 			if len(report.Conversations) == 0 {
-				cmd.Println("No conversations found in brain directory.")
-				return nil
+				var buf bytes.Buffer
+				renderStatusSummary(report, &buf)
+				buf.WriteString("\nNo conversations found in brain directory.\n")
+				_, err := cmd.OutOrStdout().Write(buf.Bytes())
+				return err
 			}
 
-			cmd.Printf("%-38s %-12s %-12s %-10s %-10s %-8s\n", "CONVERSATION ID", "LOCAL STEPS", "REMOTE STEPS", "ARTIFACTS", "LOCAL DB", "SYNCED")
-			cmd.Println(strings.Repeat("-", 94))
+			isTTY := isTerminalFunc()
+			pg := pager.New(pager.Options{
+				IsTTY:           isTTY,
+				In:              cmd.InOrStdin(),
+				Out:             cmd.OutOrStdout(),
+				Overhead:        17,
+				AlternateScreen: true,
+			})
 
-			for _, c := range report.Conversations {
-				syncedStr := "No"
-				if c.Synced {
-					syncedStr = "Yes"
-				}
-				dbStr := "No"
-				if c.HasLocalDB {
-					dbStr = "Yes"
-				}
-				cmd.Printf("%-38s %-12d %-12d %-10d %-10s %-8s\n",
-					c.ID, c.LocalSteps, c.RemoteSteps, c.ArtifactsCount, dbStr, syncedStr)
-			}
+			totalConvs := len(report.Conversations)
+			return pg.Run(totalConvs, func(start, end, selected int, out *bytes.Buffer) {
+				renderStatusSummary(report, out)
+				out.WriteString("\n\n")
 
-			return nil
+				fmt.Fprintf(out, "%-38s %-12s %-12s %-10s %-10s %-8s\n",
+					"CONVERSATION ID", "LOCAL STEPS", "REMOTE STEPS", "ARTIFACTS", "LOCAL DB", "SYNCED")
+				out.WriteString(strings.Repeat("-", 94) + "\n")
+
+				for i := start; i < end; i++ {
+					c := report.Conversations[i]
+					syncedStr := "No"
+					if c.Synced {
+						syncedStr = "Yes"
+					}
+					dbStr := "No"
+					if c.HasLocalDB {
+						dbStr = "Yes"
+					}
+					fmt.Fprintf(out, "%-38s %-12d %-12d %-10d %-10s %-8s\n",
+						c.ID, c.LocalSteps, c.RemoteSteps, c.ArtifactsCount, dbStr, syncedStr)
+				}
+
+				if isTTY {
+					out.WriteString(strings.Repeat("-", 94) + "\n")
+					pageSize := end - start
+					if pageSize <= 0 {
+						pageSize = 1
+					}
+					currentPage := (start / pageSize) + 1
+					totalPages := totalConvs / pageSize
+					if totalConvs%pageSize != 0 {
+						totalPages++
+					}
+					if totalPages < 1 {
+						totalPages = 1
+					}
+					fmt.Fprintf(out, "Page %d of %d (%d-%d of %d) | [↑/↓] Row  [←/→] Page  [q] Quit\n",
+						currentPage, totalPages, start+1, end, totalConvs)
+				}
+			})
 		},
 	}
 
+	statusCmd.Flags().BoolVar(&opts.full, "full", false, "Display detailed list of conversations with viewport pagination")
 	statusCmd.Flags().StringVarP(&opts.conversationID, "conversation", "c", "", "Optional conversation ID to filter status")
 	statusCmd.Flags().StringVar(&opts.pidFile, "pid-file", daemon.DefaultPIDPath(), "Path to PID file")
 	statusCmd.Flags().StringVar(&opts.logFile, "log-file", daemon.DefaultLogPath(), "Path to daemon log file")
@@ -267,4 +308,35 @@ artifact counts against remote Firestore metadata, and reports daemon process he
 	statusCmd.Flags().StringVar(&opts.summariesDB, "summaries-db", "", "Path to conversation summaries SQLite database")
 
 	return statusCmd
+}
+
+func renderStatusSummary(report *StatusReport, out *bytes.Buffer) {
+	out.WriteString("==================================================\n")
+	out.WriteString("          Antigravity Sync Status                \n")
+	out.WriteString("==================================================\n")
+	if report.Daemon.State == string(daemon.StateRunning) {
+		fmt.Fprintf(out, "Daemon Status:   RUNNING (PID: %d)\n", report.Daemon.PID)
+	} else {
+		out.WriteString("Daemon Status:   STOPPED\n")
+	}
+	if report.Daemon.LastPolledAt != nil {
+		fmt.Fprintf(out, "Last Polling:    %s (%s ago)\n",
+			report.Daemon.LastPolledAt.Format("2006-01-02 15:04:05 UTC"),
+			time.Since(*report.Daemon.LastPolledAt).Truncate(time.Second),
+		)
+	} else {
+		out.WriteString("Last Polling:    Never / Inactive\n")
+	}
+	fmt.Fprintf(out, "Daemon Log:      %s\n", report.Daemon.LogFile)
+	fmt.Fprintf(out, "GCP Project ID:  %s\n", report.ProjectID)
+	fmt.Fprintf(out, "Machine ID:      %s\n", report.MachineID)
+	fmt.Fprintf(out, "Brain Directory: %s\n", report.BrainDir)
+	fmt.Fprintf(out, "Conversations:   %s\n", report.ConversationsDir)
+	fmt.Fprintf(out, "Summaries DB:    %s\n", report.SummariesDB)
+	dbSyncStr := "Enabled"
+	if !report.DBSyncEnabled {
+		dbSyncStr = "Disabled"
+	}
+	fmt.Fprintf(out, "SQLite DB Sync:  %s\n", dbSyncStr)
+	fmt.Fprintf(out, "Sessions Found:  %d\n", report.ConversationsCount)
 }
