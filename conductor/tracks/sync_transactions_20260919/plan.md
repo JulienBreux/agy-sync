@@ -13,7 +13,7 @@
     - [x] Inject `transaction.Store` into `syncer.Engine`
     - [x] Write failing unit tests in `internal/syncer/push_test.go` and `internal/syncer/pull_test.go` verifying transaction events are recorded
     - [x] Implement transaction emission during push (export conv, artifact, brain) and pull (import conv, artifact, brain)
-- [ ] Task: Conductor - User Manual Verification 'Phase 2: Transaction Recording Integration in Syncer Engine' (Protocol in workflow.md)
+- [x] Task: Conductor - User Manual Verification 'Phase 2: Transaction Recording Integration in Syncer Engine' (Protocol in workflow.md)
 
 ## Phase 3: CLI Command `agy-sync transactions`
 - [ ] Task: Implement `transactions` Cobra Command
